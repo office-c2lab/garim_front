@@ -1,29 +1,27 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { Outlet } from 'react-router-dom';
+
 import AppHeader from './AppHeader.jsx';
 import AppSidebar from './AppSidebar.jsx';
+import { useSidebarStore } from '../stores/sidebarStore.js';
 
-export default function AppShell({
-  children,
-  projects = [],
-  activeProjectId,
-  onProjectSelect,
-  onNavigate,
-  showBrand = true,
-}) {
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+export default function AppShell({ showBrand = true }) {
+  const isMobileSidebarOpen = useSidebarStore(state => state.isMobileSidebarOpen);
+  const toggleMobileSidebar = useSidebarStore(state => state.toggleMobileSidebar);
+  const closeMobileSidebar = useSidebarStore(state => state.closeMobileSidebar);
 
   useEffect(() => {
     if (!isMobileSidebarOpen) return undefined;
 
     const handleKeyDown = event => {
       if (event.key === 'Escape') {
-        setIsMobileSidebarOpen(false);
+        closeMobileSidebar();
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isMobileSidebarOpen]);
+  }, [isMobileSidebarOpen, closeMobileSidebar]);
 
   return (
     <main
@@ -38,19 +36,12 @@ export default function AppShell({
         <div className="fixed inset-x-0 top-0 z-30">
           <AppHeader
             isSidebarOpen={isMobileSidebarOpen}
-            onMenuClick={() => setIsMobileSidebarOpen(open => !open)}
+            onMenuClick={toggleMobileSidebar}
           />
         </div>
 
         <div className="fixed top-0 left-0 bottom-0 z-40 hidden w-[var(--app-sidebar-width)] lg:block">
-          <AppSidebar
-            projects={projects}
-            overlayHeader
-            showBrand={showBrand}
-            activeProjectId={activeProjectId}
-            onProjectSelect={onProjectSelect}
-            onNavigate={onNavigate}
-          />
+          <AppSidebar overlayHeader showBrand={showBrand} />
         </div>
 
         <div
@@ -65,8 +56,9 @@ export default function AppShell({
               isMobileSidebarOpen ? 'opacity-100' : 'opacity-0'
             }`.trim()}
             aria-label="사이드바 닫기"
-            onClick={() => setIsMobileSidebarOpen(false)}
+            onClick={closeMobileSidebar}
           />
+
           <div
             id="app-sidebar-drawer"
             className={`absolute top-0 left-0 bottom-0 w-[var(--app-sidebar-mobile-width)] max-w-full border-r border-white/10 bg-[#0F1214] shadow-[0_24px_80px_rgba(0,0,0,0.35)] transition-transform duration-300 ease-out ${
@@ -74,19 +66,9 @@ export default function AppShell({
             }`.trim()}
           >
             <AppSidebar
-              projects={projects}
-
               overlayHeader
               showBrand={showBrand}
-              activeProjectId={activeProjectId}
-              onProjectSelect={projectId => {
-                onProjectSelect?.(projectId);
-                setIsMobileSidebarOpen(false);
-              }}
-              onNavigate={target => {
-                onNavigate?.(target);
-                setIsMobileSidebarOpen(false);
-              }}
+              onNavigate={closeMobileSidebar}
             />
           </div>
         </div>
@@ -94,7 +76,7 @@ export default function AppShell({
         <section className="fixed top-[var(--app-header-height)] right-0 bottom-0 left-0 overflow-hidden border-t border-[#FFFFFF] bg-[#0F1214] lg:left-[var(--app-sidebar-width)] lg:rounded-tl-[24px] lg:border-l lg:border-[#FFFFFF]">
           <div className="hover-scrollbar relative h-full overflow-y-auto overflow-x-hidden">
             <div className="min-h-full w-full bg-[radial-gradient(circle_at_top,rgba(49,164,189,0.14),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0))] px-3 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-4">
-              {children}
+              <Outlet />
             </div>
           </div>
         </section>

@@ -1,139 +1,117 @@
-import { useMemo, useState } from 'react';
-import searchIcon from '../assets/icons/search.svg';
+import { Activity, Globe2, LayoutDashboard, ScrollText } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+
 import RadarBrand from './RadarBrand.jsx';
 
-function ProjectTypeBadge({ type }) {
-  return (
-    <span className="flex h-[18px] w-[30px] shrink-0 items-center justify-center rounded-full border border-white text-[10px] font-bold text-white">
-      {type}
-    </span>
-  );
-}
+const DEFAULT_NAV_ITEMS = [
+  {
+    key: 'dashboard',
+    label: '대시보드',
+    path: '/dashboard',
+    icon: LayoutDashboard,
+  },
+  {
+    key: 'monitoring',
+    label: '모니터링',
+    path: '/monitoring',
+    icon: Activity,
+  },
+  {
+    key: 'policy',
+    label: '정책',
+    path: '/policies',
+    icon: ScrollText,
+  },
+  {
+    key: 'domain',
+    label: '도메인',
+    path: '/domains',
+    icon: Globe2,
+  },
+];
 
-function MetricBar({ label, value, tone = 'default' }) {
-  const filledBlocks = Math.max(0, Math.min(5, Math.round(value / 20)));
-  const isUnavailable = tone === 'unavailable';
+function getIsActive(pathname, itemPath) {
+  if (itemPath === '/dashboard') {
+    return pathname === '/' || pathname.startsWith('/dashboard');
+  }
 
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between text-sm">
-        <span className="font-semibold text-white">{label}</span>
-        <span className={isUnavailable ? 'text-[#A7AFBF]' : 'text-[#31A4BD]'}>
-          {isUnavailable ? '미구현' : `${value}%`}
-        </span>
-      </div>
-      <div className="flex overflow-hidden rounded-full">
-        {Array.from({ length: 5 }).map((_, index) => (
-          <div
-            key={`${label}-${index}`}
-            className={`h-2 flex-1 ${
-              index < filledBlocks ? 'bg-[#31A4BD]' : isUnavailable ? 'bg-[#4B5160]' : 'bg-white'
-            } ${index === 0 ? 'rounded-l-full' : ''} ${index === 4 ? 'rounded-r-full' : ''}`.trim()}
-          />
-        ))}
-      </div>
-    </div>
-  );
+  return pathname.startsWith(itemPath);
 }
 
 export default function AppSidebar({
-  projects = [],
   overlayHeader = false,
   showBrand = true,
-  activeProjectId,
-  onProjectSelect,
+  navItems = DEFAULT_NAV_ITEMS,
   onNavigate,
 }) {
-  const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const sidebarTopPaddingClass = overlayHeader ? 'pt-0' : 'pt-4';
+
   const brandWrapperClass = overlayHeader
     ? 'flex min-h-[calc(var(--app-header-height)+0.2rem)] items-center justify-center'
     : 'flex justify-center py-1';
-  const searchSectionClass = showBrand
-    ? overlayHeader
-      ? 'pt-1.5 lg:pt-1 xl:pt-2'
-      : 'pt-3.5 lg:pt-3 xl:pt-4'
-    : 'pt-1';
 
-  const filteredProjects = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
-    if (!normalizedSearch) return projects;
-
-    return projects.filter(project =>
-      [project.name, project.description, project.id].some(value =>
-        String(value || '')
-          .toLowerCase()
-          .includes(normalizedSearch)
-      )
-    );
-  }, [projects, searchTerm]);
+  const handleNavigate = path => {
+    navigate(path);
+    onNavigate?.();
+  };
 
   return (
     <aside className="flex h-full w-full overflow-hidden bg-[#0F1214] text-white">
-      <div className="flex h-full w-full flex-col px-2.5 lg:px-2.5 xl:px-3.5">
-        <div className={`flex min-h-0 flex-1 flex-col pb-3.5 ${sidebarTopPaddingClass}`.trim()}>
+      <div className="flex h-full w-full flex-col px-3 lg:px-3 xl:px-3.5">
+        <div className={`flex min-h-0 flex-1 flex-col pb-4 ${sidebarTopPaddingClass}`.trim()}>
           {showBrand ? (
             <div className={brandWrapperClass}>
               <button
                 type="button"
                 className="cursor-pointer"
-                onClick={() => onNavigate?.('dashboard')}
+                onClick={() => handleNavigate('/dashboard')}
+                aria-label="대시보드로 이동"
               >
                 <RadarBrand
-                  className="gap-1 lg:gap-1 xl:gap-[0.6rem] 2xl:gap-2"
-                  logoClassName="h-[1.65rem] lg:h-[1.55rem] xl:h-[2rem] 2xl:h-[2.25rem]"
-                  radarClassName="w-[5.15rem] lg:w-[4.95rem] xl:w-[6.7rem] 2xl:w-[7.4rem]"
+                  className="gap-1.5 lg:gap-1.5 xl:gap-2"
+                  logoClassName="h-[1.75rem] lg:h-[1.7rem] xl:h-[2rem] 2xl:h-[2.2rem]"
+                  radarClassName="w-[5.45rem] lg:w-[5.25rem] xl:w-[6.6rem] 2xl:w-[7.2rem]"
                 />
               </button>
             </div>
           ) : null}
 
-          
+          <nav className="flex min-h-0 flex-1 pt-4" aria-label="화면 이동 메뉴">
+            <ul className="h-full w-full space-y-1.5 text-left">
+              {navItems.map(item => {
+                const Icon = item.icon;
+                const isActive = getIsActive(location.pathname, item.path);
 
-          
-
-          <div className="flex min-h-0 flex-1 pt-2">
-            {filteredProjects.length > 0 ? (
-              <ul className="hover-scrollbar h-full w-full overflow-y-auto pr-1 text-left">
-                {filteredProjects.map(project => {
-                  const isActive = activeProjectId === project.id;
-
-                  return (
-                    <li
-                      key={project.id}
-                      className="border-b border-[#9EA2AE] py-0.5 last:border-b-0"
+                return (
+                  <li key={item.key}>
+                    <button
+                      type="button"
+                      onClick={() => handleNavigate(item.path)}
+                      className={`group flex h-[46px] w-full cursor-pointer items-center gap-2.5 rounded-[10px] px-3.5 text-left transition duration-200 ${
+                        isActive
+                          ? 'bg-[#31A4BD] text-white shadow-[0_10px_24px_rgba(49,164,189,0.22)]'
+                          : 'bg-transparent text-[#D2D5DB] hover:bg-white/8 hover:text-white'
+                      }`.trim()}
                     >
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onProjectSelect?.(project.id);
-                          onNavigate?.('project');
-                        }}
-                        className={`flex h-[34px] w-full items-center gap-1.5 rounded-[8px] px-1.5 text-left transition ${
-                          isActive ? 'bg-[#31A4BD]' : 'bg-transparent hover:bg-white/8'
-                        }`.trim()}
-                      >
-                        <ProjectTypeBadge type={project.type || 'URL'} />
-                        <span className="min-w-0 flex-1 truncate pr-1 text-[clamp(0.74rem,1.18vw,0.82rem)] font-bold leading-[140%] text-white xl:text-[clamp(0.82rem,1.4vw,0.9rem)]">
-                          {project.name}
-                        </span>
-                        {project.isNew ? (
-                          <span className="flex h-[12px] w-[30px] shrink-0 items-center justify-center rounded-[4px] bg-[#B11034] text-[9px] font-bold uppercase tracking-[0.08em] text-white">
-                            New
-                          </span>
-                        ) : null}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <span className="text-sm text-[#D2D5DB]">프로젝트 없음</span>
-            )}
-          </div>
+                      <Icon
+                        className={`h-[18px] w-[18px] shrink-0 transition ${
+                          isActive ? 'text-white' : 'text-[#9EA2AE] group-hover:text-white'
+                        }`}
+                        strokeWidth={1.9}
+                      />
 
-          
+                      <span className="min-w-0 flex-1 truncate text-[clamp(0.88rem,1.18vw,0.95rem)] font-semibold leading-[140%]">
+                        {item.label}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
         </div>
       </div>
     </aside>
