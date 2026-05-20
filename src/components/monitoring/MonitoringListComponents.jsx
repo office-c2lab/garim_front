@@ -287,3 +287,49 @@ export function MonitoringDataTable({
     </div>
   );
 }
+
+export function MonitoringDomainTable({ rows, renderLogo, renderToggle, className = '' }) {
+  return (
+    <div className={`flex min-h-0 w-full flex-col pb-0 ${className}`.trim()}>
+      <div className="min-h-0 w-full overflow-x-auto">
+        <div className="min-w-[760px]">
+          <div className="grid h-[44px] w-full grid-cols-[6.5rem_minmax(9rem,1.1fr)_minmax(16rem,2fr)_8rem] items-center rounded-t-[16px] bg-white/20 px-4 text-[clamp(0.88rem,1vw,1rem)] font-bold leading-[140%] text-white lg:px-5 xl:px-6">
+            <span>Logo</span>
+            <span>이름</span>
+            <span>URL</span>
+            <span className="text-center">사용/비사용</span>
+          </div>
+
+          <div className="mt-2 overflow-hidden rounded-[16px] border border-white/10">
+            {rows.map((row, index) => {
+              const isStriped = index % 2 === 1;
+              const baseRowClass = isStriped ? 'bg-white/20' : 'bg-[#0F1214]';
+
+              return (
+                <div
+                  key={row.id}
+                  className={`grid min-h-[72px] w-full grid-cols-[6.5rem_minmax(9rem,1.1fr)_minmax(16rem,2fr)_8rem] items-center px-4 text-[clamp(0.82rem,0.9vw,0.92rem)] leading-[150%] text-white lg:px-5 xl:px-6 ${
+                    index === 0 ? baseRowClass : `${baseRowClass} border-t border-white/10`
+                  }`.trim()}
+                >
+                  <div className="py-3">{renderLogo(row)}</div>
+                  <div className="truncate pr-4 font-semibold text-white">{row.name}</div>
+                  <a
+                    href={row.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="truncate pr-4 text-[#D5DFEA] underline decoration-transparent transition hover:text-[#5AD0DE] hover:decoration-[#5AD0DE]"
+                    title={row.url}
+                  >
+                    {row.url}
+                  </a>
+                  <div className="flex justify-center py-3">{renderToggle(row)}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
