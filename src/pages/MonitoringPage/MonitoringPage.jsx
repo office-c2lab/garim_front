@@ -189,6 +189,7 @@ const logs = [
 const resultOptions = ['전체 결과', '정상', '개인정보 탐지', '기밀정보 탐지', '프롬프트 위협'];
 const ROWS_PER_PAGE = 10;
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
+const DEFAULT_DETAIL_MEMO = '메모를 입력하세요...';
 
 function normalizeLogDateTime(value) {
   return String(value).replace(' ', 'T');
@@ -261,36 +262,215 @@ function isSameDay(left, right) {
   );
 }
 
-function DetailField({ label, children, className = '' }) {
+function buildMaskedPrompt(promptDetail) {
+  return promptDetail
+    .replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, match => {
+      const [local, domain] = match.split('@');
+      const maskedLocal = `${local.slice(0, 2)}***`;
+      return `${maskedLocal}@${domain}`;
+    })
+    .replace(/김철수|이영희|박민수|최민준|박수진|최유진|정민수|윤서진/g, '***')
+    .replace(/\b\d{1,3}(,\d{3})*원/g, value => `/${value}`);
+}
+
+function buildDetectionItems(row) {
+  if (row.result === '개인정보 탐지') {
+    return ['이메일 4건', '사용자 식별자', '거래 금액', '내부 문서 정보'];
+  }
+
+  if (row.result === '기밀정보 탐지') {
+    return ['내부 계약 문구', '프로젝트명', '담당자 정보'];
+  }
+
+  if (row.result === '프롬프트 위협') {
+    return ['시스템 지시 무시', '인젝션 의심', '내부 규칙 노출'];
+  }
+
+  return ['위험 키워드 없음', '민감 정보 없음'];
+}
+
+function buildDetailContext(row) {
+  return {
+    sessionId: `sess_20260520_${String(row.id).padStart(3, '0')}`,
+    policyName: row.result === '정상' ? '일반 사용 허용 정책' : '개인정보 보호 기본 정책',
+    actionStatus: row.result === '정상' ? '자동 승인 완료' : '관리자 검토 필요',
+    riskLabel:
+      row.level === 'danger'
+        ? '위험도 높음'
+        : row.level === 'warning'
+          ? '자동 마스킹 대기'
+          : '정상 처리',
+    maskedPrompt: buildMaskedPrompt(row.promptDetail),
+    detectionItems: buildDetectionItems(row),
+    evidenceLines: row.detectionDetail
+      .split('\n')
+      .map(line => line.replaceAll('·', '').trim())
+      .filter(Boolean),
+    actionLines: row.actionDetail
+      .split('. ')
+      .map(line => line.trim())
+      .filter(Boolean)
+      .map(line => (line.endsWith('.') ? line : `${line}.`)),
+  };
+}
+
+function DetailSectionLabel({ children }) {
   return (
-    <div className={className}>
-      <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.04em] text-[#8B95A5]">
-        {label}
-      </label>
-      <div className="flex min-h-[46px] items-center rounded-[10px] border border-white/10 bg-[#0B0F14] px-3.5 text-[13px] font-medium text-[#E8EDF5] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-        {children}
+    <div className="flex items-center gap-2 text-[13px] font-bold tracking-[-0.01em] text-[#4A57D1]">
+      <span className="flex h-4 w-4 items-center justify-center rounded-[4px] border border-[#C9D0FF] bg-[#F3F4FF]">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+          <path d="M2 5h6M5 2v6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+        </svg>
+      </span>
+      {children}
+    </div>
+  );
+}
+
+function DetailStatusBadge({ tone = 'red', children }) {
+  const styles =
+    tone === 'red'
+      ? 'border-[#FFD8D4] bg-[#FFF4F2] text-[#FF4D4F]'
+      : tone === 'orange'
+        ? 'border-[#FFE3BC] bg-[#FFF7EA] text-[#F59E0B]'
+        : 'border-[#D8DBFF] bg-[#F4F5FF] text-[#6A5AE0]';
+
+  return (
+    <span
+      className={`inline-flex h-7 items-center rounded-[8px] border px-3 text-[11px] font-semibold ${styles}`.trim()}
+    >
+      {children}
+    </span>
+  );
+}
+
+function DetailHeader({ row }) {
+  const detail = buildDetailContext(row);
+
+  return (
+    <div className="flex flex-col gap-3 border-b border-[#E7EBF5] pb-4">
+      <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 text-[15px] font-bold tracking-[-0.02em] text-[#1F2555]">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full border border-[#D5DAF9] bg-[#F6F7FF] text-[#6A5AE0]">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+                <path
+                  d="M2.1 8.6h6.8M3.4 8.6V4.1a2.1 2.1 0 0 1 4.2 0v4.5M4.4 2.8h2.2"
+                  stroke="currentColor"
+                  strokeWidth="1.05"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+            상세 내역
+          </div>
+          <DetailStatusBadge tone="red">{row.result}</DetailStatusBadge>
+          <DetailStatusBadge tone="red">위험도 높음</DetailStatusBadge>
+          <DetailStatusBadge tone="orange">{detail.riskLabel}</DetailStatusBadge>
+        </div>
+        <span className="text-[12px] font-semibold text-[#7A82A6]">
+          로그 ID {String(row.id).padStart(4, '0')}
+        </span>
       </div>
     </div>
   );
 }
 
-function DetailBox({ label, children, className = '' }) {
+function DetailSummaryItem({ icon, label, value, valueClassName = '' }) {
   return (
-    <div className={className}>
-      <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.04em] text-[#8B95A5]">
-        {label}
-      </label>
-      <div className="min-h-[112px] rounded-[12px] border border-white/10 bg-[#0B0F14] px-4 py-3.5 text-[13px] leading-[1.8] text-[#D9E0EA] whitespace-pre-line shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-        {children}
+    <div className="flex items-start gap-3">
+      <span className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-[6px] text-[#7B82B6]">
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <p className="text-[11px] font-semibold text-[#7C86A7]">{label}</p>
+        <p
+          className={`truncate pt-1 text-[13px] font-semibold tracking-[-0.01em] text-[#2E3A59] ${valueClassName}`.trim()}
+        >
+          {value}
+        </p>
       </div>
     </div>
   );
 }
 
-function DetailSectionTitle({ children }) {
+function DetailPanel({ title, action, children }) {
   return (
-    <div className="flex items-center gap-2">
-      <h2 className="text-[15px] font-bold tracking-[0.02em] text-white">{children}</h2>
+    <section className="overflow-hidden rounded-[10px] border border-[#E7EBF5] bg-white shadow-[0_4px_18px_rgba(15,23,42,0.04)]">
+      <div className="flex items-center justify-between border-b border-[#ECEFFC] bg-[linear-gradient(180deg,#FBFBFF_0%,#F4F5FF_100%)] px-4 py-2.5">
+        <DetailSectionLabel>{title}</DetailSectionLabel>
+        {action}
+      </div>
+      <div className="px-4 py-3">{children}</div>
+    </section>
+  );
+}
+
+function DetailCopyButton() {
+  return (
+    <button
+      type="button"
+      className="inline-flex h-6 items-center gap-1 rounded-[6px] border border-[#D8DEFA] bg-white px-2 text-[11px] font-semibold text-[#6A5AE0]"
+    >
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+        <rect x="4" y="2.5" width="5.5" height="7" rx="1.2" stroke="currentColor" />
+        <path
+          d="M2.5 7.8V3.7c0-.66.54-1.2 1.2-1.2h3.8"
+          stroke="currentColor"
+          strokeLinecap="round"
+        />
+      </svg>
+      복사
+    </button>
+  );
+}
+
+function DetailPanelText({ children, subtle = false }) {
+  return (
+    <div
+      className={`text-[12.5px] leading-[1.7] whitespace-pre-line ${
+        subtle ? 'text-[#5B6686]' : 'text-[#2F3A56]'
+      }`.trim()}
+    >
+      {children}
+    </div>
+  );
+}
+
+function DetailBulletList({ items }) {
+  return (
+    <ul className="space-y-1.5 text-[12.5px] leading-[1.65] text-[#2F3A56]">
+      {items.map(item => (
+        <li key={item} className="flex gap-2">
+          <span className="mt-[7px] h-1 w-1 rounded-full bg-[#6A5AE0]" />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function DetailChipList({ items }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {items.map(item => (
+        <span
+          key={item}
+          className="inline-flex h-7 items-center rounded-full border border-[#D6D9FF] bg-[#F6F7FF] px-4 text-[11px] font-semibold text-[#6658DF]"
+        >
+          {item}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function DetailMemoBox() {
+  return (
+    <div className="rounded-[8px] border border-[#E2E7F3] bg-white px-3 py-3">
+      <div className="min-h-[62px] text-[12.5px] text-[#A0A8C4]">{DEFAULT_DETAIL_MEMO}</div>
+      <div className="pt-3 text-right text-[11px] font-medium text-[#A0A8C4]">0 / 500</div>
     </div>
   );
 }
@@ -329,7 +509,7 @@ function DateRangeField({ label, value, onChange, hideLabel = false }) {
   return (
     <label ref={rootRef} className="relative flex min-w-[132px] flex-col gap-2">
       <span
-        className={`text-[15px] font-medium text-[#8D99AE] ${hideLabel ? 'opacity-0' : ''}`.trim()}
+        className={`text-[13px] font-semibold tracking-[-0.01em] text-[#5C6784] ${hideLabel ? 'opacity-0' : ''}`.trim()}
       >
         {label}
       </span>
@@ -340,11 +520,11 @@ function DateRangeField({ label, value, onChange, hideLabel = false }) {
             setViewDate(parseDateString(value));
             setIsOpen(open => !open);
           }}
-          className="flex h-10 w-full cursor-pointer items-center rounded-[8px] border border-[#E5E7EB] bg-white pr-10 pl-3 text-[14px] font-medium text-[#3D4A5C] shadow-[0_1px_2px_rgba(15,23,42,0.06)] outline-none transition hover:border-[#C9D7E0] focus:border-[#5AD0DE] focus:ring-2 focus:ring-[rgba(90,208,222,0.16)]"
+          className="flex h-[42px] w-full cursor-pointer items-center rounded-[10px] border border-[#D9DEEA] bg-white pr-10 pl-4 text-[14px] font-medium text-[#344054] shadow-[0_4px_12px_rgba(15,23,42,0.04)] outline-none transition hover:border-[#BFC7D8] focus:border-[#6D63FF] focus:ring-2 focus:ring-[rgba(109,99,255,0.12)]"
         >
           {formatDateLabel(value)}
         </button>
-        <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[#8D99AE]">
+        <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[#667085]">
           <svg
             width="16"
             height="16"
@@ -370,14 +550,14 @@ function DateRangeField({ label, value, onChange, hideLabel = false }) {
       </div>
 
       {isOpen ? (
-        <div className="absolute top-[calc(100%+0.5rem)] left-0 z-40 w-[18rem] rounded-[16px] border border-[#D8E4EC] bg-white p-3 shadow-[0_18px_48px_rgba(15,23,42,0.18)]">
+        <div className="absolute top-[calc(100%+0.5rem)] left-0 z-40 w-[18rem] rounded-[14px] border border-[#E3E7F0] bg-white p-3 shadow-[0_16px_36px_rgba(15,23,42,0.12)]">
           <div className="mb-3 flex items-center justify-between">
             <button
               type="button"
               onClick={() =>
                 setViewDate(current => new Date(current.getFullYear(), current.getMonth() - 1, 1))
               }
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-[#5C6B7A] transition hover:bg-[#EFF6F9]"
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-[#5C6B7A] transition hover:bg-[#F3F5FB]"
               aria-label="이전 달"
             >
               ‹
@@ -390,7 +570,7 @@ function DateRangeField({ label, value, onChange, hideLabel = false }) {
               onClick={() =>
                 setViewDate(current => new Date(current.getFullYear(), current.getMonth() + 1, 1))
               }
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-[#5C6B7A] transition hover:bg-[#EFF6F9]"
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-[#5C6B7A] transition hover:bg-[#F3F5FB]"
               aria-label="다음 달"
             >
               ›
@@ -419,10 +599,10 @@ function DateRangeField({ label, value, onChange, hideLabel = false }) {
                   }}
                   className={`flex h-9 cursor-pointer items-center justify-center rounded-[10px] text-[12px] font-medium transition ${
                     isSelected
-                      ? 'bg-[#31A4BD] text-white shadow-[0_8px_18px_rgba(49,164,189,0.24)]'
+                      ? 'bg-[#4B35D4] text-white shadow-[0_8px_18px_rgba(75,53,212,0.18)]'
                       : isCurrentMonth
-                        ? 'text-[#314153] hover:bg-[#EFF6F9]'
-                        : 'text-[#BCC6D1] hover:bg-[#F6F9FB]'
+                        ? 'text-[#314153] hover:bg-[#F3F5FB]'
+                        : 'text-[#BCC6D1] hover:bg-[#F6F8FC]'
                   }`.trim()}
                 >
                   {date.getDate()}
@@ -470,19 +650,20 @@ export default function MonitoringPage() {
         className={`mx-auto flex h-full min-h-0 w-full flex-col ${APP_PAGE_INNER_WIDTH_CLASS}`.trim()}
       >
         <div className="mt-[-0.125rem] w-full">
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between xl:gap-5">
-            <div className="min-w-0">
-              <h1
-                className={`${APP_PAGE_TITLE_CLASS} font-bold leading-[150%] tracking-[0.5px] text-[#E5E7EA]`.trim()}
-              >
+          <div className="min-w-0">
+            <div className="space-y-2">
+              <h1 className="text-[24px] font-extrabold leading-[1.25] tracking-[-0.04em] text-[#1F2555]">
                 프롬프트 모니터링
               </h1>
+              <p className="text-[14px] leading-[1.7] text-[#5F678C]">
+                프롬프트 이력과 탐지 결과를 조회하고 이상 징후를 확인할 수 있습니다.
+              </p>
             </div>
           </div>
 
-          <div className="mt-4 border-b border-white/10 pb-4">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-              <div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end lg:gap-6">
+          <div className="mt-6">
+            <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+              <div className="flex flex-col gap-5 lg:flex-row lg:flex-wrap lg:items-end lg:gap-5">
                 <div className="flex flex-wrap items-end gap-2.5">
                   <DateRangeField
                     label="조회 기간"
@@ -492,7 +673,7 @@ export default function MonitoringPage() {
                       setCurrentPage(1);
                     }}
                   />
-                  <span className="pb-2 text-[18px] font-medium text-[#8D99AE]">-</span>
+                  <span className="pb-[9px] text-[18px] font-medium text-[#98A2B3]">-</span>
                   <DateRangeField
                     label="조회 기간"
                     hideLabel
@@ -505,7 +686,9 @@ export default function MonitoringPage() {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <p className="text-[15px] font-medium text-[#8D99AE]">검색 조건</p>
+                  <p className="text-[13px] font-semibold tracking-[-0.01em] text-[#5C6784]">
+                    검색 조건
+                  </p>
                   <div className="flex flex-wrap items-center gap-2.5">
                     <MonitoringDropdown
                       value={selectedResult}
@@ -515,13 +698,13 @@ export default function MonitoringPage() {
                       }}
                       options={resultOptions}
                       ariaLabel="탐지 결과"
-                      widthClass="w-full sm:w-[156px] sm:shrink-0"
-                      triggerClassName="h-10 border-[#E5E7EB] bg-white"
+                      widthClass="w-full sm:w-[138px] sm:shrink-0"
+                      triggerClassName="h-[42px] border-[#D9DEEA] bg-white shadow-[0_4px_12px_rgba(15,23,42,0.04)]"
                     />
                     <MonitoringActionButton
-                      variant="secondary"
-                      heightClass="h-10"
-                      widthClass="w-[92px] min-w-[92px]"
+                      variant="outline"
+                      heightClass="h-[42px]"
+                      widthClass="w-[94px] min-w-[94px]"
                       onClick={() => {
                         setStartDate('2026-05-07');
                         setEndDate('2026-05-20');
@@ -537,11 +720,14 @@ export default function MonitoringPage() {
 
               <div className="flex flex-wrap items-center gap-2">
                 <MonitoringActionButton
-                  variant="secondary"
-                  heightClass="h-10"
-                  widthClass="w-[140px] min-w-[140px]"
+                  variant="primary"
+                  heightClass="h-[42px]"
+                  widthClass="w-[152px] min-w-[152px]"
                   onClick={() => {}}
                 >
+                  <span className="mr-1.5 text-[13px]" aria-hidden="true">
+                    ↓
+                  </span>
                   CSV 다운로드
                 </MonitoringActionButton>
               </div>
@@ -549,42 +735,268 @@ export default function MonitoringPage() {
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col">
+        <div className="mt-4 flex min-h-0 flex-1 flex-col">
           <MonitoringDataTable
             rows={pagedLogs}
             activeRowId={selectedLogId}
             onSelectRow={log => setSelectedLogId(current => (current === log.id ? null : log.id))}
-            renderExpandedRow={row => (
-              <div className="grid gap-4">
-                <div className="flex flex-col gap-3 border-b border-white/10 pb-4 lg:flex-row lg:items-center lg:justify-between">
-                  <DetailSectionTitle>상세 내역</DetailSectionTitle>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-[12px] font-medium text-[#8B95A5]">
-                      로그 ID {String(row.id).padStart(4, '0')}
-                    </span>
+            renderExpandedRow={row => {
+              const detail = buildDetailContext(row);
+
+              return (
+                <div className="grid gap-4">
+                  <DetailHeader row={row} />
+
+                  <section className="rounded-[10px] border border-[#E7EBF5] bg-white px-4 py-4 shadow-[0_4px_18px_rgba(15,23,42,0.04)]">
+                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                      <DetailSummaryItem
+                        label="AI 타입"
+                        value={row.aiType}
+                        icon={
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 14 14"
+                            fill="none"
+                            aria-hidden="true"
+                          >
+                            <rect
+                              x="2.25"
+                              y="2.25"
+                              width="9.5"
+                              height="9.5"
+                              rx="2"
+                              stroke="currentColor"
+                            />
+                            <path
+                              d="M4.5 7h5M7 4.5v5"
+                              stroke="currentColor"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                        }
+                      />
+                      <DetailSummaryItem
+                        label="관리 조직"
+                        value={row.organization}
+                        icon={
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 14 14"
+                            fill="none"
+                            aria-hidden="true"
+                          >
+                            <path
+                              d="M2.5 11.2h9M4 11.2V4.1h6v7.1M5.3 5.4h.01M8.7 5.4h.01M5.3 7.5h.01M8.7 7.5h.01"
+                              stroke="currentColor"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                        }
+                      />
+                      <DetailSummaryItem
+                        label="이용자 ID"
+                        value={row.userId}
+                        icon={
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 14 14"
+                            fill="none"
+                            aria-hidden="true"
+                          >
+                            <circle cx="7" cy="4.6" r="2" stroke="currentColor" />
+                            <path
+                              d="M3.7 11.2c.6-1.8 1.9-2.7 3.3-2.7s2.7.9 3.3 2.7"
+                              stroke="currentColor"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                        }
+                      />
+                      <DetailSummaryItem
+                        label="이용자 IP"
+                        value={row.userIp}
+                        icon={
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 14 14"
+                            fill="none"
+                            aria-hidden="true"
+                          >
+                            <rect
+                              x="2.25"
+                              y="2.25"
+                              width="9.5"
+                              height="9.5"
+                              rx="2"
+                              stroke="currentColor"
+                            />
+                            <path
+                              d="M4.3 4.8v4.4M7 4.8v4.4M9.7 4.8v4.4"
+                              stroke="currentColor"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                        }
+                      />
+                      <DetailSummaryItem
+                        label="세션 ID"
+                        value={detail.sessionId}
+                        icon={
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 14 14"
+                            fill="none"
+                            aria-hidden="true"
+                          >
+                            <circle cx="7" cy="7" r="4.75" stroke="currentColor" />
+                            <path
+                              d="M7 4.6v2.8l1.8 1"
+                              stroke="currentColor"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                        }
+                      />
+                      <DetailSummaryItem
+                        label="탐지 일시"
+                        value={row.detectedAt}
+                        icon={
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 14 14"
+                            fill="none"
+                            aria-hidden="true"
+                          >
+                            <rect
+                              x="2.25"
+                              y="3"
+                              width="9.5"
+                              height="8.75"
+                              rx="2"
+                              stroke="currentColor"
+                            />
+                            <path
+                              d="M4.4 1.9v2.2M9.6 1.9v2.2M2.6 5.4h8.8"
+                              stroke="currentColor"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                        }
+                      />
+                      <DetailSummaryItem
+                        label="최종 정책"
+                        value={detail.policyName}
+                        icon={
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 14 14"
+                            fill="none"
+                            aria-hidden="true"
+                          >
+                            <path
+                              d="M7 2.2 10.8 3.6v2.8c0 2.1-1.5 4-3.8 5.1-2.3-1.1-3.8-3-3.8-5.1V3.6L7 2.2Z"
+                              stroke="currentColor"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="m5.4 6.9 1.1 1.1 2.2-2.2"
+                              stroke="currentColor"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        }
+                      />
+                      <DetailSummaryItem
+                        label="처리 상태"
+                        value={detail.actionStatus}
+                        valueClassName={row.result === '정상' ? 'text-[#18A0AE]' : 'text-[#F59E0B]'}
+                        icon={
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 14 14"
+                            fill="none"
+                            aria-hidden="true"
+                          >
+                            <rect
+                              x="2.25"
+                              y="2.25"
+                              width="9.5"
+                              height="9.5"
+                              rx="2"
+                              stroke="currentColor"
+                            />
+                            <path
+                              d="M4.6 7h4.8M7 4.6V7"
+                              stroke="currentColor"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                        }
+                      />
+                    </div>
+                  </section>
+
+                  <div className="grid gap-3 lg:grid-cols-2">
+                    <div className="grid gap-3">
+                      <DetailPanel title="원본 프롬프트" action={<DetailCopyButton />}>
+                        <DetailPanelText>{row.promptDetail}</DetailPanelText>
+                      </DetailPanel>
+                      <DetailPanel title="탐지 근거">
+                        <DetailBulletList items={detail.evidenceLines} />
+                      </DetailPanel>
+                      <DetailPanel title="마스킹 미리보기" action={<DetailCopyButton />}>
+                        <DetailPanelText subtle>{detail.maskedPrompt}</DetailPanelText>
+                      </DetailPanel>
+                    </div>
+
+                    <div className="grid gap-3">
+                      <DetailPanel title="탐지 항목">
+                        <DetailChipList items={detail.detectionItems} />
+                      </DetailPanel>
+                      <DetailPanel title="조치 내용">
+                        <DetailBulletList items={detail.actionLines} />
+                      </DetailPanel>
+                      <DetailPanel title="관리자 메모">
+                        <DetailMemoBox />
+                      </DetailPanel>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
+                    <MonitoringActionButton
+                      variant="outline"
+                      heightClass="h-[34px]"
+                      widthClass="w-[92px] min-w-[92px]"
+                    >
+                      예외 승인
+                    </MonitoringActionButton>
+                    <MonitoringActionButton
+                      variant="outline"
+                      heightClass="h-[34px]"
+                      widthClass="w-[92px] min-w-[92px]"
+                    >
+                      정책 추가
+                    </MonitoringActionButton>
+                    <MonitoringActionButton
+                      variant="primary"
+                      heightClass="h-[34px]"
+                      widthClass="w-[92px] min-w-[92px]"
+                    >
+                      조치 저장
+                    </MonitoringActionButton>
                   </div>
                 </div>
-
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                  <DetailField label="AI 타입">{row.aiType}</DetailField>
-                  <DetailField label="관리 조직">{row.organization}</DetailField>
-                  <DetailField label="이용자 ID">{row.userId}</DetailField>
-                  <DetailField label="탐지 일시">{row.detectedAt}</DetailField>
-                </div>
-
-                <DetailBox label="프롬프트">{row.promptDetail}</DetailBox>
-
-                <div className="grid gap-3 xl:grid-cols-[280px_1fr]">
-                  <DetailField label="탐지 결과">
-                    <span className="font-semibold text-white">{row.result}</span>
-                  </DetailField>
-                  <DetailField label="이용자 IP">{row.userIp}</DetailField>
-                </div>
-
-                <DetailBox label="탐지 내용">{row.detectionDetail}</DetailBox>
-                <DetailBox label="조치 내용">{row.actionDetail}</DetailBox>
-              </div>
-            )}
+              );
+            }}
             className="flex-1"
           />
 
@@ -598,7 +1010,7 @@ export default function MonitoringPage() {
         </div>
 
         {!filteredLogs.length ? (
-          <section className="mt-4 border-t border-dashed border-white/12 px-6 py-12 text-center text-sm text-[#A7AFBF]">
+          <section className="mt-4 border-t border-dashed border-[#DCEAF1] px-6 py-12 text-center text-sm text-[#94A3B8]">
             현재 조건에 맞는 모니터링 로그가 없습니다.
           </section>
         ) : null}

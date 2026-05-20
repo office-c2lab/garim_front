@@ -88,7 +88,7 @@ export default function AppHeader({ onMenuClick, isSidebarOpen = false }) {
   }, [isUserMenuOpen]);
 
   return (
-    <header className="w-full bg-[#0F1214]">
+    <header className="w-full bg-[#1A1A1A]">
       <div className="flex h-[var(--app-header-height)] items-center justify-between px-3 sm:px-4 lg:hidden">
         <button
           type="button"

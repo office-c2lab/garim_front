@@ -3,8 +3,8 @@
 :root {
   font-family:
     Pretendard, Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: #ffffff;
-  background: #0f1214;
+  color: #111827;
+  background: #ffffff;
 }
 
 html,
@@ -15,7 +15,7 @@ body,
 
 body {
   margin: 0;
-  background: #0f1214;
+  background: #ffffff;
 }
 
 button,

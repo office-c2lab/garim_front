@@ -19,20 +19,22 @@ export function MonitoringActionButton({
 }) {
   const className =
     variant === 'primary'
-      ? 'bg-[#5AD0DE] text-white shadow-[0_0_4px_rgba(90,208,222,0.8)]'
-      : variant === 'soft'
-        ? 'border border-[#D5E5EE] bg-[#E6F0F5] text-[#2A6F8F]'
-        : variant === 'ghost'
-          ? 'border border-[#31A4BD]/25 bg-[#31A4BD]/10 text-[#8AD4E4]'
-          : 'bg-[#026E92] text-white';
+      ? 'border border-[#4B35D4] bg-[#4B35D4] text-white shadow-[0_8px_18px_rgba(75,53,212,0.18)]'
+      : variant === 'outline'
+        ? 'border border-[#6C5CE7] bg-white text-[#4B35D4]'
+        : variant === 'soft'
+          ? 'border border-[#D5E5EE] bg-[#E6F0F5] text-[#2A6F8F]'
+          : variant === 'ghost'
+            ? 'border border-[#31A4BD]/25 bg-[#31A4BD]/10 text-[#8AD4E4]'
+            : 'border border-[#4B35D4] bg-[#4B35D4] text-white shadow-[0_8px_18px_rgba(75,53,212,0.18)]';
 
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex ${heightClass} ${widthClass} items-center justify-center rounded-lg px-4 sm:px-6 whitespace-nowrap ${APP_BUTTON_TEXT_CLASS} font-bold leading-[150%] transition ${
-        disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:brightness-110'
+      className={`flex ${heightClass} ${widthClass} items-center justify-center rounded-[10px] px-4 sm:px-6 whitespace-nowrap ${APP_BUTTON_TEXT_CLASS} font-semibold leading-[150%] transition ${
+        disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:brightness-[1.02]'
       } ${className}`.trim()}
     >
       {children}
@@ -125,11 +127,11 @@ export function MonitoringDropdown({
         type="button"
         aria-label={ariaLabel}
         aria-expanded={isOpen}
-        className={`flex w-full cursor-pointer items-center gap-2 rounded-[4px] border pr-2 pl-0 text-left ${triggerClassName}`.trim()}
+        className={`flex w-full cursor-pointer items-center gap-2 rounded-[10px] border pr-2 pl-0 text-left ${triggerClassName}`.trim()}
         onClick={() => setIsOpen(open => !open)}
       >
         <span
-          className={`flex flex-1 items-center px-4 ${APP_BODY_TEXT_CLASS} font-normal leading-5 tracking-[0.01em] text-[#737373]`}
+          className={`flex flex-1 items-center px-4 ${APP_BODY_TEXT_CLASS} font-medium leading-5 tracking-[0.01em] text-[#344054]`}
         >
           {value}
         </span>
@@ -142,8 +144,8 @@ export function MonitoringDropdown({
       </button>
 
       {isOpen ? (
-        <div className="absolute top-[calc(100%+0.375rem)] left-0 z-40 w-full rounded-[4px] drop-shadow-[4px_4px_20px_rgba(0,0,0,0.25)]">
-          <div className="rounded-[4px] border border-[#E5E7EA] bg-white px-0 py-2">
+        <div className="absolute top-[calc(100%+0.375rem)] left-0 z-40 w-full rounded-[10px] drop-shadow-[0_16px_32px_rgba(15,23,42,0.12)]">
+          <div className="rounded-[10px] border border-[#E5E7EA] bg-white px-0 py-2">
             <div className="flex max-h-[min(16rem,50vh)] flex-col gap-1 overflow-y-auto px-1">
               {options.map(option => {
                 const isSelected = option === value;
@@ -154,8 +156,8 @@ export function MonitoringDropdown({
                     type="button"
                     className={`flex h-9 w-full cursor-pointer items-center gap-2 px-4 text-left transition ${
                       isSelected
-                        ? `h-[42px] rounded-[4px] bg-[#5AD0DE] ${APP_BUTTON_TEXT_CLASS} font-bold leading-[150%] text-white`
-                        : `rounded-[4px] bg-white ${APP_BODY_TEXT_CLASS} font-normal leading-5 tracking-[0.01em] text-[#484848] hover:bg-[#F3F9FB]`
+                        ? `h-[42px] rounded-[8px] bg-[#4B35D4] ${APP_BUTTON_TEXT_CLASS} font-semibold leading-[150%] text-white`
+                        : `rounded-[8px] bg-white ${APP_BODY_TEXT_CLASS} font-normal leading-5 tracking-[0.01em] text-[#484848] hover:bg-[#F7F8FC]`
                     }`.trim()}
                     onClick={() => {
                       onChange(option);
@@ -196,18 +198,52 @@ export function MonitoringSearchField({
 }
 
 function MonitoringResultChip({ level, result }) {
-  if (level === 'safe') {
-    return (
-      <span className="inline-flex items-center gap-1.5 font-bold text-white">
-        <span className="h-2 w-2 rounded-full bg-[#31A4BD]" />
-        {result}
-      </span>
-    );
-  }
+  const styles =
+    level === 'safe'
+      ? {
+          wrapper: 'border border-[#DDEEEF] bg-[#F4FBFB] text-[#18A0AE]',
+          icon: 'text-[#18A0AE]',
+        }
+      : level === 'danger'
+        ? {
+            wrapper: 'border border-[#FFE3DE] bg-[#FFF5F3] text-[#FF4D4F]',
+            icon: 'text-[#FF4D4F]',
+          }
+        : {
+            wrapper: 'border border-[#FFE9C8] bg-[#FFF8ED] text-[#F59E0B]',
+            icon: 'text-[#F59E0B]',
+          };
 
   return (
-    <span className="inline-flex items-center gap-1.5 font-bold text-white">
-      <span className={level === 'danger' ? 'text-[#FF8A8A]' : 'text-[#F4C56A]'}>▲</span>
+    <span
+      className={`inline-flex h-7 items-center gap-1.5 rounded-[8px] px-2.5 text-[12px] font-semibold whitespace-nowrap ${styles.wrapper}`.trim()}
+    >
+      <span className={styles.icon}>
+        {level === 'safe' ? (
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <circle cx="7" cy="7" r="6" fill="currentColor" fillOpacity="0.14" />
+            <path
+              d="M4.35 7.2 6.1 8.95 9.7 5.35"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        ) : (
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path
+              d="M7 1.6 12.2 11.2a.6.6 0 0 1-.53.9H2.33a.6.6 0 0 1-.53-.9L7 1.6Z"
+              fill="currentColor"
+              fillOpacity="0.16"
+              stroke="currentColor"
+              strokeWidth="1.2"
+            />
+            <path d="M7 4.6v3.1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            <circle cx="7" cy="9.75" r=".8" fill="currentColor" />
+          </svg>
+        )}
+      </span>
       {result}
     </span>
   );
@@ -221,60 +257,92 @@ export function MonitoringDataTable({
   className = '',
   bodyClassName = '',
 }) {
+  const tableGridClass =
+    'grid-cols-[106px_84px_minmax(270px,1.7fr)_120px_minmax(260px,1.45fr)_124px_170px]';
+
   return (
-    <div className={`flex min-h-0 w-full flex-col pb-0 ${className}`.trim()}>
-      <div className="min-h-0 w-full overflow-hidden">
+    <div
+      className={`flex min-h-0 w-full flex-col overflow-hidden rounded-[14px] border border-[#ECEFF5] bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)] ${className}`.trim()}
+    >
+      <div className="min-h-0 w-full overflow-x-auto">
         <div className="flex min-h-0 w-full flex-col overflow-visible">
           <div
-            className={`grid h-[44px] w-full grid-cols-[7rem_5rem_minmax(8.5rem,1.15fr)_7rem_minmax(9.5rem,1.25fr)_7rem_8rem] items-center rounded-t-[16px] bg-white/20 px-2.5 text-[clamp(0.88rem,1vw,1rem)] font-bold leading-[140%] text-white lg:grid-cols-[7.5rem_5.5rem_minmax(10rem,1.2fr)_7.5rem_minmax(10.5rem,1.3fr)_7.5rem_8.5rem] lg:px-3.5 xl:grid-cols-[8rem_6rem_minmax(11rem,1.25fr)_8rem_minmax(11.5rem,1.35fr)_8rem_9rem] xl:px-5`.trim()}
+            className={`grid min-w-[1260px] ${tableGridClass} items-center border-b border-[#EEF1F6] bg-white px-5 py-[14px] text-[12px] font-semibold leading-[1.4] text-[#4A5578]`.trim()}
           >
-            <span>탐지 일시</span>
-            <span>AI 타입</span>
-            <span>프롬프트</span>
-            <span>탐지 결과</span>
-            <span>탐지 내용</span>
-            <span>이용자 IP</span>
+            <span className="pr-4">탐지 일시</span>
+            <span className="pr-4">AI 타입</span>
+            <span className="pr-5">프롬프트</span>
+            <span className="pr-4">탐지 결과</span>
+            <span className="pr-5">탐지 내용</span>
+            <span className="pr-4">이용자 IP</span>
             <span>이용자 ID</span>
           </div>
 
-          <div
-            className={`mt-2 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1 ${bodyClassName}`.trim()}
-          >
+          <div className={`min-h-0 flex-1 overflow-y-auto ${bodyClassName}`.trim()}>
             {rows.map((row, index) => {
               const isSelected = activeRowId === row.id;
               const isStriped = index % 2 === 1;
-              const baseRowClass = isStriped ? 'bg-white/20' : 'bg-[#0F1214]';
+              const baseRowClass = isStriped ? 'bg-[#FEFEFF]' : 'bg-white';
 
               return (
-                <div key={row.id} className="w-full overflow-visible">
+                <div
+                  key={row.id}
+                  className={`w-full overflow-visible ${index === 0 ? '' : 'border-t border-[#EEF2F7]'}`.trim()}
+                >
                   <div
-                    className={`rounded-lg transition ${
+                    className={`transition ${
                       isSelected
-                        ? 'border border-[#026E92] bg-[#026E92] text-white shadow-[0_10px_24px_rgba(2,110,146,0.3)]'
-                        : `${baseRowClass} border border-white text-white hover:-translate-y-px hover:border-[#5AD0DE] hover:bg-[rgba(90,208,222,0.2)] hover:text-[#5AD0DE]`
+                        ? 'relative z-[1] rounded-[10px] border-2 border-[#7367FF] bg-[#F7F6FF] text-[#20264D] shadow-[0_0_0_1px_rgba(115,103,255,0.22),0_10px_24px_rgba(115,103,255,0.18)]'
+                        : `${baseRowClass} text-[#344054] hover:relative hover:z-[1] hover:rounded-[10px] hover:border-2 hover:border-[#8A7FFF] hover:bg-[#FAF9FF] hover:shadow-[0_0_0_1px_rgba(138,127,255,0.16),0_8px_20px_rgba(115,103,255,0.12)]`
                     }`.trim()}
                   >
                     <button
                       type="button"
-                      className={`grid h-[45px] w-full cursor-pointer grid-cols-[7rem_5rem_minmax(8.5rem,1.15fr)_7rem_minmax(9.5rem,1.25fr)_7rem_8rem] items-center rounded-lg px-3 text-left text-[clamp(0.76rem,0.82vw,0.86rem)] leading-[150%] text-white ${
-                        isSelected ? 'font-bold' : 'font-normal hover:text-[#5AD0DE]'
-                      } lg:grid-cols-[7.5rem_5.5rem_minmax(10rem,1.2fr)_7.5rem_minmax(10.5rem,1.3fr)_7.5rem_8.5rem] lg:px-4 xl:grid-cols-[8rem_6rem_minmax(11rem,1.25fr)_8rem_minmax(11.5rem,1.35fr)_8rem_9rem] xl:px-6`.trim()}
+                      className={`grid min-w-[1260px] ${tableGridClass} cursor-pointer items-center rounded-[10px] px-5 py-[13px] text-left text-[12.5px] leading-[1.45] text-[#344054] transition ${
+                        isSelected
+                          ? 'font-semibold text-[#252B5C]'
+                          : 'font-normal hover:font-medium hover:text-[#2D3264]'
+                      }`.trim()}
                       onClick={() => onSelectRow(row)}
                     >
-                      <span className="truncate pr-2">{row.detectedAt}</span>
-                      <span className="truncate pr-2">{row.aiType}</span>
-                      <span className="truncate pr-2 xl:pr-3">{row.prompt}</span>
-                      <span className="truncate pr-2">
+                      <span
+                        className={`truncate pr-4 ${isSelected ? 'text-[#353E73]' : 'text-[#475467]'}`.trim()}
+                      >
+                        {row.detectedAt}
+                      </span>
+                      <span
+                        className={`truncate pr-4 ${isSelected ? 'text-[#353E73]' : 'text-[#475467]'}`.trim()}
+                      >
+                        {row.aiType}
+                      </span>
+                      <span
+                        className={`truncate pr-5 ${isSelected ? 'text-[#252B5C]' : 'text-[#2E3363]'}`.trim()}
+                      >
+                        {row.prompt}
+                      </span>
+                      <span className="pr-4">
                         <MonitoringResultChip level={row.level} result={row.result} />
                       </span>
-                      <span className="truncate pr-2 xl:pr-3">{row.content}</span>
-                      <span className="truncate pr-2">{row.userIp}</span>
-                      <span className="truncate">{row.userId}</span>
+                      <span
+                        className={`truncate pr-5 ${isSelected ? 'text-[#252B5C]' : 'text-[#2E3363]'}`.trim()}
+                      >
+                        {row.content}
+                      </span>
+                      <span
+                        className={`truncate pr-4 ${isSelected ? 'text-[#353E73]' : 'text-[#475467]'}`.trim()}
+                      >
+                        {row.userIp}
+                      </span>
+                      <span
+                        className={`truncate ${isSelected ? 'text-[#252B5C]' : 'text-[#2E3363]'}`.trim()}
+                      >
+                        {row.userId}
+                      </span>
                     </button>
                   </div>
 
                   {isSelected && renderExpandedRow ? (
-                    <div className="mt-2 rounded-[16px] border border-[#026E92]/60 bg-[#11161D] px-4 py-4 lg:px-5">
+                    <div className="border-t border-[#E5EBF5] bg-[#FBFCFF] px-4 py-4 lg:px-5">
                       {renderExpandedRow(row)}
                     </div>
                   ) : null}
@@ -292,33 +360,30 @@ export function MonitoringDomainTable({ rows, renderLogo, renderToggle, classNam
   return (
     <div className={`flex min-h-0 w-full flex-col pb-0 ${className}`.trim()}>
       <div className="min-h-0 w-full overflow-x-auto">
-        <div className="min-w-[760px]">
-          <div className="grid h-[44px] w-full grid-cols-[6.5rem_minmax(9rem,1.1fr)_minmax(16rem,2fr)_8rem] items-center rounded-t-[16px] bg-white/20 px-4 text-[clamp(0.88rem,1vw,1rem)] font-bold leading-[140%] text-white lg:px-5 xl:px-6">
-            <span>Logo</span>
+        <div className="min-w-[760px] rounded-[22px]">
+          <div className="grid h-[40px] w-full grid-cols-[6.5rem_minmax(9rem,1.1fr)_minmax(16rem,2fr)_8rem] items-center rounded-t-[22px] border-b border-[#E7EBF4] bg-[linear-gradient(180deg,#F8FAFF_0%,#F2F5FC_100%)] px-6 text-[13px] font-semibold tracking-[-0.01em] text-[#59627A] lg:px-8">
+            <span className="pl-2">Logo</span>
             <span>이름</span>
             <span>URL</span>
             <span className="text-center">사용/비사용</span>
           </div>
 
-          <div className="mt-2 overflow-hidden rounded-[16px] border border-white/10">
+          <div className="overflow-hidden rounded-b-[22px]">
             {rows.map((row, index) => {
-              const isStriped = index % 2 === 1;
-              const baseRowClass = isStriped ? 'bg-white/20' : 'bg-[#0F1214]';
-
               return (
                 <div
                   key={row.id}
-                  className={`grid min-h-[72px] w-full grid-cols-[6.5rem_minmax(9rem,1.1fr)_minmax(16rem,2fr)_8rem] items-center px-4 text-[clamp(0.82rem,0.9vw,0.92rem)] leading-[150%] text-white lg:px-5 xl:px-6 ${
-                    index === 0 ? baseRowClass : `${baseRowClass} border-t border-white/10`
+                  className={`grid min-h-[66px] w-full grid-cols-[6.5rem_minmax(9rem,1.1fr)_minmax(16rem,2fr)_8rem] items-center bg-white px-6 text-[14px] leading-[150%] text-[#334155] lg:px-8 ${
+                    index === 0 ? '' : 'border-t border-[#EEF1F6]'
                   }`.trim()}
                 >
-                  <div className="py-3">{renderLogo(row)}</div>
-                  <div className="truncate pr-4 font-semibold text-white">{row.name}</div>
+                  <div className="py-3 pl-1">{renderLogo(row)}</div>
+                  <div className="truncate pr-4 font-semibold text-[#1F2A44]">{row.name}</div>
                   <a
                     href={row.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="truncate pr-4 text-[#D5DFEA] underline decoration-transparent transition hover:text-[#5AD0DE] hover:decoration-[#5AD0DE]"
+                    className="truncate pr-4 text-[#667085] underline decoration-transparent transition hover:text-[#3F49B5] hover:decoration-[#3F49B5]"
                     title={row.url}
                   >
                     {row.url}

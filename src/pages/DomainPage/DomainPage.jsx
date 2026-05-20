@@ -4,6 +4,7 @@ import {
   APP_PAGE_INNER_WIDTH_CLASS,
   APP_PAGE_OUTER_WIDTH_CLASS,
   APP_PAGE_TITLE_CLASS,
+  APP_PAGE_TITLE_SUPPORT_CLASS,
 } from '../../constants/contentLayout.js';
 import { MonitoringDomainTable } from '../../components/monitoring/MonitoringListComponents.jsx';
 
@@ -88,15 +89,15 @@ function DomainToggle({ checked, onChange, ariaLabel }) {
       aria-checked={checked}
       aria-label={ariaLabel}
       onClick={onChange}
-      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border transition ${
+      className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full border transition duration-200 ${
         checked
-          ? 'border-[#31A4BD] bg-[#31A4BD] shadow-[0_0_0_3px_rgba(49,164,189,0.14)]'
-          : 'border-[#D0D7E2] bg-[#DCE2E9]'
+          ? 'border-[#5B4BD7] bg-[#5B4BD7] shadow-[0_8px_18px_rgba(91,75,215,0.28)]'
+          : 'border-[#D5CFF5] bg-[#C8BDEB]'
       }`.trim()}
     >
       <span
-        className={`h-5 w-5 rounded-full bg-white shadow-[0_2px_8px_rgba(15,18,20,0.18)] transition ${
-          checked ? 'translate-x-[1.2rem]' : 'translate-x-[0.1rem]'
+        className={`h-5 w-5 rounded-full bg-white shadow-[0_2px_8px_rgba(15,18,20,0.18)] transition duration-200 ${
+          checked ? 'translate-x-[1.35rem]' : 'translate-x-[0.15rem]'
         }`.trim()}
       />
     </button>
@@ -108,10 +109,12 @@ export default function DomainPage() {
 
   const handleToggle = id => {
     setDomains(current =>
-      current.map(domain =>
-        domain.id === id ? { ...domain, enabled: !domain.enabled } : domain,
-      ),
+      current.map(domain => (domain.id === id ? { ...domain, enabled: !domain.enabled } : domain))
     );
+  };
+
+  const handleRefresh = () => {
+    setDomains(initialDomains);
   };
 
   return (
@@ -119,19 +122,35 @@ export default function DomainPage() {
       className={`mx-auto w-full ${APP_PAGE_HORIZONTAL_PADDING_CLASS} pb-[clamp(2rem,4vw,3rem)] ${APP_PAGE_OUTER_WIDTH_CLASS}`.trim()}
     >
       <div
-        className={`mx-auto flex min-h-full w-full flex-col gap-6 pt-5 sm:pt-8 ${APP_PAGE_INNER_WIDTH_CLASS}`.trim()}
+        className={`mx-auto flex min-h-full w-full flex-col gap-5 pt-5 sm:gap-6 sm:pt-8 ${APP_PAGE_INNER_WIDTH_CLASS}`.trim()}
       >
         <section>
-          <div className="">
+          <div className="space-y-2">
             <h1
-              className={`${APP_PAGE_TITLE_CLASS} font-bold leading-[150%] tracking-[0.5px] text-[#E5E7EA]`.trim()}
+              className={`${APP_PAGE_TITLE_CLASS} font-bold leading-[140%] tracking-[-0.02em] text-[#18213D]`.trim()}
             >
               도메인
             </h1>
+            <p className={`${APP_PAGE_TITLE_SUPPORT_CLASS} leading-[1.7] text-[#667085]`.trim()}>
+              외부 AI 서비스 도메인을 관리하고 사용 여부를 설정할 수 있습니다.
+            </p>
           </div>
         </section>
 
-        <section>
+        <section className="flex justify-end">
+          <button
+            type="button"
+            onClick={handleRefresh}
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#E3E7F2] bg-white px-4 text-sm font-medium text-[#667085] shadow-[0_8px_24px_rgba(16,24,40,0.06)] transition hover:border-[#CDD5E8] hover:text-[#344054]"
+          >
+            <span aria-hidden="true" className="text-base leading-none">
+              ↻
+            </span>
+            새로고침
+          </button>
+        </section>
+
+        <section className="rounded-[22px] border border-[#E6EAF4] bg-[radial-gradient(circle_at_top,#FFFFFF_0%,#FBFCFF_72%,#F6F8FD_100%)] p-0 shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
           <MonitoringDomainTable
             rows={domains}
             renderLogo={domain => <LogoBadge name={domain.name} url={domain.url} />}
