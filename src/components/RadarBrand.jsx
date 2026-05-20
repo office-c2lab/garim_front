@@ -1,5 +1,5 @@
-import logo from '../assets/icons/logo.svg';
-import radar from '../assets/icons/radar.svg';
+import logo from '../assets/icons/logo.png';
+import radar from '../assets/icons/GARIM.png';
 
 export default function RadarBrand({
   logoClassName = 'h-10',

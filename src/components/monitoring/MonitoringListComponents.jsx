@@ -125,7 +125,7 @@ export function MonitoringDropdown({
         type="button"
         aria-label={ariaLabel}
         aria-expanded={isOpen}
-        className={`flex w-full items-center gap-2 rounded-[4px] border pr-2 pl-0 text-left ${triggerClassName}`.trim()}
+        className={`flex w-full cursor-pointer items-center gap-2 rounded-[4px] border pr-2 pl-0 text-left ${triggerClassName}`.trim()}
         onClick={() => setIsOpen(open => !open)}
       >
         <span
@@ -152,7 +152,7 @@ export function MonitoringDropdown({
                   <button
                     key={option}
                     type="button"
-                    className={`flex h-9 w-full items-center gap-2 px-4 text-left transition ${
+                    className={`flex h-9 w-full cursor-pointer items-center gap-2 px-4 text-left transition ${
                       isSelected
                         ? `h-[42px] rounded-[4px] bg-[#5AD0DE] ${APP_BUTTON_TEXT_CLASS} font-bold leading-[150%] text-white`
                         : `rounded-[4px] bg-white ${APP_BODY_TEXT_CLASS} font-normal leading-5 tracking-[0.01em] text-[#484848] hover:bg-[#F3F9FB]`

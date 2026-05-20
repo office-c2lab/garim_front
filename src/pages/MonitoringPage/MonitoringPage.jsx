@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import GlassPagination from '../../components/GlassPagination.jsx';
 import {
   MonitoringActionButton,
@@ -188,9 +188,77 @@ const logs = [
 
 const resultOptions = ['전체 결과', '정상', '개인정보 탐지', '기밀정보 탐지', '프롬프트 위협'];
 const ROWS_PER_PAGE = 10;
+const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
 
 function normalizeLogDateTime(value) {
   return String(value).replace(' ', 'T');
+}
+
+function parseDateString(value) {
+  const [year, month, day] = String(value).split('-').map(Number);
+  if (!year || !month || !day) return new Date();
+  return new Date(year, month - 1, day);
+}
+
+function formatDateValue(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function formatDateLabel(value) {
+  if (!value) return '';
+  const date = parseDateString(value);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function createCalendarDays(viewDate) {
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const startWeekday = firstDay.getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
+  const days = [];
+
+  for (let index = 0; index < 42; index += 1) {
+    const dayNumber = index - startWeekday + 1;
+
+    if (dayNumber <= 0) {
+      days.push({
+        date: new Date(year, month - 1, daysInPrevMonth + dayNumber),
+        isCurrentMonth: false,
+      });
+      continue;
+    }
+
+    if (dayNumber > daysInMonth) {
+      days.push({
+        date: new Date(year, month + 1, dayNumber - daysInMonth),
+        isCurrentMonth: false,
+      });
+      continue;
+    }
+
+    days.push({
+      date: new Date(year, month, dayNumber),
+      isCurrentMonth: true,
+    });
+  }
+
+  return days;
+}
+
+function isSameDay(left, right) {
+  return (
+    left.getFullYear() === right.getFullYear() &&
+    left.getMonth() === right.getMonth() &&
+    left.getDate() === right.getDate()
+  );
 }
 
 function DetailField({ label, children, className = '' }) {
@@ -228,19 +296,142 @@ function DetailSectionTitle({ children }) {
 }
 
 function DateRangeField({ label, value, onChange, hideLabel = false }) {
+  const rootRef = useRef(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [viewDate, setViewDate] = useState(() => parseDateString(value));
+  const selectedDate = parseDateString(value);
+  const calendarDays = useMemo(() => createCalendarDays(viewDate), [viewDate]);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const handlePointerDown = event => {
+      if (!rootRef.current?.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleKeyDown = event => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
+
   return (
-    <label className="flex min-w-[132px] flex-col gap-2">
+    <label ref={rootRef} className="relative flex min-w-[132px] flex-col gap-2">
       <span
         className={`text-[15px] font-medium text-[#8D99AE] ${hideLabel ? 'opacity-0' : ''}`.trim()}
       >
         {label}
       </span>
-      <input
-        type="date"
-        value={value}
-        onChange={event => onChange(event.target.value)}
-        className="h-10 rounded-[8px] border border-[#8D99AE] bg-white px-3 text-[15px] text-[#3D4A5C] shadow-[0_1px_2px_rgba(15,23,42,0.06)] outline-none transition focus:border-[#5AD0DE]"
-      />
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => {
+            setViewDate(parseDateString(value));
+            setIsOpen(open => !open);
+          }}
+          className="flex h-10 w-full cursor-pointer items-center rounded-[8px] border border-[#E5E7EB] bg-white pr-10 pl-3 text-[14px] font-medium text-[#3D4A5C] shadow-[0_1px_2px_rgba(15,23,42,0.06)] outline-none transition hover:border-[#C9D7E0] focus:border-[#5AD0DE] focus:ring-2 focus:ring-[rgba(90,208,222,0.16)]"
+        >
+          {formatDateLabel(value)}
+        </button>
+        <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[#8D99AE]">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <rect
+              x="2.25"
+              y="3.25"
+              width="11.5"
+              height="10.5"
+              rx="2"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+            <path d="M5 1.75V4.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M11 1.75V4.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M2.5 6H13.5" stroke="currentColor" strokeWidth="1.5" />
+          </svg>
+        </span>
+      </div>
+
+      {isOpen ? (
+        <div className="absolute top-[calc(100%+0.5rem)] left-0 z-40 w-[18rem] rounded-[16px] border border-[#D8E4EC] bg-white p-3 shadow-[0_18px_48px_rgba(15,23,42,0.18)]">
+          <div className="mb-3 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() =>
+                setViewDate(current => new Date(current.getFullYear(), current.getMonth() - 1, 1))
+              }
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-[#5C6B7A] transition hover:bg-[#EFF6F9]"
+              aria-label="이전 달"
+            >
+              ‹
+            </button>
+            <div className="text-[14px] font-bold text-[#2D3C4B]">
+              {viewDate.getFullYear()}.{String(viewDate.getMonth() + 1).padStart(2, '0')}
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                setViewDate(current => new Date(current.getFullYear(), current.getMonth() + 1, 1))
+              }
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-[#5C6B7A] transition hover:bg-[#EFF6F9]"
+              aria-label="다음 달"
+            >
+              ›
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold text-[#8D99AE]">
+            {WEEKDAY_LABELS.map(day => (
+              <span key={day} className="py-1">
+                {day}
+              </span>
+            ))}
+          </div>
+
+          <div className="mt-1 grid grid-cols-7 gap-1">
+            {calendarDays.map(({ date, isCurrentMonth }) => {
+              const isSelected = isSameDay(date, selectedDate);
+
+              return (
+                <button
+                  key={date.toISOString()}
+                  type="button"
+                  onClick={() => {
+                    onChange(formatDateValue(date));
+                    setIsOpen(false);
+                  }}
+                  className={`flex h-9 cursor-pointer items-center justify-center rounded-[10px] text-[12px] font-medium transition ${
+                    isSelected
+                      ? 'bg-[#31A4BD] text-white shadow-[0_8px_18px_rgba(49,164,189,0.24)]'
+                      : isCurrentMonth
+                        ? 'text-[#314153] hover:bg-[#EFF6F9]'
+                        : 'text-[#BCC6D1] hover:bg-[#F6F9FB]'
+                  }`.trim()}
+                >
+                  {date.getDate()}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
     </label>
   );
 }
