@@ -436,13 +436,6 @@ function TableFooterLink({ children }) {
 export default function DashboardPage() {
   return (
     <PageLayout>
-      <section className="space-y-1">
-        <h1 className="text-[2.1rem] font-black tracking-[-0.05em] text-[#111827]">대시보드</h1>
-        <p className="text-[1rem] text-[#5E6780]">
-          SecureBridge 서비스 현황과 주요 탐지 현황을 한눈에 확인할 수 있습니다.
-        </p>
-      </section>
-
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {summaryCards.map(card => (
           <StatCard key={card.title} {...card} />

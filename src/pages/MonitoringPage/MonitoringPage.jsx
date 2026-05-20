@@ -9,7 +9,6 @@ import {
   APP_PAGE_HORIZONTAL_PADDING_CLASS,
   APP_PAGE_INNER_WIDTH_CLASS,
   APP_PAGE_OUTER_WIDTH_CLASS,
-  APP_PAGE_TITLE_CLASS,
 } from '../../constants/contentLayout.js';
 
 const logs = [
@@ -650,18 +649,7 @@ export default function MonitoringPage() {
         className={`mx-auto flex h-full min-h-0 w-full flex-col ${APP_PAGE_INNER_WIDTH_CLASS}`.trim()}
       >
         <div className="mt-[-0.125rem] w-full">
-          <div className="min-w-0">
-            <div className="space-y-2">
-              <h1 className="text-[24px] font-extrabold leading-[1.25] tracking-[-0.04em] text-[#1F2555]">
-                프롬프트 모니터링
-              </h1>
-              <p className="text-[14px] leading-[1.7] text-[#5F678C]">
-                프롬프트 이력과 탐지 결과를 조회하고 이상 징후를 확인할 수 있습니다.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-6">
+          <div className="mt-1">
             <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
               <div className="flex flex-col gap-5 lg:flex-row lg:flex-wrap lg:items-end lg:gap-5">
                 <div className="flex flex-wrap items-end gap-2.5">

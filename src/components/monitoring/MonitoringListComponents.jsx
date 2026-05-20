@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import caretDownIcon from '../../assets/icons/caret_down.svg';
 import searchIcon from '../../assets/icons/search-data.svg';
 import {
@@ -201,23 +201,18 @@ function MonitoringResultChip({ level, result }) {
   const styles =
     level === 'safe'
       ? {
-          wrapper: 'border border-[#DDEEEF] bg-[#F4FBFB] text-[#18A0AE]',
           icon: 'text-[#18A0AE]',
         }
       : level === 'danger'
         ? {
-            wrapper: 'border border-[#FFE3DE] bg-[#FFF5F3] text-[#FF4D4F]',
             icon: 'text-[#FF4D4F]',
           }
         : {
-            wrapper: 'border border-[#FFE9C8] bg-[#FFF8ED] text-[#F59E0B]',
             icon: 'text-[#F59E0B]',
           };
 
   return (
-    <span
-      className={`inline-flex h-7 items-center gap-1.5 rounded-[8px] px-2.5 text-[12px] font-semibold whitespace-nowrap ${styles.wrapper}`.trim()}
-    >
+    <span className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold whitespace-nowrap text-[#344054]">
       <span className={styles.icon}>
         {level === 'safe' ? (
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -257,100 +252,99 @@ export function MonitoringDataTable({
   className = '',
   bodyClassName = '',
 }) {
-  const tableGridClass =
-    'grid-cols-[106px_84px_minmax(270px,1.7fr)_120px_minmax(260px,1.45fr)_124px_170px]';
-
   return (
     <div
       className={`flex min-h-0 w-full flex-col overflow-hidden rounded-[14px] border border-[#ECEFF5] bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)] ${className}`.trim()}
     >
       <div className="min-h-0 w-full overflow-x-auto">
-        <div className="flex min-h-0 w-full flex-col overflow-visible">
-          <div
-            className={`grid min-w-[1260px] ${tableGridClass} items-center border-b border-[#EEF1F6] bg-white px-5 py-[14px] text-[12px] font-semibold leading-[1.4] text-[#4A5578]`.trim()}
-          >
-            <span className="pr-4">탐지 일시</span>
-            <span className="pr-4">AI 타입</span>
-            <span className="pr-5">프롬프트</span>
-            <span className="pr-4">탐지 결과</span>
-            <span className="pr-5">탐지 내용</span>
-            <span className="pr-4">이용자 IP</span>
-            <span>이용자 ID</span>
-          </div>
-
-          <div className={`min-h-0 flex-1 overflow-y-auto ${bodyClassName}`.trim()}>
+        <table className="min-w-[1260px] w-full table-fixed border-separate border-spacing-0">
+          <colgroup>
+            <col className="w-[106px]" />
+            <col className="w-[84px]" />
+            <col className="w-[300px]" />
+            <col className="w-[148px]" />
+            <col />
+            <col className="w-[124px]" />
+            <col className="w-[170px]" />
+          </colgroup>
+          <thead className="bg-white">
+            <tr className="text-[12px] font-semibold leading-[1.4] text-[#4A5578]">
+              <th className="border-b border-[#EEF1F6] px-5 py-[14px] text-left font-semibold">탐지 일시</th>
+              <th className="border-b border-[#EEF1F6] px-4 py-[14px] text-left font-semibold">AI 타입</th>
+              <th className="border-b border-[#EEF1F6] px-4 py-[14px] text-left font-semibold">프롬프트</th>
+              <th className="border-b border-[#EEF1F6] px-4 py-[14px] text-left font-semibold">탐지 결과</th>
+              <th className="border-b border-[#EEF1F6] px-4 py-[14px] text-left font-semibold">탐지 내용</th>
+              <th className="border-b border-[#EEF1F6] px-4 py-[14px] text-left font-semibold">이용자 IP</th>
+              <th className="border-b border-[#EEF1F6] px-4 py-[14px] text-left font-semibold">이용자 ID</th>
+            </tr>
+          </thead>
+          <tbody className={bodyClassName}>
             {rows.map((row, index) => {
               const isSelected = activeRowId === row.id;
               const isStriped = index % 2 === 1;
               const baseRowClass = isStriped ? 'bg-[#FEFEFF]' : 'bg-white';
+              const rowClassName = isSelected
+                ? 'bg-[#F7F6FF] text-[#20264D] shadow-[inset_0_0_0_2px_rgba(115,103,255,0.9)]'
+                : `${baseRowClass} text-[#344054] hover:bg-[#FAF9FF]`;
+
+              const cellBorderClass = index === 0 ? '' : 'border-t border-[#EEF2F7]';
 
               return (
-                <div
-                  key={row.id}
-                  className={`w-full overflow-visible ${index === 0 ? '' : 'border-t border-[#EEF2F7]'}`.trim()}
-                >
-                  <div
-                    className={`transition ${
-                      isSelected
-                        ? 'relative z-[1] rounded-[10px] border-2 border-[#7367FF] bg-[#F7F6FF] text-[#20264D] shadow-[0_0_0_1px_rgba(115,103,255,0.22),0_10px_24px_rgba(115,103,255,0.18)]'
-                        : `${baseRowClass} text-[#344054] hover:relative hover:z-[1] hover:rounded-[10px] hover:border-2 hover:border-[#8A7FFF] hover:bg-[#FAF9FF] hover:shadow-[0_0_0_1px_rgba(138,127,255,0.16),0_8px_20px_rgba(115,103,255,0.12)]`
-                    }`.trim()}
+                <Fragment key={row.id}>
+                  <tr
+                    className={`cursor-pointer transition ${rowClassName}`.trim()}
+                    onClick={() => onSelectRow(row)}
                   >
-                    <button
-                      type="button"
-                      className={`grid min-w-[1260px] ${tableGridClass} cursor-pointer items-center rounded-[10px] px-5 py-[13px] text-left text-[12.5px] leading-[1.45] text-[#344054] transition ${
-                        isSelected
-                          ? 'font-semibold text-[#252B5C]'
-                          : 'font-normal hover:font-medium hover:text-[#2D3264]'
-                      }`.trim()}
-                      onClick={() => onSelectRow(row)}
+                    <td
+                      className={`${cellBorderClass} px-5 py-[13px] text-[12.5px] leading-[1.45] ${isSelected ? 'font-semibold text-[#353E73]' : 'text-[#475467]'}`.trim()}
                     >
-                      <span
-                        className={`truncate pr-4 ${isSelected ? 'text-[#353E73]' : 'text-[#475467]'}`.trim()}
-                      >
-                        {row.detectedAt}
-                      </span>
-                      <span
-                        className={`truncate pr-4 ${isSelected ? 'text-[#353E73]' : 'text-[#475467]'}`.trim()}
-                      >
-                        {row.aiType}
-                      </span>
-                      <span
-                        className={`truncate pr-5 ${isSelected ? 'text-[#252B5C]' : 'text-[#2E3363]'}`.trim()}
-                      >
-                        {row.prompt}
-                      </span>
-                      <span className="pr-4">
+                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">{row.detectedAt}</div>
+                    </td>
+                    <td
+                      className={`${cellBorderClass} px-4 py-[13px] text-[12.5px] leading-[1.45] ${isSelected ? 'font-semibold text-[#353E73]' : 'text-[#475467]'}`.trim()}
+                    >
+                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">{row.aiType}</div>
+                    </td>
+                    <td
+                      className={`${cellBorderClass} px-4 py-[13px] text-[12.5px] leading-[1.45] ${isSelected ? 'font-semibold text-[#252B5C]' : 'text-[#2E3363]'}`.trim()}
+                    >
+                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">{row.prompt}</div>
+                    </td>
+                    <td
+                      className={`${cellBorderClass} px-4 py-[13px] text-[12.5px] leading-[1.45] ${isSelected ? 'font-semibold' : ''}`.trim()}
+                    >
+                      <div className="overflow-hidden">
                         <MonitoringResultChip level={row.level} result={row.result} />
-                      </span>
-                      <span
-                        className={`truncate pr-5 ${isSelected ? 'text-[#252B5C]' : 'text-[#2E3363]'}`.trim()}
-                      >
-                        {row.content}
-                      </span>
-                      <span
-                        className={`truncate pr-4 ${isSelected ? 'text-[#353E73]' : 'text-[#475467]'}`.trim()}
-                      >
-                        {row.userIp}
-                      </span>
-                      <span
-                        className={`truncate ${isSelected ? 'text-[#252B5C]' : 'text-[#2E3363]'}`.trim()}
-                      >
-                        {row.userId}
-                      </span>
-                    </button>
-                  </div>
-
+                      </div>
+                    </td>
+                    <td
+                      className={`${cellBorderClass} px-4 py-[13px] text-[12.5px] leading-[1.45] ${isSelected ? 'font-semibold text-[#252B5C]' : 'text-[#2E3363]'}`.trim()}
+                    >
+                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">{row.content}</div>
+                    </td>
+                    <td
+                      className={`${cellBorderClass} px-4 py-[13px] text-[12.5px] leading-[1.45] ${isSelected ? 'font-semibold text-[#353E73]' : 'text-[#475467]'}`.trim()}
+                    >
+                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">{row.userIp}</div>
+                    </td>
+                    <td
+                      className={`${cellBorderClass} px-4 py-[13px] text-[12.5px] leading-[1.45] ${isSelected ? 'font-semibold text-[#252B5C]' : 'text-[#2E3363]'}`.trim()}
+                    >
+                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">{row.userId}</div>
+                    </td>
+                  </tr>
                   {isSelected && renderExpandedRow ? (
-                    <div className="border-t border-[#E5EBF5] bg-[#FBFCFF] px-4 py-4 lg:px-5">
-                      {renderExpandedRow(row)}
-                    </div>
+                    <tr>
+                      <td colSpan={7} className="border-t border-[#E5EBF5] bg-[#FBFCFF] px-4 py-4 lg:px-5">
+                        {renderExpandedRow(row)}
+                      </td>
+                    </tr>
                   ) : null}
-                </div>
+                </Fragment>
               );
             })}
-          </div>
-        </div>
+          </tbody>
+        </table>
       </div>
     </div>
   );

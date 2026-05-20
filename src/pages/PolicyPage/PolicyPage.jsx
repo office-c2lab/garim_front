@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Bot, Braces, CircleHelp, Download, Globe, Info, Plus, Search, Shield } from 'lucide-react';
 
 import PageLayout from '../../layout/PageLayout.jsx';
-import { APP_PAGE_TITLE_CLASS } from '../../constants/contentLayout.js';
 
 const policies = [
   {
@@ -263,18 +262,7 @@ export default function PolicyPage() {
   return (
     <PageLayout>
       <div className="flex flex-col gap-5 pb-3">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-          <div>
-            <h1
-              className={joinClasses(
-                APP_PAGE_TITLE_CLASS,
-                'font-black tracking-[-0.03em] text-slate-950'
-              )}
-            >
-              정책 관리
-            </h1>
-          </div>
-
+        <div className="flex flex-col gap-5 pt-1 xl:flex-row xl:items-center xl:justify-end">
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
               type="button"

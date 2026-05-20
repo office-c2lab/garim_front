@@ -3,8 +3,6 @@ import {
   APP_PAGE_HORIZONTAL_PADDING_CLASS,
   APP_PAGE_INNER_WIDTH_CLASS,
   APP_PAGE_OUTER_WIDTH_CLASS,
-  APP_PAGE_TITLE_CLASS,
-  APP_PAGE_TITLE_SUPPORT_CLASS,
 } from '../../constants/contentLayout.js';
 import { MonitoringDomainTable } from '../../components/monitoring/MonitoringListComponents.jsx';
 
@@ -124,19 +122,6 @@ export default function DomainPage() {
       <div
         className={`mx-auto flex min-h-full w-full flex-col gap-5 pt-5 sm:gap-6 sm:pt-8 ${APP_PAGE_INNER_WIDTH_CLASS}`.trim()}
       >
-        <section>
-          <div className="space-y-2">
-            <h1
-              className={`${APP_PAGE_TITLE_CLASS} font-bold leading-[140%] tracking-[-0.02em] text-[#18213D]`.trim()}
-            >
-              도메인
-            </h1>
-            <p className={`${APP_PAGE_TITLE_SUPPORT_CLASS} leading-[1.7] text-[#667085]`.trim()}>
-              외부 AI 서비스 도메인을 관리하고 사용 여부를 설정할 수 있습니다.
-            </p>
-          </div>
-        </section>
-
         <section className="flex justify-end">
           <button
             type="button"
