@@ -54,7 +54,7 @@ export default function AppSidebar({
   };
 
   return (
-    <aside className="flex h-full w-full overflow-hidden bg-[#1A1A1A] text-white">
+    <aside className="flex h-full w-full overflow-hidden bg-[#] text-white">
       <div className="flex h-full w-full flex-col px-3 lg:px-3 xl:px-3.5">
         <div className={`flex min-h-0 flex-1 flex-col pb-4 ${sidebarTopPaddingClass}`.trim()}>
           {showBrand ? (
@@ -84,15 +84,24 @@ export default function AppSidebar({
                     <button
                       type="button"
                       onClick={() => handleNavigate(item.path)}
-                      className={`group flex h-[46px] w-full cursor-pointer items-center rounded-[10px] px-3.5 text-left transition duration-200 ${
+                      className={`group flex h-[46px] w-full cursor-pointer items-center gap-3 rounded-[14px] px-3.5 text-left transition duration-200 ${
                         isActive
-                          ? 'bg-[#4338CA] text-white shadow-[0_10px_24px_rgba(67,56,202,0.28)]'
-                          : 'bg-transparent text-[#D2D5DB] hover:bg-white/8 hover:text-white'
+                          ? 'bg-[linear-gradient(180deg,rgba(67,56,202,0.26)_0%,rgba(67,56,202,0.18)_100%)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_12px_28px_rgba(10,10,22,0.22)]'
+                          : 'bg-transparent text-[#D2D5DB] hover:bg-white/6 hover:text-white'
                       }`.trim()}
+                      aria-current={isActive ? 'page' : undefined}
                     >
                       <span className="min-w-0 flex-1 truncate text-[clamp(0.88rem,1.18vw,0.95rem)] font-semibold leading-[140%]">
                         {item.label}
                       </span>
+                      <span
+                        aria-hidden="true"
+                        className={`h-2.5 w-2.5 flex-none rounded-full transition duration-200 ${
+                          isActive
+                            ? 'bg-[#4338CA] shadow-[0_0_0_4px_rgba(67,56,202,0.16),0_0_18px_rgba(67,56,202,0.42)]'
+                            : 'bg-transparent group-hover:bg-white/20'
+                        }`.trim()}
+                      />
                     </button>
                   </li>
                 );
