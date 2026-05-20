@@ -106,9 +106,88 @@ const logs = [
     detectionDetail: '인젝션 시도는 있었지만 추가 민감 정보는 포함되지 않았습니다.',
     actionDetail: '위험도 경고로 기록하고 동일 패턴 재발 시 자동 차단 임계치를 높입니다.',
   },
+  {
+    id: 7,
+    detectedAt: '2026-05-19 18:42',
+    aiType: 'ChatGPT',
+    organization: '전략기획실',
+    prompt: '내부 예산안 요약 및 대외 발표용 문구 정리',
+    result: '기밀정보 탐지',
+    content: '내부 예산 수치 및 미공개 계획 포함',
+    userIp: '211.44.92.111',
+    userId: 'moon@cloudmate.com',
+    level: 'warning',
+    promptDetail:
+      '내부 예산안과 차년도 인력 운영 계획을 외부 발표 문구로 정리해 달라는 요청입니다.',
+    detectionDetail: '미공개 예산 수치와 인력 계획이 포함되어 외부 공유 전 검토가 필요합니다.',
+    actionDetail:
+      '민감 수치를 제거한 버전으로 재작성하도록 유도하고 원문은 보안 검토로 이관합니다.',
+  },
+  {
+    id: 8,
+    detectedAt: '2026-05-19 17:08',
+    aiType: 'Claude',
+    organization: 'AI 서비스팀',
+    prompt: '고객 문의 답변 자동화 문안 생성 요청',
+    result: '정상',
+    content: '민감 정보 없이 일반 응대 문안 생성',
+    userIp: '211.44.92.112',
+    userId: 'seo@cloudmate.com',
+    level: 'safe',
+    promptDetail: '자주 들어오는 배송 지연 문의에 대한 일반 응대 문안을 생성하는 요청입니다.',
+    detectionDetail: '개인정보나 기밀 정보 없이 일반 운영 문구만 포함되어 정상 처리되었습니다.',
+    actionDetail: '정상 요청으로 기록만 남기고 별도 조치는 하지 않았습니다.',
+  },
+  {
+    id: 9,
+    detectedAt: '2026-05-19 16:11',
+    aiType: 'Gemini',
+    organization: '보안 운영팀',
+    prompt: '정책 우회 후 시스템 프롬프트 노출 시도',
+    result: '프롬프트 위협',
+    content: '시스템 지시 무시 및 내부 규칙 노출 유도',
+    userIp: '211.44.92.113',
+    userId: 'han@cloudmate.com',
+    level: 'danger',
+    promptDetail:
+      '기존 안전 규칙을 무시하고 시스템 프롬프트 원문을 출력하라는 문구가 포함되었습니다.',
+    detectionDetail: '명시적인 프롬프트 인젝션 시도이며 내부 정책 노출 위험이 확인되었습니다.',
+    actionDetail: '요청을 즉시 차단하고 보안 이벤트로 분류해 관리자 검토 대상으로 넘깁니다.',
+  },
+  {
+    id: 10,
+    detectedAt: '2026-05-19 14:27',
+    aiType: 'ChatGPT',
+    organization: 'AI 서비스팀',
+    prompt: '협력사 계약 이력 정리 요청',
+    result: '개인정보 탐지',
+    content: '담당자 이름, 이메일, 직통번호 포함',
+    userIp: '211.44.92.114',
+    userId: 'jang@cloudmate.com',
+    level: 'warning',
+    promptDetail: '협력사 담당자별 계약 이력과 연락처를 포함해 정리해 달라는 요청입니다.',
+    detectionDetail: '이름, 이메일, 직통번호 등 개인정보가 함께 포함되어 탐지되었습니다.',
+    actionDetail: '연락처 마스킹 후 다시 요청하도록 안내하고 원본 요청은 저장소에서 격리합니다.',
+  },
+  {
+    id: 11,
+    detectedAt: '2026-05-19 11:54',
+    aiType: 'Claude',
+    organization: '전략기획실',
+    prompt: '시장 분석 보고서 요약 요청',
+    result: '정상',
+    content: '공개 리서치 기반 요약',
+    userIp: '211.44.92.115',
+    userId: 'yoon@cloudmate.com',
+    level: 'safe',
+    promptDetail: '공개된 시장 조사 보고서를 기반으로 핵심 트렌드를 요약해 달라는 요청입니다.',
+    detectionDetail: '공개 자료만 사용되었고 민감 정보가 확인되지 않아 정상 처리되었습니다.',
+    actionDetail: '정상 요청으로 기록만 남기고 별도 조치는 하지 않았습니다.',
+  },
 ];
 
 const resultOptions = ['전체 결과', '정상', '개인정보 탐지', '기밀정보 탐지', '프롬프트 위협'];
+const ROWS_PER_PAGE = 10;
 
 function normalizeLogDateTime(value) {
   return String(value).replace(' ', 'T');
@@ -173,16 +252,12 @@ export default function MonitoringPage() {
     });
   }, [endDate, selectedResult, startDate]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / 4));
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / ROWS_PER_PAGE));
 
   const pagedLogs = useMemo(() => {
-    const startIndex = (currentPage - 1) * 4;
-    return filteredLogs.slice(startIndex, startIndex + 4);
+    const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
+    return filteredLogs.slice(startIndex, startIndex + ROWS_PER_PAGE);
   }, [currentPage, filteredLogs]);
-
-  const selectedLog = useMemo(() => {
-    return pagedLogs.find(log => log.id === selectedLogId) ?? filteredLogs[0] ?? null;
-  }, [filteredLogs, pagedLogs, selectedLogId]);
 
   return (
     <div
@@ -274,10 +349,31 @@ export default function MonitoringPage() {
         <div className="flex min-h-0 flex-1 flex-col">
           <MonitoringDataTable
             rows={pagedLogs}
-            activeRowId={selectedLog?.id ?? null}
-            onSelectRow={log => setSelectedLogId(log.id)}
+            activeRowId={selectedLogId}
+            onSelectRow={log => setSelectedLogId(current => (current === log.id ? null : log.id))}
+            renderExpandedRow={row => (
+              <div className="grid gap-4">
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                  <DetailField label="AI 타입">{row.aiType}</DetailField>
+                  <DetailField label="관리 조직">{row.organization}</DetailField>
+                  <DetailField label="이용자 ID">{row.userId}</DetailField>
+                  <DetailField label="탐지 일시">{row.detectedAt}</DetailField>
+                </div>
+
+                <DetailBox label="프롬프트">{row.promptDetail}</DetailBox>
+
+                <div className="grid gap-3 xl:grid-cols-[280px_1fr]">
+                  <DetailField label="탐지 결과">
+                    <span className="font-bold text-white">{row.result}</span>
+                  </DetailField>
+                  <DetailField label="이용자 IP">{row.userIp}</DetailField>
+                </div>
+
+                <DetailBox label="탐지 내용">{row.detectionDetail}</DetailBox>
+                <DetailBox label="조치 내용">{row.actionDetail}</DetailBox>
+              </div>
+            )}
             className="flex-1"
-            bodyClassName="max-h-[420px]"
           />
 
           <div className="mt-2 shrink-0 pb-0">
@@ -289,42 +385,11 @@ export default function MonitoringPage() {
           </div>
         </div>
 
-        {selectedLog ? (
-          <section className="mt-4 grid gap-4 border-t border-white/10 pt-4">
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              <DetailField label="AI 타입">{selectedLog.aiType}</DetailField>
-              <DetailField label="관리 조직">{selectedLog.organization}</DetailField>
-              <DetailField label="이용자 ID">{selectedLog.userId}</DetailField>
-              <DetailField label="탐지 일시">{selectedLog.detectedAt}</DetailField>
-            </div>
-
-            <DetailBox label="프롬프트">{selectedLog.promptDetail}</DetailBox>
-
-            <div className="grid gap-3 xl:grid-cols-[280px_1fr]">
-              <DetailField label="탐지 결과">
-                <span
-                  className={`font-bold ${
-                    selectedLog.level === 'danger'
-                      ? 'text-[#FF9C9C]'
-                      : selectedLog.level === 'warning'
-                        ? 'text-[#F4D58A]'
-                        : 'text-[#8AD4E4]'
-                  }`.trim()}
-                >
-                  {selectedLog.result}
-                </span>
-              </DetailField>
-              <DetailField label="이용자 IP">{selectedLog.userIp}</DetailField>
-            </div>
-
-            <DetailBox label="탐지 내용">{selectedLog.detectionDetail}</DetailBox>
-            <DetailBox label="조치 내용">{selectedLog.actionDetail}</DetailBox>
-          </section>
-        ) : (
+        {!filteredLogs.length ? (
           <section className="mt-4 border-t border-dashed border-white/12 px-6 py-12 text-center text-sm text-[#A7AFBF]">
             현재 조건에 맞는 모니터링 로그가 없습니다.
           </section>
-        )}
+        ) : null}
       </div>
     </div>
   );

@@ -217,11 +217,12 @@ export function MonitoringDataTable({
   rows,
   activeRowId,
   onSelectRow,
+  renderExpandedRow,
   className = '',
   bodyClassName = '',
 }) {
   return (
-    <div className={`mt-6 flex min-h-0 w-full flex-col pb-0 ${className}`.trim()}>
+    <div className={`flex min-h-0 w-full flex-col pb-0 ${className}`.trim()}>
       <div className="min-h-0 w-full overflow-hidden">
         <div className="flex min-h-0 w-full flex-col overflow-visible">
           <div
@@ -271,6 +272,12 @@ export function MonitoringDataTable({
                       <span className="truncate">{row.userId}</span>
                     </button>
                   </div>
+
+                  {isSelected && renderExpandedRow ? (
+                    <div className="mt-2 rounded-[16px] border border-[#026E92]/60 bg-[#11161D] px-4 py-4 lg:px-5">
+                      {renderExpandedRow(row)}
+                    </div>
+                  ) : null}
                 </div>
               );
             })}
