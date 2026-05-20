@@ -34,10 +34,7 @@ export default function AppShell({ showBrand = true }) {
     >
       <div className="h-full w-full overflow-hidden">
         <div className="fixed inset-x-0 top-0 z-30">
-          <AppHeader
-            isSidebarOpen={isMobileSidebarOpen}
-            onMenuClick={toggleMobileSidebar}
-          />
+          <AppHeader isSidebarOpen={isMobileSidebarOpen} onMenuClick={toggleMobileSidebar} />
         </div>
 
         <div className="fixed top-0 left-0 bottom-0 z-40 hidden w-[var(--app-sidebar-width)] lg:block">
@@ -65,17 +62,13 @@ export default function AppShell({ showBrand = true }) {
               isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
             }`.trim()}
           >
-            <AppSidebar
-              overlayHeader
-              showBrand={showBrand}
-              onNavigate={closeMobileSidebar}
-            />
+            <AppSidebar overlayHeader showBrand={showBrand} onNavigate={closeMobileSidebar} />
           </div>
         </div>
 
         <section className="fixed top-[var(--app-header-height)] right-0 bottom-0 left-0 overflow-hidden border-t border-[#FFFFFF] bg-[#0F1214] lg:left-[var(--app-sidebar-width)] lg:rounded-tl-[24px] lg:border-l lg:border-[#FFFFFF]">
           <div className="hover-scrollbar relative h-full overflow-y-auto overflow-x-hidden">
-            <div className="min-h-full w-full bg-[radial-gradient(circle_at_top,rgba(49,164,189,0.14),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0))] px-3 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-4">
+            <div className="min-h-full w-full bg-[#0F1214] px-3 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-4">
               <Outlet />
             </div>
           </div>

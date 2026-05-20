@@ -6,7 +6,6 @@ import MonitoringPage from './pages/MonitoringPage/MonitoringPage.jsx';
 import PolicyPage from './pages/PolicyPage/PolicyPage.jsx';
 import DomainPage from './pages/DomainPage/DomainPage.jsx';
 
-
 export default function App() {
   return (
     <Routes>
