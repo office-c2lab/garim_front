@@ -196,8 +196,10 @@ function normalizeLogDateTime(value) {
 function DetailField({ label, children, className = '' }) {
   return (
     <div className={className}>
-      <label className="mb-1 block text-[11px] font-semibold text-[#8B95A5]">{label}</label>
-      <div className="flex min-h-[42px] items-center rounded-[8px] border border-white/10 bg-[#0B0F14] px-3 text-[13px] text-[#D9E0EA]">
+      <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.04em] text-[#8B95A5]">
+        {label}
+      </label>
+      <div className="flex min-h-[46px] items-center rounded-[10px] border border-white/10 bg-[#0B0F14] px-3.5 text-[13px] font-medium text-[#E8EDF5] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
         {children}
       </div>
     </div>
@@ -207,10 +209,20 @@ function DetailField({ label, children, className = '' }) {
 function DetailBox({ label, children, className = '' }) {
   return (
     <div className={className}>
-      <label className="mb-1 block text-[11px] font-semibold text-[#8B95A5]">{label}</label>
-      <div className="min-h-[96px] rounded-[10px] border border-white/10 bg-[#0B0F14] px-4 py-3 text-[13px] leading-[1.75] text-[#D9E0EA] whitespace-pre-line">
+      <label className="mb-1.5 block text-[11px] font-semibold tracking-[0.04em] text-[#8B95A5]">
+        {label}
+      </label>
+      <div className="min-h-[112px] rounded-[12px] border border-white/10 bg-[#0B0F14] px-4 py-3.5 text-[13px] leading-[1.8] text-[#D9E0EA] whitespace-pre-line shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
         {children}
       </div>
+    </div>
+  );
+}
+
+function DetailSectionTitle({ children }) {
+  return (
+    <div className="flex items-center gap-2">
+      <h2 className="text-[15px] font-bold tracking-[0.02em] text-white">{children}</h2>
     </div>
   );
 }
@@ -353,6 +365,15 @@ export default function MonitoringPage() {
             onSelectRow={log => setSelectedLogId(current => (current === log.id ? null : log.id))}
             renderExpandedRow={row => (
               <div className="grid gap-4">
+                <div className="flex flex-col gap-3 border-b border-white/10 pb-4 lg:flex-row lg:items-center lg:justify-between">
+                  <DetailSectionTitle>상세 내역</DetailSectionTitle>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[12px] font-medium text-[#8B95A5]">
+                      로그 ID {String(row.id).padStart(4, '0')}
+                    </span>
+                  </div>
+                </div>
+
                 <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                   <DetailField label="AI 타입">{row.aiType}</DetailField>
                   <DetailField label="관리 조직">{row.organization}</DetailField>
@@ -364,7 +385,7 @@ export default function MonitoringPage() {
 
                 <div className="grid gap-3 xl:grid-cols-[280px_1fr]">
                   <DetailField label="탐지 결과">
-                    <span className="font-bold text-white">{row.result}</span>
+                    <span className="font-semibold text-white">{row.result}</span>
                   </DetailField>
                   <DetailField label="이용자 IP">{row.userIp}</DetailField>
                 </div>
