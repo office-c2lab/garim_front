@@ -440,7 +440,7 @@ export default function MonitoringPage() {
   const [startDate, setStartDate] = useState('2026-05-07');
   const [endDate, setEndDate] = useState('2026-05-20');
   const [selectedResult, setSelectedResult] = useState('전체 결과');
-  const [selectedLogId, setSelectedLogId] = useState(logs[0].id);
+  const [selectedLogId, setSelectedLogId] = useState();
   const [currentPage, setCurrentPage] = useState(1);
 
   const filteredLogs = useMemo(() => {
