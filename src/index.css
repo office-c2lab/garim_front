@@ -19,8 +19,24 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
+}
+
+button:not(:disabled),
+a[href],
+select,
+label,
+[type='checkbox'],
+[type='radio'],
+[role='button'],
+[role='switch'] {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
 }
 
 .hover-scrollbar {

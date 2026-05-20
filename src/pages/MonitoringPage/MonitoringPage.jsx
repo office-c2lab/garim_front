@@ -183,10 +183,55 @@ const logs = [
     detectionDetail: '공개 자료만 사용되었고 민감 정보가 확인되지 않아 정상 처리되었습니다.',
     actionDetail: '정상 요청으로 기록만 남기고 별도 조치는 하지 않았습니다.',
   },
+  {
+    id: 12,
+    detectedAt: '2026-05-19 10:46',
+    aiType: 'MS Copilot',
+    organization: '재무기획팀',
+    prompt: '분기 손익 보고서 초안 검토 요청',
+    result: '기밀정보 탐지',
+    content: '내부 실적 수치 및 미공개 전망 포함',
+    userIp: '211.44.92.116',
+    userId: 'lim@cloudmate.com',
+    level: 'warning',
+    promptDetail: '분기 손익 보고서 초안과 내부 전망 수치를 바탕으로 요약 검토를 요청했습니다.',
+    detectionDetail: '미공개 재무 수치와 향후 전망 정보가 포함되어 기밀정보 탐지로 분류되었습니다.',
+    actionDetail: '재무 정보 보호 정책에 따라 승인 대기열로 이관하고 외부 전송은 보류합니다.',
+  },
+  {
+    id: 13,
+    detectedAt: '2026-05-19 09:38',
+    aiType: 'ChatGPT',
+    organization: '고객성공팀',
+    prompt: '고객 상담 이력 기반 응대 문안 추천',
+    result: '개인정보 탐지',
+    content: '고객 이름, 휴대전화, 주문번호 포함',
+    userIp: '211.44.92.117',
+    userId: 'oh@cloudmate.com',
+    level: 'warning',
+    promptDetail: '상담 이력에 포함된 고객 이름, 연락처, 주문번호를 기반으로 응대 문안을 추천해 달라는 요청입니다.',
+    detectionDetail: '이름과 연락처, 주문 식별 정보가 함께 포함되어 개인정보 탐지로 처리되었습니다.',
+    actionDetail: '개인 식별 정보는 마스킹한 뒤 재요청하도록 안내하고 원문은 격리 저장합니다.',
+  },
+  {
+    id: 14,
+    detectedAt: '2026-05-19 08:57',
+    aiType: 'Gemini',
+    organization: '플랫폼개발팀',
+    prompt: '운영 비밀키 포함 설정 파일 문제 원인 분석',
+    result: 'API Key 노출 시도',
+    content: '비밀키 패턴 및 운영 설정값 포함',
+    userIp: '211.44.92.118',
+    userId: 'song@cloudmate.com',
+    level: 'danger',
+    promptDetail: '운영 환경 설정 파일 일부와 함께 장애 원인 분석을 요청했고 비밀키 패턴이 포함되었습니다.',
+    detectionDetail: 'API Key 및 운영 민감 설정값이 함께 탐지되어 즉시 차단 대상으로 분류되었습니다.',
+    actionDetail: '비밀값을 제거한 샘플로 재작성하도록 유도하고 보안 이벤트로 등록해 추적합니다.',
+  },
 ];
 
 const resultOptions = ['전체 결과', '정상', '개인정보 탐지', '기밀정보 탐지', '프롬프트 위협'];
-const ROWS_PER_PAGE = 10;
+const ROWS_PER_PAGE = 11;
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
 const DEFAULT_DETAIL_MEMO = '메모를 입력하세요...';
 
@@ -314,16 +359,7 @@ function buildDetailContext(row) {
 }
 
 function DetailSectionLabel({ children }) {
-  return (
-    <div className="flex items-center gap-2 text-[13px] font-bold tracking-[-0.01em] text-[#4A57D1]">
-      <span className="flex h-4 w-4 items-center justify-center rounded-[4px] border border-[#C9D0FF] bg-[#F3F4FF]">
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-          <path d="M2 5h6M5 2v6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-        </svg>
-      </span>
-      {children}
-    </div>
-  );
+  return <div className="text-[13px] font-bold tracking-[-0.01em] text-[#4A57D1]">{children}</div>;
 }
 
 function DetailStatusBadge({ tone = 'red', children }) {
@@ -350,18 +386,7 @@ function DetailHeader({ row }) {
     <div className="flex flex-col gap-3 border-b border-[#E7EBF5] pb-4">
       <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 text-[15px] font-bold tracking-[-0.02em] text-[#1F2555]">
-            <span className="flex h-5 w-5 items-center justify-center rounded-full border border-[#D5DAF9] bg-[#F6F7FF] text-[#6A5AE0]">
-              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
-                <path
-                  d="M2.1 8.6h6.8M3.4 8.6V4.1a2.1 2.1 0 0 1 4.2 0v4.5M4.4 2.8h2.2"
-                  stroke="currentColor"
-                  strokeWidth="1.05"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
+          <div className="text-[15px] font-bold tracking-[-0.02em] text-[#1F2555]">
             상세 내역
           </div>
           <DetailStatusBadge tone="red">{row.result}</DetailStatusBadge>
@@ -376,52 +401,27 @@ function DetailHeader({ row }) {
   );
 }
 
-function DetailSummaryItem({ icon, label, value, valueClassName = '' }) {
+function DetailSummaryItem({ label, value, valueClassName = '' }) {
   return (
-    <div className="flex items-start gap-3">
-      <span className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-[6px] text-[#7B82B6]">
-        {icon}
-      </span>
-      <div className="min-w-0">
-        <p className="text-[11px] font-semibold text-[#7C86A7]">{label}</p>
-        <p
-          className={`truncate pt-1 text-[13px] font-semibold tracking-[-0.01em] text-[#2E3A59] ${valueClassName}`.trim()}
-        >
-          {value}
-        </p>
-      </div>
+    <div className="min-w-0">
+      <p className="text-[11px] font-semibold text-[#7C86A7]">{label}</p>
+      <p
+        className={`truncate pt-1 text-[13px] font-semibold tracking-[-0.01em] text-[#2E3A59] ${valueClassName}`.trim()}
+      >
+        {value}
+      </p>
     </div>
   );
 }
 
-function DetailPanel({ title, action, children }) {
+function DetailPanel({ title, children }) {
   return (
     <section className="overflow-hidden rounded-[10px] border border-[#E7EBF5] bg-white shadow-[0_4px_18px_rgba(15,23,42,0.04)]">
       <div className="flex items-center justify-between border-b border-[#ECEFFC] bg-[linear-gradient(180deg,#FBFBFF_0%,#F4F5FF_100%)] px-4 py-2.5">
         <DetailSectionLabel>{title}</DetailSectionLabel>
-        {action}
       </div>
       <div className="px-4 py-3">{children}</div>
     </section>
-  );
-}
-
-function DetailCopyButton() {
-  return (
-    <button
-      type="button"
-      className="inline-flex h-6 items-center gap-1 rounded-[6px] border border-[#D8DEFA] bg-white px-2 text-[11px] font-semibold text-[#6A5AE0]"
-    >
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-        <rect x="4" y="2.5" width="5.5" height="7" rx="1.2" stroke="currentColor" />
-        <path
-          d="M2.5 7.8V3.7c0-.66.54-1.2 1.2-1.2h3.8"
-          stroke="currentColor"
-          strokeLinecap="round"
-        />
-      </svg>
-      복사
-    </button>
   );
 }
 
@@ -519,7 +519,11 @@ function DateRangeField({ label, value, onChange, hideLabel = false }) {
             setViewDate(parseDateString(value));
             setIsOpen(open => !open);
           }}
-          className="flex h-[42px] w-full cursor-pointer items-center rounded-[10px] border border-[#D9DEEA] bg-white pr-10 pl-4 text-[14px] font-medium text-[#344054] shadow-[0_4px_12px_rgba(15,23,42,0.04)] outline-none transition hover:border-[#BFC7D8] focus:border-[#6D63FF] focus:ring-2 focus:ring-[rgba(109,99,255,0.12)]"
+          className={`flex h-[42px] w-full cursor-pointer items-center rounded-[10px] border pr-10 pl-4 text-[14px] font-medium text-[#344054] shadow-[0_4px_12px_rgba(15,23,42,0.04)] outline-none transition ${
+            isOpen
+              ? 'border-[#A5B4FC] bg-[#EEF2FF] ring-4 ring-[#E0E7FF]'
+              : 'border-[#D9DEEA] bg-white hover:border-[#C7D2FE] hover:bg-[#F8FAFF] active:border-[#A5B4FC] active:bg-[#EEF2FF] focus:border-[#A5B4FC] focus:ring-4 focus:ring-[#E0E7FF]'
+          }`.trim()}
         >
           {formatDateLabel(value)}
         </button>
@@ -686,7 +690,7 @@ export default function MonitoringPage() {
                       }}
                       options={resultOptions}
                       ariaLabel="탐지 결과"
-                      widthClass="w-full sm:w-[138px] sm:shrink-0"
+                      widthClass="w-full sm:w-[172px] sm:shrink-0"
                       triggerClassName="h-[42px] border-[#D9DEEA] bg-white shadow-[0_4px_12px_rgba(15,23,42,0.04)]"
                     />
                     <MonitoringActionButton
@@ -740,208 +744,33 @@ export default function MonitoringPage() {
                       <DetailSummaryItem
                         label="AI 타입"
                         value={row.aiType}
-                        icon={
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 14 14"
-                            fill="none"
-                            aria-hidden="true"
-                          >
-                            <rect
-                              x="2.25"
-                              y="2.25"
-                              width="9.5"
-                              height="9.5"
-                              rx="2"
-                              stroke="currentColor"
-                            />
-                            <path
-                              d="M4.5 7h5M7 4.5v5"
-                              stroke="currentColor"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        }
                       />
                       <DetailSummaryItem
                         label="관리 조직"
                         value={row.organization}
-                        icon={
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 14 14"
-                            fill="none"
-                            aria-hidden="true"
-                          >
-                            <path
-                              d="M2.5 11.2h9M4 11.2V4.1h6v7.1M5.3 5.4h.01M8.7 5.4h.01M5.3 7.5h.01M8.7 7.5h.01"
-                              stroke="currentColor"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        }
                       />
-                      <DetailSummaryItem
-                        label="이용자 ID"
-                        value={row.userId}
-                        icon={
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 14 14"
-                            fill="none"
-                            aria-hidden="true"
-                          >
-                            <circle cx="7" cy="4.6" r="2" stroke="currentColor" />
-                            <path
-                              d="M3.7 11.2c.6-1.8 1.9-2.7 3.3-2.7s2.7.9 3.3 2.7"
-                              stroke="currentColor"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        }
-                      />
-                      <DetailSummaryItem
-                        label="이용자 IP"
-                        value={row.userIp}
-                        icon={
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 14 14"
-                            fill="none"
-                            aria-hidden="true"
-                          >
-                            <rect
-                              x="2.25"
-                              y="2.25"
-                              width="9.5"
-                              height="9.5"
-                              rx="2"
-                              stroke="currentColor"
-                            />
-                            <path
-                              d="M4.3 4.8v4.4M7 4.8v4.4M9.7 4.8v4.4"
-                              stroke="currentColor"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        }
-                      />
-                      <DetailSummaryItem
-                        label="세션 ID"
-                        value={detail.sessionId}
-                        icon={
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 14 14"
-                            fill="none"
-                            aria-hidden="true"
-                          >
-                            <circle cx="7" cy="7" r="4.75" stroke="currentColor" />
-                            <path
-                              d="M7 4.6v2.8l1.8 1"
-                              stroke="currentColor"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        }
-                      />
-                      <DetailSummaryItem
-                        label="탐지 일시"
-                        value={row.detectedAt}
-                        icon={
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 14 14"
-                            fill="none"
-                            aria-hidden="true"
-                          >
-                            <rect
-                              x="2.25"
-                              y="3"
-                              width="9.5"
-                              height="8.75"
-                              rx="2"
-                              stroke="currentColor"
-                            />
-                            <path
-                              d="M4.4 1.9v2.2M9.6 1.9v2.2M2.6 5.4h8.8"
-                              stroke="currentColor"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        }
-                      />
-                      <DetailSummaryItem
-                        label="최종 정책"
-                        value={detail.policyName}
-                        icon={
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 14 14"
-                            fill="none"
-                            aria-hidden="true"
-                          >
-                            <path
-                              d="M7 2.2 10.8 3.6v2.8c0 2.1-1.5 4-3.8 5.1-2.3-1.1-3.8-3-3.8-5.1V3.6L7 2.2Z"
-                              stroke="currentColor"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="m5.4 6.9 1.1 1.1 2.2-2.2"
-                              stroke="currentColor"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        }
-                      />
+                      <DetailSummaryItem label="이용자 ID" value={row.userId} />
+                      <DetailSummaryItem label="이용자 IP" value={row.userIp} />
+                      <DetailSummaryItem label="세션 ID" value={detail.sessionId} />
+                      <DetailSummaryItem label="탐지 일시" value={row.detectedAt} />
+                      <DetailSummaryItem label="최종 정책" value={detail.policyName} />
                       <DetailSummaryItem
                         label="처리 상태"
                         value={detail.actionStatus}
                         valueClassName={row.result === '정상' ? 'text-[#18A0AE]' : 'text-[#F59E0B]'}
-                        icon={
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 14 14"
-                            fill="none"
-                            aria-hidden="true"
-                          >
-                            <rect
-                              x="2.25"
-                              y="2.25"
-                              width="9.5"
-                              height="9.5"
-                              rx="2"
-                              stroke="currentColor"
-                            />
-                            <path
-                              d="M4.6 7h4.8M7 4.6V7"
-                              stroke="currentColor"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        }
                       />
                     </div>
                   </section>
 
                   <div className="grid gap-3 lg:grid-cols-2">
                     <div className="grid gap-3">
-                      <DetailPanel title="원본 프롬프트" action={<DetailCopyButton />}>
+                      <DetailPanel title="원본 프롬프트">
                         <DetailPanelText>{row.promptDetail}</DetailPanelText>
                       </DetailPanel>
                       <DetailPanel title="탐지 근거">
                         <DetailBulletList items={detail.evidenceLines} />
                       </DetailPanel>
-                      <DetailPanel title="마스킹 미리보기" action={<DetailCopyButton />}>
+                      <DetailPanel title="마스킹 미리보기">
                         <DetailPanelText subtle>{detail.maskedPrompt}</DetailPanelText>
                       </DetailPanel>
                     </div>
@@ -957,30 +786,6 @@ export default function MonitoringPage() {
                         <DetailMemoBox />
                       </DetailPanel>
                     </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
-                    <MonitoringActionButton
-                      variant="outline"
-                      heightClass="h-[34px]"
-                      widthClass="w-[92px] min-w-[92px]"
-                    >
-                      예외 승인
-                    </MonitoringActionButton>
-                    <MonitoringActionButton
-                      variant="outline"
-                      heightClass="h-[34px]"
-                      widthClass="w-[92px] min-w-[92px]"
-                    >
-                      정책 추가
-                    </MonitoringActionButton>
-                    <MonitoringActionButton
-                      variant="primary"
-                      heightClass="h-[34px]"
-                      widthClass="w-[92px] min-w-[92px]"
-                    >
-                      조치 저장
-                    </MonitoringActionButton>
                   </div>
                 </div>
               );

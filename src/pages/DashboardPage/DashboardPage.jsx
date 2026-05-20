@@ -1,15 +1,9 @@
 import {
-  AlertTriangle,
   Bot,
-  ChevronRight,
   Code2,
-  MessageSquareWarning,
-  Search,
-  ShieldCheck,
-  ShieldX,
   Sparkles,
-  Workflow,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 import PageLayout from '../../layout/PageLayout.jsx';
 
@@ -19,32 +13,24 @@ const summaryCards = [
     value: '24',
     note: '3 서비스 증가 (전일 대비)',
     trend: 'up',
-    icon: Workflow,
-    iconClassName: 'bg-[#F0EEFF] text-[#5848E5]',
   },
   {
     title: '정책 적용 서비스',
     value: '18',
     note: '75% 적용률',
     trend: 'neutral',
-    icon: ShieldCheck,
-    iconClassName: 'bg-[#ECF9F1] text-[#23A55A]',
   },
   {
     title: '오늘 탐지 건수',
     value: '156',
     note: '12% (전일 178건)',
     trend: 'down',
-    icon: Search,
-    iconClassName: 'bg-[#EEF2FF] text-[#3B44F6]',
   },
   {
     title: '차단 건수',
     value: '42',
     note: '5% (전일 44건)',
     trend: 'down',
-    icon: ShieldX,
-    iconClassName: 'bg-[#FFF1F1] text-[#F04444]',
   },
 ];
 
@@ -156,21 +142,18 @@ const alerts = [
     title: 'API Key 노출 시도',
     tone: 'danger',
     tag: '높음',
-    icon: AlertTriangle,
     detail: '외부 채널을 통한 API Key 입력 시도가 5회 탐지되었습니다.',
   },
   {
     title: '프롬프트 인젝션 의심',
     tone: 'warning',
     tag: '중간',
-    icon: MessageSquareWarning,
     detail: '프롬프트 인젝션 패턴이 18회 탐지되었습니다.',
   },
   {
     title: '주민등록번호 포함 입력',
     tone: 'warning',
     tag: '중간',
-    icon: AlertTriangle,
     detail: '주민등록번호가 포함된 입력이 7회 탐지되었습니다.',
   },
 ];
@@ -179,29 +162,22 @@ function cn(...values) {
   return values.filter(Boolean).join(' ');
 }
 
-function StatCard({ title, value, note, trend, icon: Icon, iconClassName }) {
+function StatCard({ title, value, note, trend }) {
   const trendClassName =
     trend === 'up' ? 'text-[#1EA862]' : trend === 'down' ? 'text-[#1EA862]' : 'text-[#5F6B85]';
   const trendSymbol = trend === 'up' ? '▲' : trend === 'down' ? '▼' : '';
 
   return (
     <article className="rounded-[18px] border border-[#E7ECF5] bg-white px-5 py-4 shadow-[0_8px_28px_rgba(15,23,42,0.05)]">
-      <div className="flex items-center gap-4">
-        <div
-          className={cn('flex h-14 w-14 items-center justify-center rounded-[16px]', iconClassName)}
-        >
-          <Icon className="h-7 w-7" strokeWidth={1.8} />
-        </div>
-        <div className="min-w-0">
-          <p className="text-[0.95rem] font-semibold text-[#3C4358]">{title}</p>
-          <strong className="mt-1 block text-[2rem] leading-none font-black tracking-[-0.04em] text-[#141B34]">
-            {value}
-          </strong>
-          <p className={cn('mt-2 text-[0.9rem] font-semibold', trendClassName)}>
-            {trendSymbol ? `${trendSymbol} ` : ''}
-            {note}
-          </p>
-        </div>
+      <div className="min-w-0">
+        <p className="text-[0.95rem] font-semibold text-[#3C4358]">{title}</p>
+        <strong className="mt-2 block text-[2rem] leading-none font-black tracking-[-0.04em] text-[#141B34]">
+          {value}
+        </strong>
+        <p className={cn('mt-3 text-[0.9rem] font-semibold', trendClassName)}>
+          {trendSymbol ? `${trendSymbol} ` : ''}
+          {note}
+        </p>
       </div>
     </article>
   );
@@ -421,19 +397,21 @@ function StatusBadge({ tone, children }) {
   );
 }
 
-function TableFooterLink({ children }) {
+function TableFooterLink({ children, onClick }) {
   return (
     <button
       type="button"
-      className="inline-flex items-center gap-1 text-[0.92rem] font-bold text-[#5366E8] transition hover:text-[#3649cb]"
+      onClick={onClick}
+      className="inline-flex items-center text-[0.92rem] font-bold text-[#5366E8] transition hover:text-[#3649cb]"
     >
       {children}
-      <ChevronRight className="h-4 w-4" strokeWidth={2.4} />
     </button>
   );
 }
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
+
   return (
     <PageLayout>
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -454,7 +432,7 @@ export default function DashboardPage() {
       <section className="grid gap-4 xl:grid-cols-2">
         <DashboardPanel
           title="서비스별 상태"
-          actions={<TableFooterLink>전체 서비스 보기</TableFooterLink>}
+          actions={<TableFooterLink onClick={() => navigate('/domains')}>전체 서비스 보기</TableFooterLink>}
         >
           <div className="overflow-x-auto">
             <table className="min-w-full border-separate border-spacing-y-2 text-left">
@@ -496,7 +474,9 @@ export default function DashboardPage() {
 
         <DashboardPanel
           title="최근 탐지 이력"
-          actions={<TableFooterLink>전체 탐지 이력 보기</TableFooterLink>}
+          actions={
+            <TableFooterLink onClick={() => navigate('/monitoring')}>전체 탐지 이력 보기</TableFooterLink>
+          }
         >
           <div className="overflow-x-auto">
             <table className="min-w-full border-separate border-spacing-y-2 text-left">
@@ -537,7 +517,6 @@ export default function DashboardPage() {
       <DashboardPanel title="우선 확인 필요 항목">
         <div className="grid gap-4 xl:grid-cols-3">
           {alerts.map(alert => {
-            const Icon = alert.icon;
             const toneClassName =
               alert.tone === 'danger'
                 ? 'bg-[#FFF3F3] text-[#F04444]'
@@ -549,24 +528,14 @@ export default function DashboardPage() {
                 className="rounded-[18px] border border-[#E7ECF5] bg-[#FCFDFF] px-5 py-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={cn(
-                        'mt-0.5 flex h-11 w-11 items-center justify-center rounded-[14px]',
-                        toneClassName
-                      )}
-                    >
-                      <Icon className="h-[22px] w-[22px]" strokeWidth={2.2} />
-                    </div>
-                    <div>
-                      <h3 className="text-[1rem] font-bold text-[#1F2942]">{alert.title}</h3>
-                      <p className="mt-2 text-[0.92rem] leading-6 text-[#647089]">{alert.detail}</p>
-                    </div>
+                  <div className="min-w-0">
+                    <h3 className="text-[1rem] font-bold text-[#1F2942]">{alert.title}</h3>
+                    <p className="mt-2 text-[0.92rem] leading-6 text-[#647089]">{alert.detail}</p>
                   </div>
                   <StatusBadge tone={alert.tone}>{alert.tag}</StatusBadge>
                 </div>
                 <div className="mt-4 flex justify-end">
-                  <TableFooterLink>상세 보기</TableFooterLink>
+                  <TableFooterLink onClick={() => navigate('/monitoring')}>상세 보기</TableFooterLink>
                 </div>
               </article>
             );

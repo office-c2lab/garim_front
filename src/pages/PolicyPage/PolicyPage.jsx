@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Bot, Braces, CircleHelp, Download, Globe, Info, Plus, Search, Shield } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { CircleHelp, Download, Info, Plus, Search } from 'lucide-react';
 
+import { MonitoringDropdown } from '../../components/monitoring/MonitoringListComponents.jsx';
 import PageLayout from '../../layout/PageLayout.jsx';
 
 const policies = [
@@ -147,37 +148,44 @@ const detectionItems = [
   '역할 우회',
   '인코딩 우회',
 ];
-const serviceIconMap = {
-  ChatGPT: Bot,
-  Claude: Bot,
-  '사내 AI 챗봇': Bot,
-  '전체 서비스': Globe,
-  '개발자 도구': Braces,
-};
 
 function joinClasses(...classes) {
   return classes.filter(Boolean).join(' ');
 }
 
-function getCategoryTone(category) {
-  switch (category) {
-    case '개인정보':
-      return 'border-[#BFDBFE] bg-[#EFF6FF] text-[#2563EB]';
-    case '보안':
-      return 'border-[#DDD6FE] bg-[#F5F3FF] text-[#5B21B6]';
-    case '기밀정보':
-      return 'border-[#FED7AA] bg-[#FFF7ED] text-[#C2410C]';
-    case '파일 검사':
-      return 'border-[#BAE6FD] bg-[#ECFEFF] text-[#0F766E]';
-    default:
-      return 'border-slate-200 bg-slate-100 text-slate-700';
-  }
+function createPolicyDraft(policy) {
+  return {
+    ...policy,
+    services: [...policy.services],
+    detects: [...policy.detects],
+    exceptions: [...policy.exceptions],
+    alerts: { ...policy.alerts },
+  };
 }
 
-function getStatusTone(status) {
-  return status === '사용'
-    ? 'border-[#BBF7D0] bg-[#F0FDF4] text-[#15803D]'
-    : 'border-slate-200 bg-slate-100 text-slate-500';
+function createEmptyPolicy() {
+  const timestamp = Date.now();
+
+  return {
+    id: `pol_${timestamp}`,
+    name: '새 정책',
+    category: '개인정보',
+    services: ['ChatGPT'],
+    serviceLabel: 'ChatGPT',
+    action: '마스킹 후 전송',
+    status: '사용',
+    updatedAt: '2026-05-20 15:30',
+    description: '',
+    priority: 10,
+    detects: [],
+    exceptions: [],
+    handling: '마스킹',
+    alerts: {
+      admin: true,
+      log: true,
+      warning: true,
+    },
+  };
 }
 
 function getActionLabel(action) {
@@ -190,15 +198,7 @@ function getActionLabel(action) {
 function ServiceLabel({ services, fallback }) {
   return (
     <div className="flex flex-wrap items-center gap-2 text-[15px] font-semibold text-slate-700">
-      {services?.map(service => {
-        const Icon = serviceIconMap[service] ?? Shield;
-        return (
-          <span key={service} className="inline-flex items-center gap-1.5">
-            <Icon className="h-4 w-4 text-slate-500" strokeWidth={2} />
-            {service}
-          </span>
-        );
-      }) ?? fallback}
+      {services?.map(service => <span key={service}>{service}</span>) ?? fallback}
     </div>
   );
 }
@@ -229,7 +229,7 @@ function DetailInput({ label, required = false, children, hint }) {
   );
 }
 
-function ToggleRow({ label, description, checked }) {
+function ToggleRow({ label, description, checked, onToggle }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="min-w-0">
@@ -239,15 +239,18 @@ function ToggleRow({ label, description, checked }) {
       <button
         type="button"
         aria-pressed={checked}
+        onClick={onToggle}
         className={joinClasses(
-          'relative h-7 w-12 rounded-full border transition',
-          checked ? 'border-[#4338CA] bg-[#4338CA]' : 'border-slate-300 bg-slate-200'
+          'relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full border transition duration-200 hover:brightness-[1.04]',
+          checked
+            ? 'border-[#5B4BD7] bg-[#5B4BD7] shadow-[0_8px_18px_rgba(91,75,215,0.28)]'
+            : 'border-[#D5CFF5] bg-[#C8BDEB]'
         )}
       >
         <span
           className={joinClasses(
-            'absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition',
-            checked ? 'left-6' : 'left-1'
+            'h-5 w-5 rounded-full bg-white shadow-[0_2px_8px_rgba(15,18,20,0.18)] transition duration-200',
+            checked ? 'translate-x-[1.35rem]' : 'translate-x-[0.15rem]'
           )}
         />
       </button>
@@ -256,48 +259,132 @@ function ToggleRow({ label, description, checked }) {
 }
 
 export default function PolicyPage() {
+  const [policyList, setPolicyList] = useState(policies);
   const [selectedId, setSelectedId] = useState(policies[0].id);
-  const selectedPolicy = policies.find(policy => policy.id === selectedId) ?? policies[0];
+  const [selectedCategory, setSelectedCategory] = useState(categoryOptions[0]);
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [draftPolicy, setDraftPolicy] = useState(() => createPolicyDraft(policies[0]));
+
+  const filteredPolicies = useMemo(() => {
+    return policyList.filter(policy => {
+      const matchesCategory =
+        selectedCategory === '전체 분류' ? true : policy.category === selectedCategory;
+      const normalizedQuery = searchQuery.trim().toLowerCase();
+      const matchesSearch = normalizedQuery
+        ? policy.name.toLowerCase().includes(normalizedQuery)
+        : true;
+      return matchesCategory && matchesSearch;
+    });
+  }, [policyList, searchQuery, selectedCategory]);
+
+  const selectedPolicy = policyList.find(policy => policy.id === selectedId) ?? policyList[0];
+
+  useEffect(() => {
+    if (!selectedPolicy) return;
+    setDraftPolicy(createPolicyDraft(selectedPolicy));
+  }, [selectedPolicy]);
+
+  useEffect(() => {
+    if (!filteredPolicies.length) return;
+    const hasSelectedPolicy = filteredPolicies.some(policy => policy.id === selectedId);
+    if (!hasSelectedPolicy) {
+      setSelectedId(filteredPolicies[0].id);
+    }
+  }, [filteredPolicies, selectedId]);
+
+  const handleDownloadTemplate = () => {
+    const template = [
+      '정책명,분류,적용 서비스,조치 방식,사용 여부,우선순위',
+      '새 정책,개인정보,ChatGPT,마스킹,사용,10',
+    ].join('\n');
+
+    const blob = new Blob([template], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'policy-template.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCreatePolicy = () => {
+    const newPolicy = createEmptyPolicy();
+    setPolicyList(current => [newPolicy, ...current]);
+    setSelectedId(newPolicy.id);
+    setSearchInput('');
+    setSearchQuery('');
+    setSelectedCategory('전체 분류');
+  };
+
+  const handleClonePolicy = () => {
+    if (!selectedPolicy) return;
+    const clonedPolicy = createPolicyDraft(selectedPolicy);
+    clonedPolicy.id = `pol_${Date.now()}`;
+    clonedPolicy.name = `${selectedPolicy.name} 복제본`;
+    clonedPolicy.updatedAt = '2026-05-20 15:30';
+    setPolicyList(current => [clonedPolicy, ...current]);
+    setSelectedId(clonedPolicy.id);
+  };
+
+  const handleDeletePolicy = () => {
+    if (!selectedPolicy) return;
+    const nextPolicies = policyList.filter(policy => policy.id !== selectedPolicy.id);
+    setPolicyList(nextPolicies);
+    if (nextPolicies.length) {
+      setSelectedId(nextPolicies[0].id);
+    }
+  };
+
+  const handleSavePolicy = () => {
+    if (!draftPolicy) return;
+    const normalizedServices = draftPolicy.services
+      .map(service => service.trim())
+      .filter(Boolean);
+    const savedPolicy = {
+      ...draftPolicy,
+      services: normalizedServices,
+      serviceLabel: normalizedServices.join(', '),
+      action:
+        draftPolicy.handling === '허용'
+          ? '허용'
+          : draftPolicy.handling === '마스킹'
+            ? '마스킹 후 전송'
+            : draftPolicy.handling,
+      updatedAt: '2026-05-20 15:30',
+    };
+
+    setPolicyList(current =>
+      current.map(policy => (policy.id === savedPolicy.id ? savedPolicy : policy))
+    );
+  };
+
+  const handleCancelEdit = () => {
+    if (!selectedPolicy) return;
+    setDraftPolicy(createPolicyDraft(selectedPolicy));
+  };
 
   return (
     <PageLayout>
       <div className="flex flex-col gap-5 pb-3">
-        <div className="flex flex-col gap-5 pt-1 xl:flex-row xl:items-center xl:justify-end">
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <button
-              type="button"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#4338CA] px-5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(67,56,202,0.24)] transition hover:bg-[#3730A3]"
-            >
-              <Plus className="h-4 w-4" />새 정책 추가
-            </button>
-            <button
-              type="button"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-[#4338CA] transition hover:border-[#C7D2FE] hover:bg-[#F8FAFF]"
-            >
-              <Download className="h-4 w-4" />
-              정책 템플릿 다운로드
-            </button>
-          </div>
-        </div>
-
-        <SectionCard className="overflow-hidden">
-          <div className="border-b border-slate-200 px-5 py-4 sm:px-6">
+        <div className="flex flex-col gap-4 pt-1">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex flex-col gap-3 lg:flex-row">
-              <div className="relative w-full lg:max-w-[10rem]">
-                <select className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 pr-10 text-sm text-slate-600 outline-none transition focus:border-[#A5B4FC] focus:ring-4 focus:ring-[#E0E7FF]">
-                  {categoryOptions.map(option => (
-                    <option key={option}>{option}</option>
-                  ))}
-                </select>
-                <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-slate-400">
-                  ▾
-                </span>
-              </div>
+              <MonitoringDropdown
+                value={selectedCategory}
+                onChange={setSelectedCategory}
+                options={categoryOptions}
+                ariaLabel="전체 분류"
+                widthClass="w-full lg:w-[12rem] lg:shrink-0"
+                triggerClassName="h-12 rounded-xl border-slate-200 bg-white shadow-none"
+              />
 
               <div className="flex flex-1 flex-col gap-3 sm:flex-row">
                 <label className="relative flex-1">
                   <input
                     type="text"
+                    value={searchInput}
+                    onChange={event => setSearchInput(event.target.value)}
                     placeholder="정책명 검색"
                     className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 pr-11 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#A5B4FC] focus:ring-4 focus:ring-[#E0E7FF]"
                   />
@@ -305,14 +392,35 @@ export default function PolicyPage() {
                 </label>
                 <button
                   type="button"
-                  className="inline-flex h-12 min-w-[6rem] items-center justify-center rounded-xl bg-[#4338CA] px-5 text-sm font-semibold text-white transition hover:bg-[#3730A3]"
+                  onClick={() => setSearchQuery(searchInput)}
+                  className="inline-flex h-12 min-w-[6rem] items-center justify-center rounded-xl border border-[#4338CA] bg-[#4338CA] px-5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(67,56,202,0.24)] transition hover:bg-[#3730A3] active:bg-[#312E81]"
                 >
                   검색
                 </button>
               </div>
             </div>
-          </div>
 
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={handleCreatePolicy}
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-[#4338CA] bg-[#4338CA] px-5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(67,56,202,0.24)] transition hover:bg-[#3730A3] active:bg-[#312E81]"
+              >
+                <Plus className="h-4 w-4" />새 정책 추가
+              </button>
+              <button
+                type="button"
+                onClick={handleDownloadTemplate}
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-[#4338CA] transition hover:border-[#C7D2FE] hover:bg-[#F8FAFF]"
+              >
+                <Download className="h-4 w-4" />
+                정책 템플릿 다운로드
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <SectionCard className="overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-[980px] w-full table-fixed">
               <thead className="bg-[#F8FAFC] text-left text-sm font-semibold text-slate-500">
@@ -327,7 +435,7 @@ export default function PolicyPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 text-sm text-slate-700">
-                {policies.map(policy => {
+                {filteredPolicies.map(policy => {
                   const isSelected = policy.id === selectedId;
 
                   return (
@@ -359,15 +467,8 @@ export default function PolicyPage() {
                       <td className="px-4 py-4 text-[15px] font-semibold text-slate-800">
                         {policy.name}
                       </td>
-                      <td className="px-4 py-4">
-                        <span
-                          className={joinClasses(
-                            'inline-flex rounded-md border px-2.5 py-1 text-xs font-semibold',
-                            getCategoryTone(policy.category)
-                          )}
-                        >
-                          {policy.category}
-                        </span>
+                      <td className="px-4 py-4 text-[15px] font-semibold text-slate-700">
+                        {policy.category}
                       </td>
                       <td className="px-4 py-4">
                         <ServiceLabel services={policy.services} fallback={policy.serviceLabel} />
@@ -375,15 +476,8 @@ export default function PolicyPage() {
                       <td className="px-4 py-4 text-[15px] font-semibold text-slate-700">
                         {policy.action}
                       </td>
-                      <td className="px-4 py-4">
-                        <span
-                          className={joinClasses(
-                            'inline-flex rounded-md border px-3 py-1 text-xs font-semibold',
-                            getStatusTone(policy.status)
-                          )}
-                        >
-                          {policy.status}
-                        </span>
+                      <td className="px-4 py-4 text-[15px] font-semibold text-slate-600">
+                        {policy.status}
                       </td>
                       <td className="px-4 py-4 text-[15px] text-slate-600">{policy.updatedAt}</td>
                     </tr>
@@ -391,10 +485,16 @@ export default function PolicyPage() {
                 })}
               </tbody>
             </table>
+            {!filteredPolicies.length ? (
+              <div className="px-6 py-12 text-center text-sm text-slate-400">
+                검색 조건에 맞는 정책이 없습니다.
+              </div>
+            ) : null}
           </div>
         </SectionCard>
 
-        <SectionCard>
+        {selectedPolicy ? (
+          <SectionCard>
           <div className="flex flex-col gap-4 border-b border-slate-200 px-5 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h2 className="text-lg font-bold text-slate-900">선택한 정책 상세</h2>
@@ -407,12 +507,14 @@ export default function PolicyPage() {
               <div className="flex gap-2">
                 <button
                   type="button"
+                  onClick={handleClonePolicy}
                   className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
                 >
                   정책 복제
                 </button>
                 <button
                   type="button"
+                  onClick={handleDeletePolicy}
                   className="inline-flex h-10 items-center justify-center rounded-xl border border-[#FECACA] bg-[#FEF2F2] px-4 text-sm font-semibold text-[#DC2626] transition hover:bg-[#FEE2E2]"
                 >
                   삭제
@@ -427,26 +529,37 @@ export default function PolicyPage() {
                 <DetailInput label="정책명" required>
                   <input
                     type="text"
-                    value={selectedPolicy.name}
-                    readOnly
+                    value={draftPolicy.name}
+                    onChange={event =>
+                      setDraftPolicy(current => ({ ...current, name: event.target.value }))
+                    }
                     className="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none"
                   />
                 </DetailInput>
 
                 <DetailInput label="적용 서비스" required>
-                  <div className="flex min-h-11 items-center justify-between rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700">
-                    <ServiceLabel
-                      services={selectedPolicy.services}
-                      fallback={selectedPolicy.serviceLabel}
-                    />
-                    <span className="ml-4 text-slate-300">× | ▾</span>
-                  </div>
+                  <input
+                    type="text"
+                    value={draftPolicy.services.join(', ')}
+                    onChange={event =>
+                      setDraftPolicy(current => ({
+                        ...current,
+                        services: event.target.value
+                          .split(',')
+                          .map(service => service.trim())
+                          .filter(Boolean),
+                      }))
+                    }
+                    className="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none"
+                  />
                 </DetailInput>
 
                 <DetailInput label="설명">
                   <textarea
-                    value={selectedPolicy.description}
-                    readOnly
+                    value={draftPolicy.description}
+                    onChange={event =>
+                      setDraftPolicy(current => ({ ...current, description: event.target.value }))
+                    }
                     rows={4}
                     className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-700 outline-none"
                   />
@@ -456,8 +569,13 @@ export default function PolicyPage() {
                   <div className="relative w-full max-w-[9rem]">
                     <input
                       type="number"
-                      value={selectedPolicy.priority}
-                      readOnly
+                      value={draftPolicy.priority}
+                      onChange={event =>
+                        setDraftPolicy(current => ({
+                          ...current,
+                          priority: Number(event.target.value) || 0,
+                        }))
+                      }
                       className="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none"
                     />
                   </div>
@@ -473,8 +591,8 @@ export default function PolicyPage() {
 
               <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                 {detectionItems.map(item => {
-                  const checked = selectedPolicy.detects.includes(item);
-                  const muted = selectedPolicy.exceptions.includes(item);
+                  const checked = draftPolicy.detects.includes(item);
+                  const muted = draftPolicy.exceptions.includes(item);
 
                   return (
                     <label
@@ -484,7 +602,14 @@ export default function PolicyPage() {
                       <input
                         type="checkbox"
                         checked={checked}
-                        readOnly
+                        onChange={() =>
+                          setDraftPolicy(current => ({
+                            ...current,
+                            detects: checked
+                              ? current.detects.filter(detect => detect !== item)
+                              : [...current.detects, item],
+                          }))
+                        }
                         className={joinClasses(
                           'h-4 w-4 rounded border-slate-300 accent-[#4338CA]',
                           muted ? 'opacity-50' : ''
@@ -509,8 +634,13 @@ export default function PolicyPage() {
                     <input
                       type="radio"
                       name="policy-handling"
-                      checked={selectedPolicy.handling === option}
-                      readOnly
+                      checked={draftPolicy.handling === option}
+                      onChange={() =>
+                        setDraftPolicy(current => ({
+                          ...current,
+                          handling: option,
+                        }))
+                      }
                       className="h-4 w-4 accent-[#4338CA]"
                     />
                     {option}
@@ -521,29 +651,58 @@ export default function PolicyPage() {
               <div className="mt-6 rounded-xl border border-[#D9D6FE] bg-[#F5F3FF] px-4 py-3 text-sm leading-6 text-[#4338CA]">
                 <div className="flex items-start gap-2">
                   <Info className="mt-0.5 h-4 w-4 shrink-0" />
-                  <p>{getActionLabel(selectedPolicy.handling)}</p>
+                  <p>{getActionLabel(draftPolicy.handling)}</p>
                 </div>
               </div>
             </div>
 
             <div className="px-5 py-5 sm:px-6">
-              <h3 className="mb-6 text-base font-bold text-slate-900">알림/로그 설정</h3>
+              <h3 className="mb-6 text-base font-bold text-slate-900">정책 운영 설정</h3>
 
               <div className="space-y-6">
                 <ToggleRow
+                  label="정책 사용 여부"
+                  description="선택한 정책의 활성화 상태를 확인합니다."
+                  checked={draftPolicy.status === '사용'}
+                  onToggle={() =>
+                    setDraftPolicy(current => ({
+                      ...current,
+                      status: current.status === '사용' ? '미사용' : '사용',
+                    }))
+                  }
+                />
+                <ToggleRow
                   label="관리자 알림"
                   description="정책 위반 시 관리자에게 알림을 전송합니다."
-                  checked={selectedPolicy.alerts.admin}
+                  checked={draftPolicy.alerts.admin}
+                  onToggle={() =>
+                    setDraftPolicy(current => ({
+                      ...current,
+                      alerts: { ...current.alerts, admin: !current.alerts.admin },
+                    }))
+                  }
                 />
                 <ToggleRow
                   label="감사 로그 저장"
                   description="정책 위반 내역을 감사 로그로 저장합니다."
-                  checked={selectedPolicy.alerts.log}
+                  checked={draftPolicy.alerts.log}
+                  onToggle={() =>
+                    setDraftPolicy(current => ({
+                      ...current,
+                      alerts: { ...current.alerts, log: !current.alerts.log },
+                    }))
+                  }
                 />
                 <ToggleRow
                   label="사용자 경고 메시지"
                   description="사용자에게 정책 위반 사유를 안내합니다."
-                  checked={selectedPolicy.alerts.warning}
+                  checked={draftPolicy.alerts.warning}
+                  onToggle={() =>
+                    setDraftPolicy(current => ({
+                      ...current,
+                      alerts: { ...current.alerts, warning: !current.alerts.warning },
+                    }))
+                  }
                 />
               </div>
             </div>
@@ -552,18 +711,21 @@ export default function PolicyPage() {
           <div className="flex justify-end gap-3 border-t border-slate-200 px-5 py-4 sm:px-6">
             <button
               type="button"
+              onClick={handleCancelEdit}
               className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-6 text-sm font-semibold text-slate-500 transition hover:bg-slate-50"
             >
               취소
             </button>
             <button
               type="button"
-              className="inline-flex h-11 items-center justify-center rounded-xl bg-[#4338CA] px-6 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(67,56,202,0.24)] transition hover:bg-[#3730A3]"
+              onClick={handleSavePolicy}
+              className="inline-flex h-11 items-center justify-center rounded-xl border border-[#4338CA] bg-[#4338CA] px-6 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(67,56,202,0.24)] transition hover:bg-[#3730A3] active:bg-[#312E81]"
             >
               저장
             </button>
           </div>
         </SectionCard>
+        ) : null}
       </div>
     </PageLayout>
   );
