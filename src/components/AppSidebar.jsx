@@ -40,7 +40,7 @@ export default function AppSidebar({
   const navigate = useNavigate();
   const location = useLocation();
 
-  const sidebarTopPaddingClass = overlayHeader ? 'pt-0' : 'pt-4';
+  const sidebarTopPaddingClass = overlayHeader ? 'pt-0' : 'pt-0';
 
   const handleNavigate = path => {
     navigate(path);
@@ -63,7 +63,7 @@ export default function AppSidebar({
                       onClick={() => handleNavigate(item.path)}
                       className={`group flex h-[46px] w-full cursor-pointer items-center gap-3 rounded-[14px] px-3.5 text-left transition duration-200 ${
                         isActive
-                          ? 'border border-[#D9DDF7] bg-[linear-gradient(180deg,#F6F4FF_0%,#EEEAFE_100%)] text-[#312E81] shadow-[0_8px_24px_rgba(15,23,42,0.06)]'
+                          ? 'border border-[rgba(67,56,202,0.2)] bg-transparent text-[#4338CA] '
                           : 'border border-transparent bg-transparent text-[#5F6B85] hover:border-[#E7ECF5] hover:bg-[#F8FAFF] hover:text-[#1F2937]'
                       }`.trim()}
                       aria-current={isActive ? 'page' : undefined}
@@ -75,7 +75,7 @@ export default function AppSidebar({
                         aria-hidden="true"
                         className={`h-2.5 w-2.5 flex-none rounded-full transition duration-200 ${
                           isActive
-                            ? 'bg-[#4338CA] shadow-[0_0_0_4px_rgba(67,56,202,0.12),0_0_18px_rgba(67,56,202,0.18)]'
+                            ? 'bg-[#4338CA] shadow-[0_0_0_4px_rgba(67,56,202,0.12),0_0_18px_rgba(67,56,202,0.2)]'
                             : 'bg-[#D8E0EB] group-hover:bg-[#C7D2FE]'
                         }`.trim()}
                       />
