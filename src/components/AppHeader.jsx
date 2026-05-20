@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import questionIcon from '../assets/icons/question.svg';
 import questionWhiteIcon from '../assets/icons/question-white.svg';
 import settingIcon from '../assets/icons/setting.svg';
@@ -78,6 +78,7 @@ export default function AppHeader({ onMenuClick, isSidebarOpen = false }) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const location = useLocation();
+  const navigate = useNavigate();
   const pageTitle = PAGE_TITLES[location.pathname] ?? 'GARIM';
   const pageDescription = PAGE_DESCRIPTIONS[location.pathname] ?? '';
 
@@ -121,8 +122,8 @@ export default function AppHeader({ onMenuClick, isSidebarOpen = false }) {
           >
             <RadarBrand
               className="gap-1.5"
-              logoClassName="h-[1.2rem]"
-              radarClassName="w-[4.6rem]"
+              logoClassName="h-[1.4rem]"
+              radarClassName="w-[5.3rem]"
             />
           </button>
           <h1 className="truncate text-[1rem] font-bold tracking-[-0.03em] text-white">
@@ -206,8 +207,23 @@ export default function AppHeader({ onMenuClick, isSidebarOpen = false }) {
         </div>
       </div>
 
-      <div className="hidden h-[var(--app-header-height)] lg:ml-[var(--app-sidebar-width)] lg:block">
-        <div className="h-full w-full lg:px-5 xl:px-5 2xl:px-5">
+      <div className="hidden h-[var(--app-header-height)] lg:flex">
+        <div className="flex h-full w-[var(--app-sidebar-width)] items-center justify-center px-3 lg:px-3 xl:px-3.5">
+          <button
+            type="button"
+            className="shrink-0 cursor-pointer"
+            onClick={() => navigate('/dashboard')}
+            aria-label="대시보드로 이동"
+          >
+            <RadarBrand
+              className="gap-1.5 lg:gap-1.5 xl:gap-2"
+              logoClassName="h-[1.9rem] lg:h-[1.8rem] xl:h-[2.05rem] 2xl:h-[2.2rem]"
+              radarClassName="w-[6rem] lg:w-[5.8rem] xl:w-[6.7rem] 2xl:w-[7.15rem]"
+            />
+          </button>
+        </div>
+
+        <div className="h-full min-w-0 flex-1 lg:px-5 xl:px-5 2xl:px-5">
           <div
             className={`mx-auto flex h-full w-full ${APP_PAGE_HORIZONTAL_PADDING_CLASS} ${APP_PAGE_OUTER_WIDTH_CLASS}`.trim()}
           >

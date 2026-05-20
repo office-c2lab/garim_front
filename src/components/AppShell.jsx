@@ -37,8 +37,8 @@ export default function AppShell({ showBrand = true }) {
           <AppHeader isSidebarOpen={isMobileSidebarOpen} onMenuClick={toggleMobileSidebar} />
         </div>
 
-        <div className="fixed top-0 left-0 bottom-0 z-40 hidden w-[var(--app-sidebar-width)] lg:block">
-          <AppSidebar overlayHeader showBrand={showBrand} />
+        <div className="fixed top-[var(--app-header-height)] left-0 bottom-0 z-40 hidden w-[var(--app-sidebar-width)] lg:block">
+          <AppSidebar showBrand={showBrand} />
         </div>
 
         <div
@@ -58,15 +58,15 @@ export default function AppShell({ showBrand = true }) {
 
           <div
             id="app-sidebar-drawer"
-            className={`absolute top-0 left-0 bottom-0 w-[var(--app-sidebar-mobile-width)] max-w-full border-r border-white/10 bg-[#1A1A1A] shadow-[0_24px_80px_rgba(0,0,0,0.35)] transition-transform duration-300 ease-out ${
+            className={`absolute top-[var(--app-header-height)] left-0 bottom-0 w-[var(--app-sidebar-mobile-width)] max-w-full transition-transform duration-300 ease-out ${
               isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
             }`.trim()}
           >
-            <AppSidebar overlayHeader showBrand={showBrand} onNavigate={closeMobileSidebar} />
+            <AppSidebar showBrand={showBrand} onNavigate={closeMobileSidebar} />
           </div>
         </div>
 
-        <section className="fixed top-[var(--app-header-height)] right-0 bottom-0 left-0 overflow-hidden border-t border-[#FFFFFF] bg-[#F5F7FB] text-[#111827] lg:left-[var(--app-sidebar-width)] lg:rounded-tl-[24px] lg:border-l lg:border-[#FFFFFF]">
+        <section className="fixed top-[var(--app-header-height)] right-0 bottom-0 left-0 overflow-hidden border-t border-[#FFFFFF] bg-[#F5F7FB] text-[#111827] lg:left-[var(--app-sidebar-width)]  lg:border-l lg:border-[#FFFFFF]">
           <div className="hover-scrollbar relative h-full overflow-y-auto overflow-x-hidden">
             <div className="min-h-full w-full bg-[#F5F7FB] px-3 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-4">
               <Outlet />
