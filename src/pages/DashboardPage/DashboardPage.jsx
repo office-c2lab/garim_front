@@ -1,8 +1,3 @@
-import {
-  Bot,
-  Code2,
-  Sparkles,
-} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 import PageLayout from '../../layout/PageLayout.jsx';
@@ -67,7 +62,6 @@ const donutSegments = [
 const serviceStatus = [
   {
     service: 'ChatGPT',
-    icon: Sparkles,
     status: '정상',
     statusTone: 'success',
     policyRate: '100%',
@@ -75,7 +69,6 @@ const serviceStatus = [
   },
   {
     service: 'Claude',
-    icon: Bot,
     status: '정상',
     statusTone: 'success',
     policyRate: '100%',
@@ -83,7 +76,6 @@ const serviceStatus = [
   },
   {
     service: '사내 AI 챗봇',
-    icon: Bot,
     status: '주의',
     statusTone: 'warning',
     policyRate: '80%',
@@ -91,7 +83,6 @@ const serviceStatus = [
   },
   {
     service: '개발자 도구',
-    icon: Code2,
     status: '검토 필요',
     statusTone: 'review',
     policyRate: '60%',
@@ -446,14 +437,10 @@ export default function DashboardPage() {
               </thead>
               <tbody>
                 {serviceStatus.map(row => {
-                  const Icon = row.icon;
                   return (
                     <tr key={row.service} className="text-[0.95rem] font-semibold text-[#2B344C]">
                       <td className="rounded-l-[12px] border-y border-l border-[#EDF1F7] bg-white px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <Icon className="h-[18px] w-[18px] text-[#1B1F31]" strokeWidth={2} />
-                          <span>{row.service}</span>
-                        </div>
+                        {row.service}
                       </td>
                       <td className="border-y border-[#EDF1F7] bg-white px-4 py-3">
                         <StatusBadge tone={row.statusTone}>{row.status}</StatusBadge>
