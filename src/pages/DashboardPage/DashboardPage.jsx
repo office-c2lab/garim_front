@@ -1,130 +1,82 @@
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import ServiceLogoBadge from '../../components/ServiceLogoBadge.jsx';
 import PageLayout from '../../layout/PageLayout.jsx';
 
 const summaryCards = [
-  {
-    title: '전체 서비스',
-    value: '24',
-    note: '3 서비스 증가 (전일 대비)',
-    trend: 'up',
-  },
-  {
-    title: '정책 적용 서비스',
-    value: '18',
-    note: '75% 적용률',
-    trend: 'neutral',
-  },
-  {
-    title: '오늘 탐지 건수',
-    value: '156',
-    note: '12% (전일 178건)',
-    trend: 'down',
-  },
-  {
-    title: '차단 건수',
-    value: '42',
-    note: '5% (전일 44건)',
-    trend: 'down',
-  },
+  { title: '전체 서비스', value: '24', change: '+6%', trend: 'up' },
+  { title: '정책 적용 서비스', value: '18', change: '-3%', trend: 'down' },
+  { title: '신규 정책', value: '7', change: '+9%', trend: 'up' },
+  { title: '오늘 탐지 건수', value: '27.3k', change: '+3%', trend: 'up' },
+  { title: '차단 건수', value: '95', change: '-2%', trend: 'down' },
+  { title: '보호 대상', value: '621', change: '-1%', trend: 'down' },
 ];
 
 const chartSeries = [
-  {
-    key: 'personal',
-    label: '개인정보 탐지',
-    color: '#4A4DF0',
-    values: [98, 112, 105, 139, 168, 152, 156],
-  },
-  {
-    key: 'corporate',
-    label: '기업정보 탐지',
-    color: '#27AE60',
-    values: [28, 31, 27, 36, 42, 40, 38],
-  },
-  {
-    key: 'prompt',
-    label: '프롬프트 위협',
-    color: '#FF5B5B',
-    values: [8, 9, 17, 14, 16, 13, 20],
-  },
+  { key: 'personal', label: '개인정보 탐지', color: '#4C59F7', values: [98, 112, 105, 139, 168, 152, 156] },
+  { key: 'corporate', label: '기밀정보 탐지', color: '#1FB566', values: [28, 31, 27, 36, 42, 40, 38] },
+  { key: 'prompt', label: '프롬프트 위협', color: '#FF4B57', values: [8, 9, 17, 14, 16, 13, 20] },
 ];
 
 const chartLabels = ['12/02', '12/03', '12/04', '12/05', '12/06', '12/07', '12/08'];
 
 const donutSegments = [
-  { label: '개인정보', value: 52, count: '652건', color: '#6772F6' },
-  { label: '기업정보', value: 24, count: '301건', color: '#7FD7A2' },
-  { label: '프롬프트 위험', value: 14, count: '176건', color: '#FF7E86' },
-  { label: '정상', value: 10, count: '125건', color: '#C9D0E0' },
+  { label: '개인정보', value: 52, count: '652건', color: '#5A5FF6' },
+  { label: '기밀정보', value: 24, count: '301건', color: '#72D596' },
+  { label: '프롬프트 위험', value: 14, count: '176건', color: '#FF6675' },
+  { label: '정상', value: 10, count: '125건', color: '#CBD3E5' },
 ];
 
 const serviceStatus = [
-  {
-    service: 'ChatGPT',
-    status: '정상',
-    statusTone: 'success',
-    policyRate: '100%',
-    detections: '72건',
-  },
-  {
-    service: 'Claude',
-    status: '정상',
-    statusTone: 'success',
-    policyRate: '100%',
-    detections: '28건',
-  },
-  {
-    service: '사내 AI 챗봇',
-    status: '주의',
-    statusTone: 'warning',
-    policyRate: '80%',
-    detections: '34건',
-  },
-  {
-    service: '개발자 도구',
-    status: '검토 필요',
-    statusTone: 'review',
-    policyRate: '60%',
-    detections: '22건',
-  },
+  { service: 'ChatGPT', url: 'https://chatgpt.com/', status: '정상', policyRate: '100%', detections: '72건' },
+  { service: 'Claude', url: 'https://claude.ai/', status: '정상', policyRate: '100%', detections: '28건' },
+  { service: 'Gemini', url: 'https://gemini.google.com/', status: '정상', policyRate: '95%', detections: '18건' },
+  { service: 'Genspark', url: 'https://www.genspark.ai/', status: '정상', policyRate: '88%', detections: '14건' },
+  { service: 'MS Copilot', url: 'https://copilot.microsoft.com/', status: '정상', policyRate: '90%', detections: '7건' },
 ];
 
 const recentHistory = [
   {
     time: '2025-12-08 13:45:23',
     service: 'ChatGPT',
+    url: 'https://chatgpt.com/',
     result: '개인정보 탐지',
     tone: 'danger',
-    detail: '주민등록번호 포함 입력 감지',
+    detail: '주민등록번호 포함',
   },
   {
     time: '2025-12-08 13:22:11',
     service: 'Claude',
-    result: '기업정보 탐지',
+    url: 'https://claude.ai/',
+    result: '기밀정보 탐지',
     tone: 'warning',
-    detail: '사내 문서 내용 입력 감지',
+    detail: '사내 문서 내용 포함',
   },
   {
-    time: '2025-12-08 12:58:04',
-    service: '사내 AI 챗봇',
+    time: '2025-12-08 13:10:07',
+    service: 'Gemini',
+    url: 'https://gemini.google.com/',
     result: '프롬프트 위협',
     tone: 'danger',
-    detail: '프롬프트 인젝션 시도 탐지',
+    detail: '시스템 프롬프트 노출',
   },
   {
-    time: '2025-12-08 12:31:47',
-    service: '개발자 도구',
+    time: '2025-12-08 12:55:42',
+    service: 'Genspark',
+    url: 'https://www.genspark.ai/',
     result: '정상',
     tone: 'success',
-    detail: '정상 요청 처리',
+    detail: '정상 대화',
   },
   {
-    time: '2025-12-08 11:59:12',
-    service: 'ChatGPT',
-    result: '기업정보 탐지',
+    time: '2025-12-08 12:41:09',
+    service: 'MS Copilot',
+    url: 'https://copilot.microsoft.com/',
+    result: '기밀정보 탐지',
     tone: 'warning',
-    detail: '소스코드 포함 입력 감지',
+    detail: '내부 회의록 포함',
   },
 ];
 
@@ -153,43 +105,46 @@ function cn(...values) {
   return values.filter(Boolean).join(' ');
 }
 
-function StatCard({ title, value, note, trend }) {
-  const trendClassName =
-    trend === 'up' ? 'text-[#1EA862]' : trend === 'down' ? 'text-[#1EA862]' : 'text-[#5F6B85]';
-  const trendSymbol = trend === 'up' ? '▲' : trend === 'down' ? '▼' : '';
-
-  return (
-    <article className="rounded-[18px] border border-[#E7ECF5] bg-white px-5 py-4 shadow-[0_8px_28px_rgba(15,23,42,0.05)]">
-      <div className="min-w-0">
-        <p className="text-[0.95rem] font-semibold text-[#3C4358]">{title}</p>
-        <strong className="mt-2 block text-[2rem] leading-none font-black tracking-[-0.04em] text-[#141B34]">
-          {value}
-        </strong>
-        <p className={cn('mt-3 text-[0.9rem] font-semibold', trendClassName)}>
-          {trendSymbol ? `${trendSymbol} ` : ''}
-          {note}
-        </p>
-      </div>
-    </article>
-  );
-}
-
 function DashboardPanel({ title, actions, children, className = '' }) {
   return (
     <section
       className={cn(
-        'min-w-0 rounded-[20px] border border-[#E7ECF5] bg-white p-4 xl:p-5 shadow-[0_10px_30px_rgba(15,23,42,0.045)]',
+        'min-w-0 rounded-[22px] border border-[#E2E8F4] bg-white px-5 py-5 shadow-[0_12px_34px_rgba(15,23,42,0.06)] xl:px-6',
         className
       )}
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-[1.08rem] font-bold tracking-[-0.03em] text-[#1C2440] xl:text-[1.2rem]">
+        <h2 className="text-[1.12rem] font-bold tracking-[-0.03em] text-[#11182E] xl:text-[1.18rem]">
           {title}
         </h2>
         {actions}
       </div>
-      <div className="mt-4">{children}</div>
+      <div className="mt-5">{children}</div>
     </section>
+  );
+}
+
+function SummaryCard({ title, value, change, trend }) {
+  const isUp = trend === 'up';
+
+  return (
+    <article className="rounded-[18px] border border-[#E2E8F4] bg-white px-5 py-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-[0.96rem] font-semibold text-[#20273D]">{title}</p>
+        <span
+          className={cn(
+            'inline-flex items-center gap-1 text-[0.95rem] font-bold',
+            isUp ? 'text-[#2BB658]' : 'text-[#FF4B57]'
+          )}
+        >
+          {change}
+          {isUp ? '⌃' : '⌄'}
+        </span>
+      </div>
+      <strong className="mt-5 block text-[2.25rem] leading-none font-black tracking-[-0.05em] text-[#0E1731]">
+        {value}
+      </strong>
+    </article>
   );
 }
 
@@ -207,55 +162,63 @@ function getLinePoints(values, width, height, maxValue, paddingX, paddingY) {
 }
 
 function LineChart() {
+  const [hiddenSeriesKeys, setHiddenSeriesKeys] = useState([]);
   const width = 760;
-  const height = 260;
+  const height = 250;
   const paddingX = 54;
-  const paddingY = 24;
+  const paddingY = 18;
   const maxValue = 200;
   const gridValues = [0, 40, 80, 120, 160, 200];
   const stepX = (width - paddingX * 2) / (chartLabels.length - 1);
+  const visibleSeries = chartSeries.filter(series => !hiddenSeriesKeys.includes(series.key));
+
+  const handleToggleSeries = key => {
+    setHiddenSeriesKeys(current =>
+      current.includes(key) ? current.filter(item => item !== key) : [...current, key]
+    );
+  };
 
   return (
     <div className="overflow-x-auto">
-      <div className="mb-3 flex flex-wrap items-center justify-end gap-5 text-[0.85rem] font-semibold text-[#5B6480]">
+      <div className="mb-3 flex flex-wrap items-center justify-end gap-5 text-[0.84rem] font-semibold text-[#65718C]">
         {chartSeries.map(series => (
-          <div key={series.key} className="flex items-center gap-2">
-            <span
-              className="h-2.5 w-2.5 rounded-full"
-              style={{ backgroundColor: series.color }}
-              aria-hidden="true"
-            />
+          <button
+            key={series.key}
+            type="button"
+            onClick={() => handleToggleSeries(series.key)}
+            className={cn(
+              'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 transition',
+              hiddenSeriesKeys.includes(series.key)
+                ? 'border-[#E3E8F4] bg-[#F8FAFD] text-[#A0ABC1]'
+                : 'border-transparent bg-transparent text-[#65718C]'
+            )}
+          >
+            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: series.color }} />
             <span>{series.label}</span>
-          </div>
+          </button>
         ))}
       </div>
 
-      <svg viewBox={`0 0 ${width} ${height + 34}`} className="min-w-[620px] xl:min-w-[700px]">
+      <svg viewBox={`0 0 ${width} ${height + 34}`} className="min-w-[680px]">
         {gridValues.map(value => {
           const y = height - paddingY - (value / maxValue) * (height - paddingY * 2);
+
           return (
             <g key={value}>
-              <line
-                x1={paddingX}
-                y1={y}
-                x2={width - paddingX}
-                y2={y}
-                stroke="#E6EBF5"
-                strokeWidth="1"
-              />
-              <text x="18" y={y + 4} fill="#6D7893" fontSize="12" fontWeight="600">
+              <line x1={paddingX} y1={y} x2={width - paddingX} y2={y} stroke="#E8EDF7" strokeWidth="1" />
+              <text x="18" y={y + 4} fill="#71809D" fontSize="12" fontWeight="700">
                 {value}
               </text>
             </g>
           );
         })}
 
-        {chartSeries.map(series => (
+        {visibleSeries.map(series => (
           <g key={series.key}>
             <polyline
               fill="none"
               stroke={series.color}
-              strokeWidth="2.5"
+              strokeWidth="2.8"
               points={getLinePoints(series.values, width, height, maxValue, paddingX, paddingY)}
             />
             {series.values.map((value, index) => {
@@ -264,22 +227,8 @@ function LineChart() {
 
               return (
                 <g key={`${series.key}-${chartLabels[index]}`}>
-                  <circle
-                    cx={x}
-                    cy={y}
-                    r="4"
-                    fill="#FFFFFF"
-                    stroke={series.color}
-                    strokeWidth="2"
-                  />
-                  <text
-                    x={x}
-                    y={y - 12}
-                    textAnchor="middle"
-                    fill={series.color}
-                    fontSize="11"
-                    fontWeight="700"
-                  >
+                  <circle cx={x} cy={y} r="4" fill="#FFF" stroke={series.color} strokeWidth="2" />
+                  <text x={x} y={y - 12} textAnchor="middle" fill={series.color} fontSize="11" fontWeight="700">
                     {value}
                   </text>
                 </g>
@@ -288,18 +237,23 @@ function LineChart() {
           </g>
         ))}
 
+        {!visibleSeries.length ? (
+          <text
+            x={width / 2}
+            y={height / 2}
+            textAnchor="middle"
+            fill="#9AA6BD"
+            fontSize="14"
+            fontWeight="700"
+          >
+            표시할 범례를 선택하세요
+          </text>
+        ) : null}
+
         {chartLabels.map((label, index) => {
           const x = paddingX + stepX * index;
           return (
-            <text
-              key={label}
-              x={x}
-              y={height + 20}
-              textAnchor="middle"
-              fill="#6D7893"
-              fontSize="12"
-              fontWeight="600"
-            >
+            <text key={label} x={x} y={height + 20} textAnchor="middle" fill="#71809D" fontSize="12" fontWeight="700">
               {label}
             </text>
           );
@@ -310,17 +264,26 @@ function LineChart() {
 }
 
 function DonutChart() {
-  const radius = 74;
+  const [hiddenSegmentLabels, setHiddenSegmentLabels] = useState([]);
+  const radius = 76;
   const circumference = 2 * Math.PI * radius;
   let offset = 0;
+  const visibleSegments = donutSegments.filter(segment => !hiddenSegmentLabels.includes(segment.label));
+  const totalCount = visibleSegments.reduce((sum, segment) => sum + Number(segment.count.replace(/[^\d]/g, '')), 0);
+
+  const handleToggleSegment = label => {
+    setHiddenSegmentLabels(current =>
+      current.includes(label) ? current.filter(item => item !== label) : [...current, label]
+    );
+  };
 
   return (
-    <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-      <div className="mx-auto flex h-[210px] w-[210px] items-center justify-center xl:h-[230px] xl:w-[230px]">
-        <div className="relative h-[178px] w-[178px] xl:h-[190px] xl:w-[190px]">
-          <svg viewBox="0 0 190 190" className="-rotate-90">
-            <circle cx="95" cy="95" r={radius} fill="none" stroke="#EEF2F8" strokeWidth="26" />
-            {donutSegments.map(segment => {
+    <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+      <div className="mx-auto flex h-[240px] w-[240px] items-center justify-center">
+        <div className="relative h-[204px] w-[204px]">
+          <svg viewBox="0 0 204 204" className="-rotate-90">
+            <circle cx="102" cy="102" r={radius} fill="none" stroke="#EEF2FA" strokeWidth="28" />
+            {visibleSegments.map(segment => {
               const dash = (segment.value / 100) * circumference;
               const strokeDasharray = `${dash} ${circumference - dash}`;
               const circleOffset = -offset;
@@ -329,13 +292,12 @@ function DonutChart() {
               return (
                 <circle
                   key={segment.label}
-                  cx="95"
-                  cy="95"
+                  cx="102"
+                  cy="102"
                   r={radius}
                   fill="none"
                   stroke={segment.color}
-                  strokeWidth="26"
-                  strokeLinecap="butt"
+                  strokeWidth="28"
                   strokeDasharray={strokeDasharray}
                   strokeDashoffset={circleOffset}
                 />
@@ -343,63 +305,63 @@ function DonutChart() {
             })}
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-[0.85rem] font-semibold text-[#5C6784] xl:text-[0.9rem]">
-              전체 탐지
-            </span>
-            <strong className="mt-1 text-[1.8rem] font-black tracking-[-0.05em] text-[#141B34] xl:text-[2rem]">
-              1,254건
+            <span className="text-[0.98rem] font-semibold text-[#55627E]">전체 탐지</span>
+            <strong className="mt-2 text-[2.2rem] font-black tracking-[-0.05em] text-[#10182E]">
+              {totalCount ? `${totalCount.toLocaleString()}건` : '-'}
             </strong>
           </div>
         </div>
       </div>
 
-      <div className="min-w-0 flex-1 space-y-3 xl:space-y-4">
+      <div className="min-w-0 flex-1 space-y-5">
         {donutSegments.map(segment => (
-          <div key={segment.label} className="flex items-center justify-between gap-3">
+          <button
+            key={segment.label}
+            type="button"
+            onClick={() => handleToggleSegment(segment.label)}
+            className={cn(
+              'flex w-full items-center justify-between gap-4 rounded-full border px-3 py-2 text-left transition',
+              hiddenSegmentLabels.includes(segment.label)
+                ? 'border-[#E3E8F4] bg-[#F8FAFD] opacity-55'
+                : 'border-transparent bg-transparent'
+            )}
+          >
             <div className="flex items-center gap-3">
-              <span
-                className="h-3 w-3 rounded-full"
-                style={{ backgroundColor: segment.color }}
-                aria-hidden="true"
-              />
-              <span className="text-[0.9rem] font-semibold text-[#46506A] xl:text-[0.95rem]">
-                {segment.label}
-              </span>
+              <span className="h-3.5 w-3.5 rounded-full" style={{ backgroundColor: segment.color }} />
+              <span className="text-[1rem] font-semibold text-[#33415B]">{segment.label}</span>
             </div>
-            <span className="shrink-0 text-[0.9rem] font-semibold text-[#46506A] xl:text-[0.95rem]">
+            <span className="shrink-0 text-[1rem] font-semibold text-[#33415B]">
               {segment.value}% ({segment.count})
             </span>
-          </div>
+          </button>
         ))}
-        <p className="pt-3 text-[0.86rem] font-semibold text-[#8390A8]">기준: 최근 7일</p>
+        <p className="pt-3 text-[0.92rem] font-semibold text-[#8A96AF]">기준: 최근 7일</p>
       </div>
     </div>
   );
 }
 
-function StatusBadge({ tone, children }) {
+function ResultBadge({ tone, children }) {
   const className =
     tone === 'success'
-      ? 'bg-[#E9F8EE] text-[#1D9C55]'
+      ? 'bg-[#E9F8EE] text-[#28A45D]'
       : tone === 'warning'
-        ? 'bg-[#FFF1DE] text-[#F08A22]'
-        : tone === 'review'
-          ? 'bg-[#EAF1FF] text-[#4674ED]'
-          : 'bg-[#FFF1F1] text-[#F04444]';
+        ? 'bg-[#FFF3E4] text-[#F08E2A]'
+        : 'bg-[#FFF0F0] text-[#FF4B57]';
 
   return (
-    <span className={cn('inline-flex rounded-full px-3 py-1 text-[0.8rem] font-bold', className)}>
+    <span className={cn('inline-flex rounded-full px-3 py-1 text-[0.82rem] font-bold', className)}>
       {children}
     </span>
   );
 }
 
-function TableFooterLink({ children, onClick }) {
+function HeaderLink({ children, onClick }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center text-[0.92rem] font-bold text-[#5366E8] transition hover:text-[#3649cb]"
+      className="inline-flex items-center gap-1 text-[0.95rem] font-bold text-[#4A57F5] transition hover:text-[#3140df]"
     >
       {children}
     </button>
@@ -411,13 +373,13 @@ export default function DashboardPage() {
 
   return (
     <PageLayout>
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         {summaryCards.map(card => (
-          <StatCard key={card.title} {...card} />
+          <SummaryCard key={card.title} {...card} />
         ))}
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.92fr)]">
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.04fr)_minmax(0,1fr)]">
         <DashboardPanel title="최근 7일 탐지 추이">
           <LineChart />
         </DashboardPanel>
@@ -426,81 +388,94 @@ export default function DashboardPage() {
         </DashboardPanel>
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-2">
+      <section className="grid gap-5">
         <DashboardPanel
-          title="서비스별 상태"
-          actions={<TableFooterLink onClick={() => navigate('/domains')}>전체 서비스 보기</TableFooterLink>}
+          title="최근 탐지 이력"
+          actions={<HeaderLink onClick={() => navigate('/monitoring')}>전체 탐지 이력 보기</HeaderLink>}
         >
           <div className="overflow-x-auto">
-            <table className="min-w-[620px] xl:min-w-[640px] border-separate border-spacing-y-2 text-left">
-              <thead>
-                <tr className="text-[0.82rem] font-bold text-[#66718D] xl:text-[0.88rem]">
-                  <th className="rounded-l-[12px] bg-[#F4F6FB] px-3 py-3 xl:px-4">서비스</th>
-                  <th className="bg-[#F4F6FB] px-3 py-3 xl:px-4">상태</th>
-                  <th className="bg-[#F4F6FB] px-3 py-3 xl:px-4">정책 적용률</th>
-                  <th className="rounded-r-[12px] bg-[#F4F6FB] px-3 py-3 xl:px-4">오늘 탐지 건수</th>
+            <table className="min-w-[760px] w-full overflow-hidden rounded-[16px] border border-[#E8EDF6] text-left">
+              <thead className="bg-[#F9FBFF] text-[0.88rem] font-bold text-[#66718D]">
+                <tr>
+                  <th className="px-4 py-3.5">시간</th>
+                  <th className="px-4 py-3.5">서비스</th>
+                  <th className="px-4 py-3.5">탐지 결과</th>
+                  <th className="px-4 py-3.5">탐지 내용</th>
                 </tr>
               </thead>
-              <tbody>
-                {serviceStatus.map(row => {
-                  return (
-                    <tr
-                      key={row.service}
-                      className="text-[0.88rem] font-semibold text-[#2B344C] xl:text-[0.95rem]"
-                    >
-                      <td className="rounded-l-[12px] border-y border-l border-[#EDF1F7] bg-white px-3 py-3 xl:px-4">
-                        {row.service}
-                      </td>
-                      <td className="border-y border-[#EDF1F7] bg-white px-3 py-3 xl:px-4">
-                        <StatusBadge tone={row.statusTone}>{row.status}</StatusBadge>
-                      </td>
-                      <td className="border-y border-[#EDF1F7] bg-white px-3 py-3 xl:px-4">
-                        {row.policyRate}
-                      </td>
-                      <td className="rounded-r-[12px] border-y border-r border-[#EDF1F7] bg-white px-3 py-3 xl:px-4">
-                        {row.detections}
-                      </td>
-                    </tr>
-                  );
-                })}
+              <tbody className="divide-y divide-[#E8EDF6] text-[0.92rem] font-semibold text-[#202A42]">
+                {recentHistory.map(row => (
+                  <tr key={`${row.time}-${row.service}`} className="bg-white">
+                    <td className="px-4 py-3 whitespace-nowrap">{row.time}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        <ServiceLogoBadge
+                          name={row.service}
+                          url={row.url}
+                          className="h-7 w-7 rounded-[9px] shadow-none"
+                          iconClassName="h-4.5 w-4.5"
+                        />
+                        <span>{row.service}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <ResultBadge tone={row.tone}>{row.result}</ResultBadge>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-[#2D3854]">{row.detail}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
+          </div>
+
+          <div className="mt-4 flex justify-center">
+            <button
+              type="button"
+              onClick={() => navigate('/monitoring')}
+              className="inline-flex items-center gap-1 text-[0.96rem] font-bold text-[#4A57F5] transition hover:text-[#3140df]"
+            >
+              더 보기
+              <ChevronDown className="h-4 w-4" />
+            </button>
           </div>
         </DashboardPanel>
 
         <DashboardPanel
-          title="최근 탐지 이력"
-          actions={
-            <TableFooterLink onClick={() => navigate('/monitoring')}>전체 탐지 이력 보기</TableFooterLink>
-          }
+          title="서비스별 상태"
+          actions={<HeaderLink onClick={() => navigate('/domains')}>전체 서비스 보기</HeaderLink>}
         >
           <div className="overflow-x-auto">
-            <table className="min-w-[760px] xl:min-w-[780px] border-separate border-spacing-y-2 text-left">
-              <thead>
-                <tr className="text-[0.82rem] font-bold text-[#66718D] xl:text-[0.88rem]">
-                  <th className="rounded-l-[12px] bg-[#F4F6FB] px-3 py-3 xl:px-4">시간</th>
-                  <th className="bg-[#F4F6FB] px-3 py-3 xl:px-4">서비스</th>
-                  <th className="bg-[#F4F6FB] px-3 py-3 xl:px-4">탐지 결과</th>
-                  <th className="rounded-r-[12px] bg-[#F4F6FB] px-3 py-3 xl:px-4">탐지 내용</th>
+            <table className="min-w-[640px] w-full overflow-hidden rounded-[16px] border border-[#E8EDF6] text-left">
+              <thead className="bg-[#F9FBFF] text-[0.88rem] font-bold text-[#66718D]">
+                <tr>
+                  <th className="px-4 py-3.5">서비스</th>
+                  <th className="px-4 py-3.5">상태</th>
+                  <th className="px-4 py-3.5">정책 적용률</th>
+                  <th className="px-4 py-3.5">오늘 탐지 건수</th>
+                  <th className="w-10 px-4 py-3.5" />
                 </tr>
               </thead>
-              <tbody>
-                {recentHistory.map(row => (
-                  <tr
-                    key={`${row.time}-${row.service}`}
-                    className="text-[0.84rem] font-semibold text-[#2B344C] xl:text-[0.92rem]"
-                  >
-                    <td className="rounded-l-[12px] border-y border-l border-[#EDF1F7] bg-white px-3 py-3 whitespace-nowrap xl:px-4">
-                      {row.time}
+              <tbody className="divide-y divide-[#E8EDF6] text-[0.94rem] font-semibold text-[#202A42]">
+                {serviceStatus.map(row => (
+                  <tr key={row.service} className="bg-white">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <ServiceLogoBadge
+                          name={row.service}
+                          url={row.url}
+                          className="h-7 w-7 rounded-[9px] shadow-none"
+                          iconClassName="h-4.5 w-4.5"
+                        />
+                        <span>{row.service}</span>
+                      </div>
                     </td>
-                    <td className="border-y border-[#EDF1F7] bg-white px-3 py-3 whitespace-nowrap xl:px-4">
-                      {row.service}
+                    <td className="px-4 py-3">
+                      <ResultBadge tone="success">{row.status}</ResultBadge>
                     </td>
-                    <td className="border-y border-[#EDF1F7] bg-white px-3 py-3 xl:px-4">
-                      <StatusBadge tone={row.tone}>{row.result}</StatusBadge>
-                    </td>
-                    <td className="rounded-r-[12px] border-y border-r border-[#EDF1F7] bg-white px-3 py-3 whitespace-nowrap xl:px-4">
-                      {row.detail}
+                    <td className="px-4 py-3">{row.policyRate}</td>
+                    <td className="px-4 py-3">{row.detections}</td>
+                    <td className="px-4 py-3 text-right text-[#77839E]">
+                      <ChevronRight className="ml-auto h-4 w-4" />
                     </td>
                   </tr>
                 ))}
@@ -508,34 +483,30 @@ export default function DashboardPage() {
             </table>
           </div>
         </DashboardPanel>
+
       </section>
 
       <DashboardPanel title="우선 확인 필요 항목">
         <div className="grid gap-4 xl:grid-cols-3">
-          {alerts.map(alert => {
-            const toneClassName =
-              alert.tone === 'danger'
-                ? 'bg-[#FFF3F3] text-[#F04444]'
-                : 'bg-[#FFF8EB] text-[#F0A22E]';
-
-            return (
-              <article
-                key={alert.title}
-                className="rounded-[18px] border border-[#E7ECF5] bg-[#FCFDFF] px-5 py-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h3 className="text-[1rem] font-bold text-[#1F2942]">{alert.title}</h3>
-                    <p className="mt-2 text-[0.92rem] leading-6 text-[#647089]">{alert.detail}</p>
-                  </div>
-                  <StatusBadge tone={alert.tone}>{alert.tag}</StatusBadge>
+          {alerts.map(alert => (
+            <article
+              key={alert.title}
+              className="rounded-[18px] border border-[#E7ECF5] bg-[#FCFDFF] px-5 py-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h3 className="text-[1rem] font-bold text-[#1F2942]">{alert.title}</h3>
+                  <p className="mt-2 text-[0.9rem] leading-6 text-[#647089]">{alert.detail}</p>
                 </div>
-                <div className="mt-4 flex justify-end">
-                  <TableFooterLink onClick={() => navigate('/monitoring')}>상세 보기</TableFooterLink>
-                </div>
-              </article>
-            );
-          })}
+                <ResultBadge tone={alert.tone === 'danger' ? 'danger' : 'warning'}>
+                  {alert.tag}
+                </ResultBadge>
+              </div>
+              <div className="mt-4 flex justify-end">
+                <HeaderLink onClick={() => navigate('/monitoring')}>상세 보기</HeaderLink>
+              </div>
+            </article>
+          ))}
         </div>
       </DashboardPanel>
     </PageLayout>
