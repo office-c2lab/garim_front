@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Check, CircleHelp, Download, Info, Plus, Search, X } from 'lucide-react';
 
 import { MonitoringDropdown } from '../../components/monitoring/MonitoringListComponents.jsx';
+import caretDownIcon from '../../assets/icons/caret_down.svg';
 import PageLayout from '../../layout/PageLayout.jsx';
 
 const policies = [
@@ -225,6 +226,111 @@ function ServiceLabel({ services, fallback }) {
   return (
     <div className="flex flex-wrap items-center gap-2 text-[15px] font-semibold text-slate-700">
       {services?.map(service => <span key={service}>{service}</span>) ?? fallback}
+    </div>
+  );
+}
+
+function normalizeSelectedServices(services, nextService) {
+  const individualServices = serviceOptions.filter(service => service !== '전체 서비스');
+
+  if (nextService === '전체 서비스') {
+    return ['전체 서비스'];
+  }
+
+  const currentServices = services.filter(service => service !== '전체 서비스');
+
+  if (currentServices.includes(nextService)) {
+    const nextServices = currentServices.filter(service => service !== nextService);
+    return nextServices.length ? nextServices : ['전체 서비스'];
+  }
+
+  const nextServices = [...currentServices, nextService];
+
+  if (nextServices.length === individualServices.length) {
+    return ['전체 서비스'];
+  }
+
+  return nextServices;
+}
+
+function ServiceMultiSelect({ value, onChange, ariaLabel, className = '' }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const handlePointerDown = event => {
+      if (!event.target.closest('[data-service-multi-select-root]')) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleKeyDown = event => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
+
+  const selectedServices = value.length ? value : ['전체 서비스'];
+  const triggerLabel = selectedServices.join(', ');
+
+  return (
+    <div data-service-multi-select-root className={joinClasses('relative', className)}>
+      <button
+        type="button"
+        aria-label={ariaLabel}
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen(open => !open)}
+        className={joinClasses(
+          'flex h-11 w-full cursor-pointer items-center gap-2 rounded-[10px] border border-slate-200 bg-white pr-2 pl-0 text-left text-sm text-slate-700 outline-none transition hover:border-[#C7D2FE] hover:bg-[#F8FAFF] active:border-[#A5B4FC] active:bg-[#EEF2FF]',
+          isOpen ? 'border-[#A5B4FC] bg-[#EEF2FF] ring-4 ring-[#E0E7FF]' : ''
+        )}
+      >
+        <span className="min-w-0 flex-1 truncate px-4">{triggerLabel}</span>
+        <img
+          src={caretDownIcon}
+          alt=""
+          aria-hidden="true"
+          className={joinClasses('h-6 w-6 shrink-0 transition-transform', isOpen ? 'rotate-180' : '')}
+        />
+      </button>
+
+      {isOpen ? (
+        <div className="absolute top-[calc(100%+0.375rem)] left-0 z-40 w-full rounded-xl border border-slate-200 bg-white p-2 shadow-[0_16px_32px_rgba(15,23,42,0.12)]">
+          <div className="flex max-h-64 flex-col gap-1 overflow-y-auto">
+            {serviceOptions.map(option => {
+              const isSelected = selectedServices.includes(option);
+
+              return (
+                <label
+                  key={option}
+                  className={joinClasses(
+                    'flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm transition',
+                    isSelected ? 'bg-[#F5F3FF] text-[#4338CA]' : 'text-slate-700 hover:bg-slate-50'
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => onChange(normalizeSelectedServices(selectedServices, option))}
+                    className="h-4 w-4 rounded border-slate-300 accent-[#4338CA]"
+                  />
+                  <span>{option}</span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -527,17 +633,17 @@ export default function PolicyPage() {
         </div>
 
         <SectionCard className="overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-[980px] w-full table-fixed">
+          <div>
+            <table className="w-full table-fixed">
               <thead className="bg-[#F8FAFC] text-left text-sm font-semibold text-slate-500">
                 <tr>
                   <th className="w-12 px-5 py-4 sm:px-6" />
-                  <th className="px-4 py-4">정책명</th>
-                  <th className="w-36 px-4 py-4">분류</th>
-                  <th className="w-60 px-4 py-4">적용 서비스</th>
-                  <th className="w-52 px-4 py-4">조치 방식</th>
-                  <th className="w-32 px-4 py-4">사용 여부</th>
-                  <th className="w-44 px-4 py-4">최종 수정일</th>
+                  <th className="w-[26%] px-4 py-4">정책명</th>
+                  <th className="w-[12%] px-4 py-4">분류</th>
+                  <th className="w-[18%] px-4 py-4">적용 서비스</th>
+                  <th className="w-[16%] px-4 py-4">조치 방식</th>
+                  <th className="w-[10%] px-4 py-4">사용 여부</th>
+                  <th className="w-[18%] px-4 py-4">최종 수정일</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 text-sm text-slate-700">
@@ -570,22 +676,24 @@ export default function PolicyPage() {
                           />
                         </button>
                       </td>
-                      <td className="px-4 py-4 text-[15px] font-semibold text-slate-800">
+                      <td className="whitespace-nowrap px-4 py-4 text-[15px] font-semibold text-slate-800">
                         {policy.name}
                       </td>
-                      <td className="px-4 py-4 text-[15px] font-semibold text-slate-700">
+                      <td className="whitespace-nowrap px-4 py-4 text-[15px] font-semibold text-slate-700">
                         {policy.category}
                       </td>
                       <td className="px-4 py-4">
                         <ServiceLabel services={policy.services} fallback={policy.serviceLabel} />
                       </td>
-                      <td className="px-4 py-4 text-[15px] font-semibold text-slate-700">
+                      <td className="whitespace-nowrap px-4 py-4 text-[15px] font-semibold text-slate-700">
                         {policy.action}
                       </td>
-                      <td className="px-4 py-4 text-[15px] font-semibold text-slate-600">
+                      <td className="whitespace-nowrap px-4 py-4 text-[15px] font-semibold text-slate-600">
                         {policy.status}
                       </td>
-                      <td className="px-4 py-4 text-[15px] text-slate-600">{policy.updatedAt}</td>
+                      <td className="whitespace-nowrap px-4 py-4 text-[15px] text-slate-600">
+                        {policy.updatedAt}
+                      </td>
                     </tr>
                   );
                 })}
@@ -643,20 +751,16 @@ export default function PolicyPage() {
                   />
                 </DetailInput>
 
-                <DetailInput label="적용 서비스" required>
-                  <input
-                    type="text"
-                    value={draftPolicy.services.join(', ')}
-                    onChange={event =>
-                      setDraftPolicy(current => ({
-                        ...current,
-                        services: event.target.value
-                          .split(',')
-                          .map(service => service.trim())
-                          .filter(Boolean),
-                      }))
+                <DetailInput label="분류" required>
+                  <MonitoringDropdown
+                    value={draftPolicy.category}
+                    onChange={value =>
+                      setDraftPolicy(current => ({ ...current, category: value }))
                     }
-                    className="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none"
+                    options={policyCategoryOptions}
+                    ariaLabel="정책 분류 수정"
+                    widthClass="w-full"
+                    triggerClassName="h-11 rounded-lg border-slate-200 bg-white shadow-none"
                   />
                 </DetailInput>
 
@@ -690,6 +794,21 @@ export default function PolicyPage() {
             </div>
 
             <div className="border-b border-slate-200 px-5 py-5 sm:px-6 xl:border-r xl:border-b-0">
+              <DetailInput label="적용 서비스" required>
+                <ServiceMultiSelect
+                  value={draftPolicy.services}
+                  onChange={value =>
+                    setDraftPolicy(current => ({
+                      ...current,
+                      services: value,
+                      serviceLabel: value.join(', '),
+                    }))
+                  }
+                  ariaLabel="적용 서비스 수정"
+                  className="mb-5"
+                />
+              </DetailInput>
+
               <div className="mb-4 flex items-center gap-2">
                 <h3 className="text-base font-bold text-slate-900">탐지 항목</h3>
                 <CircleHelp className="h-4 w-4 text-slate-400" />
@@ -904,19 +1023,16 @@ export default function PolicyPage() {
                       </DetailInput>
 
                       <DetailInput label="적용 서비스" required>
-                        <MonitoringDropdown
-                          value={createDraft.services[0]}
+                        <ServiceMultiSelect
+                          value={createDraft.services}
                           onChange={value =>
                             setCreateDraft(current => ({
                               ...current,
-                              services: [value],
-                              serviceLabel: value,
+                              services: value,
+                              serviceLabel: value.join(', '),
                             }))
                           }
-                          options={serviceOptions}
                           ariaLabel="적용 서비스"
-                          widthClass="w-full"
-                          triggerClassName="h-11 rounded-xl border-slate-200 bg-white shadow-none"
                         />
                       </DetailInput>
                     </div>
