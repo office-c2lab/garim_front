@@ -178,12 +178,14 @@ function DashboardPanel({ title, actions, children, className = '' }) {
   return (
     <section
       className={cn(
-        'rounded-[20px] border border-[#E7ECF5] bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.045)]',
+        'min-w-0 rounded-[20px] border border-[#E7ECF5] bg-white p-4 xl:p-5 shadow-[0_10px_30px_rgba(15,23,42,0.045)]',
         className
       )}
     >
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-[1.2rem] font-bold tracking-[-0.03em] text-[#1C2440]">{title}</h2>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-[1.08rem] font-bold tracking-[-0.03em] text-[#1C2440] xl:text-[1.2rem]">
+          {title}
+        </h2>
         {actions}
       </div>
       <div className="mt-4">{children}</div>
@@ -228,7 +230,7 @@ function LineChart() {
         ))}
       </div>
 
-      <svg viewBox={`0 0 ${width} ${height + 34}`} className="min-w-[700px]">
+      <svg viewBox={`0 0 ${width} ${height + 34}`} className="min-w-[620px] xl:min-w-[700px]">
         {gridValues.map(value => {
           const y = height - paddingY - (value / maxValue) * (height - paddingY * 2);
           return (
@@ -313,9 +315,9 @@ function DonutChart() {
   let offset = 0;
 
   return (
-    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-      <div className="mx-auto flex h-[230px] w-[230px] items-center justify-center">
-        <div className="relative h-[190px] w-[190px]">
+    <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+      <div className="mx-auto flex h-[210px] w-[210px] items-center justify-center xl:h-[230px] xl:w-[230px]">
+        <div className="relative h-[178px] w-[178px] xl:h-[190px] xl:w-[190px]">
           <svg viewBox="0 0 190 190" className="-rotate-90">
             <circle cx="95" cy="95" r={radius} fill="none" stroke="#EEF2F8" strokeWidth="26" />
             {donutSegments.map(segment => {
@@ -341,15 +343,17 @@ function DonutChart() {
             })}
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-[0.9rem] font-semibold text-[#5C6784]">전체 탐지</span>
-            <strong className="mt-1 text-[2rem] font-black tracking-[-0.05em] text-[#141B34]">
+            <span className="text-[0.85rem] font-semibold text-[#5C6784] xl:text-[0.9rem]">
+              전체 탐지
+            </span>
+            <strong className="mt-1 text-[1.8rem] font-black tracking-[-0.05em] text-[#141B34] xl:text-[2rem]">
               1,254건
             </strong>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 space-y-4">
+      <div className="min-w-0 flex-1 space-y-3 xl:space-y-4">
         {donutSegments.map(segment => (
           <div key={segment.label} className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -358,9 +362,11 @@ function DonutChart() {
                 style={{ backgroundColor: segment.color }}
                 aria-hidden="true"
               />
-              <span className="text-[0.95rem] font-semibold text-[#46506A]">{segment.label}</span>
+              <span className="text-[0.9rem] font-semibold text-[#46506A] xl:text-[0.95rem]">
+                {segment.label}
+              </span>
             </div>
-            <span className="text-[0.95rem] font-semibold text-[#46506A]">
+            <span className="shrink-0 text-[0.9rem] font-semibold text-[#46506A] xl:text-[0.95rem]">
               {segment.value}% ({segment.count})
             </span>
           </div>
@@ -411,7 +417,7 @@ export default function DashboardPage() {
         ))}
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-[1.25fr_0.95fr]">
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.92fr)]">
         <DashboardPanel title="최근 7일 탐지 추이">
           <LineChart />
         </DashboardPanel>
@@ -426,29 +432,32 @@ export default function DashboardPage() {
           actions={<TableFooterLink onClick={() => navigate('/domains')}>전체 서비스 보기</TableFooterLink>}
         >
           <div className="overflow-x-auto">
-            <table className="min-w-full border-separate border-spacing-y-2 text-left">
+            <table className="min-w-[620px] xl:min-w-[640px] border-separate border-spacing-y-2 text-left">
               <thead>
-                <tr className="text-[0.88rem] font-bold text-[#66718D]">
-                  <th className="rounded-l-[12px] bg-[#F4F6FB] px-4 py-3">서비스</th>
-                  <th className="bg-[#F4F6FB] px-4 py-3">상태</th>
-                  <th className="bg-[#F4F6FB] px-4 py-3">정책 적용률</th>
-                  <th className="rounded-r-[12px] bg-[#F4F6FB] px-4 py-3">오늘 탐지 건수</th>
+                <tr className="text-[0.82rem] font-bold text-[#66718D] xl:text-[0.88rem]">
+                  <th className="rounded-l-[12px] bg-[#F4F6FB] px-3 py-3 xl:px-4">서비스</th>
+                  <th className="bg-[#F4F6FB] px-3 py-3 xl:px-4">상태</th>
+                  <th className="bg-[#F4F6FB] px-3 py-3 xl:px-4">정책 적용률</th>
+                  <th className="rounded-r-[12px] bg-[#F4F6FB] px-3 py-3 xl:px-4">오늘 탐지 건수</th>
                 </tr>
               </thead>
               <tbody>
                 {serviceStatus.map(row => {
                   return (
-                    <tr key={row.service} className="text-[0.95rem] font-semibold text-[#2B344C]">
-                      <td className="rounded-l-[12px] border-y border-l border-[#EDF1F7] bg-white px-4 py-3">
+                    <tr
+                      key={row.service}
+                      className="text-[0.88rem] font-semibold text-[#2B344C] xl:text-[0.95rem]"
+                    >
+                      <td className="rounded-l-[12px] border-y border-l border-[#EDF1F7] bg-white px-3 py-3 xl:px-4">
                         {row.service}
                       </td>
-                      <td className="border-y border-[#EDF1F7] bg-white px-4 py-3">
+                      <td className="border-y border-[#EDF1F7] bg-white px-3 py-3 xl:px-4">
                         <StatusBadge tone={row.statusTone}>{row.status}</StatusBadge>
                       </td>
-                      <td className="border-y border-[#EDF1F7] bg-white px-4 py-3">
+                      <td className="border-y border-[#EDF1F7] bg-white px-3 py-3 xl:px-4">
                         {row.policyRate}
                       </td>
-                      <td className="rounded-r-[12px] border-y border-r border-[#EDF1F7] bg-white px-4 py-3">
+                      <td className="rounded-r-[12px] border-y border-r border-[#EDF1F7] bg-white px-3 py-3 xl:px-4">
                         {row.detections}
                       </td>
                     </tr>
@@ -466,31 +475,31 @@ export default function DashboardPage() {
           }
         >
           <div className="overflow-x-auto">
-            <table className="min-w-full border-separate border-spacing-y-2 text-left">
+            <table className="min-w-[760px] xl:min-w-[780px] border-separate border-spacing-y-2 text-left">
               <thead>
-                <tr className="text-[0.88rem] font-bold text-[#66718D]">
-                  <th className="rounded-l-[12px] bg-[#F4F6FB] px-4 py-3">시간</th>
-                  <th className="bg-[#F4F6FB] px-4 py-3">서비스</th>
-                  <th className="bg-[#F4F6FB] px-4 py-3">탐지 결과</th>
-                  <th className="rounded-r-[12px] bg-[#F4F6FB] px-4 py-3">탐지 내용</th>
+                <tr className="text-[0.82rem] font-bold text-[#66718D] xl:text-[0.88rem]">
+                  <th className="rounded-l-[12px] bg-[#F4F6FB] px-3 py-3 xl:px-4">시간</th>
+                  <th className="bg-[#F4F6FB] px-3 py-3 xl:px-4">서비스</th>
+                  <th className="bg-[#F4F6FB] px-3 py-3 xl:px-4">탐지 결과</th>
+                  <th className="rounded-r-[12px] bg-[#F4F6FB] px-3 py-3 xl:px-4">탐지 내용</th>
                 </tr>
               </thead>
               <tbody>
                 {recentHistory.map(row => (
                   <tr
                     key={`${row.time}-${row.service}`}
-                    className="text-[0.92rem] font-semibold text-[#2B344C]"
+                    className="text-[0.84rem] font-semibold text-[#2B344C] xl:text-[0.92rem]"
                   >
-                    <td className="rounded-l-[12px] border-y border-l border-[#EDF1F7] bg-white px-4 py-3 whitespace-nowrap">
+                    <td className="rounded-l-[12px] border-y border-l border-[#EDF1F7] bg-white px-3 py-3 whitespace-nowrap xl:px-4">
                       {row.time}
                     </td>
-                    <td className="border-y border-[#EDF1F7] bg-white px-4 py-3 whitespace-nowrap">
+                    <td className="border-y border-[#EDF1F7] bg-white px-3 py-3 whitespace-nowrap xl:px-4">
                       {row.service}
                     </td>
-                    <td className="border-y border-[#EDF1F7] bg-white px-4 py-3">
+                    <td className="border-y border-[#EDF1F7] bg-white px-3 py-3 xl:px-4">
                       <StatusBadge tone={row.tone}>{row.result}</StatusBadge>
                     </td>
-                    <td className="rounded-r-[12px] border-y border-r border-[#EDF1F7] bg-white px-4 py-3 whitespace-nowrap">
+                    <td className="rounded-r-[12px] border-y border-r border-[#EDF1F7] bg-white px-3 py-3 whitespace-nowrap xl:px-4">
                       {row.detail}
                     </td>
                   </tr>
