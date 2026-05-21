@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Check, CircleHelp, Download, Info, Plus, Search, X } from 'lucide-react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Check, ChevronDown, ChevronUp, CircleHelp, Info, Plus, Search, X } from 'lucide-react';
 
 import { MonitoringDropdown } from '../../components/monitoring/MonitoringListComponents.jsx';
 import caretDownIcon from '../../assets/icons/caret_down.svg';
@@ -30,8 +30,6 @@ const policies = [
     handling: '마스킹',
     alerts: {
       admin: true,
-      log: true,
-      warning: true,
     },
   },
   {
@@ -50,8 +48,6 @@ const policies = [
     handling: '차단',
     alerts: {
       admin: true,
-      log: true,
-      warning: false,
     },
   },
   {
@@ -70,8 +66,6 @@ const policies = [
     handling: '승인 필요',
     alerts: {
       admin: true,
-      log: true,
-      warning: true,
     },
   },
   {
@@ -90,8 +84,6 @@ const policies = [
     handling: '차단',
     alerts: {
       admin: false,
-      log: true,
-      warning: false,
     },
   },
   {
@@ -110,8 +102,6 @@ const policies = [
     handling: '마스킹',
     alerts: {
       admin: true,
-      log: false,
-      warning: true,
     },
   },
   {
@@ -130,8 +120,6 @@ const policies = [
     handling: '차단',
     alerts: {
       admin: true,
-      log: true,
-      warning: true,
     },
   },
 ];
@@ -192,8 +180,6 @@ function createEmptyPolicy() {
     handling: '마스킹',
     alerts: {
       admin: true,
-      log: true,
-      warning: true,
     },
   };
 }
@@ -390,6 +376,29 @@ function ToggleRow({ label, description, checked, onToggle }) {
   );
 }
 
+function StatusToggleIndicator({ checked, ariaLabel }) {
+  return (
+    <span
+      role="switch"
+      aria-checked={checked}
+      aria-label={ariaLabel}
+      className={joinClasses(
+        'relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border transition duration-200',
+        checked
+          ? 'border-[#5B4BD7] bg-[#5B4BD7] shadow-[0_8px_18px_rgba(91,75,215,0.28)]'
+          : 'border-[#D5CFF5] bg-[#C8BDEB]'
+      )}
+    >
+      <span
+        className={joinClasses(
+          'h-5 w-5 rounded-full bg-white shadow-[0_2px_8px_rgba(15,18,20,0.18)] transition duration-200',
+          checked ? 'translate-x-[1.35rem]' : 'translate-x-[0.15rem]'
+        )}
+      />
+    </span>
+  );
+}
+
 function StepIndicator({ currentStep }) {
   return (
     <div className="flex flex-wrap items-center gap-3 border-b border-slate-200 px-6 py-4">
@@ -426,6 +435,218 @@ function StepIndicator({ currentStep }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function PolicyDetailPanel({
+  draftPolicy,
+  handleDeletePolicy,
+  handleCancelEdit,
+  handleSavePolicy,
+  setDraftPolicy,
+}) {
+  return (
+    <div className="overflow-hidden bg-white">
+      <div className="flex flex-col gap-4 border-b border-slate-200 px-5 py-4 sm:px-6 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h2 className="text-lg font-bold text-slate-900">정책 상세 설정</h2>
+          <p className="mt-1 text-sm text-slate-400">
+            선택한 정책의 세부 정보를 편집하고 구성을 할 수 있습니다.
+          </p>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={handleDeletePolicy}
+            className="inline-flex h-10 items-center justify-center rounded-xl border border-[#FECACA] bg-[#FEF2F2] px-4 text-sm font-semibold text-[#DC2626] transition hover:bg-[#FEE2E2]"
+          >
+            삭제
+          </button>
+        </div>
+      </div>
+
+      <div className="grid gap-0 xl:grid-cols-[1.05fr_1.1fr_0.82fr_0.95fr]">
+        <div className="border-b border-slate-200 px-5 py-5 sm:px-6 xl:border-r xl:border-b-0">
+          <h3 className="mb-4 text-base font-bold text-slate-900">기본 정보</h3>
+          <div className="space-y-4">
+            <DetailInput label="정책명" required>
+              <input
+                type="text"
+                value={draftPolicy.name}
+                onChange={event =>
+                  setDraftPolicy(current => ({ ...current, name: event.target.value }))
+                }
+                className="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none"
+              />
+            </DetailInput>
+
+            <DetailInput label="분류" required>
+              <MonitoringDropdown
+                value={draftPolicy.category}
+                onChange={value => setDraftPolicy(current => ({ ...current, category: value }))}
+                options={policyCategoryOptions}
+                ariaLabel="정책 분류 수정"
+                widthClass="w-full"
+                triggerClassName="h-11 rounded-lg border-slate-200 bg-white shadow-none"
+              />
+            </DetailInput>
+
+            <DetailInput label="설명">
+              <textarea
+                value={draftPolicy.description}
+                onChange={event =>
+                  setDraftPolicy(current => ({ ...current, description: event.target.value }))
+                }
+                rows={4}
+                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-700 outline-none"
+              />
+            </DetailInput>
+
+            <DetailInput label="우선순위" hint="숫자가 낮을수록 우선순위가 높습니다.">
+              <div className="relative w-full max-w-[9rem]">
+                <input
+                  type="number"
+                  value={draftPolicy.priority}
+                  onChange={event =>
+                    setDraftPolicy(current => ({
+                      ...current,
+                      priority: Number(event.target.value) || 0,
+                    }))
+                  }
+                  className="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none"
+                />
+              </div>
+            </DetailInput>
+          </div>
+        </div>
+
+        <div className="border-b border-slate-200 px-5 py-5 sm:px-6 xl:border-r xl:border-b-0">
+          <h3 className="mb-4 text-base font-bold text-slate-900">적용 서비스 및 탐지 항목</h3>
+
+          <DetailInput label="적용 서비스" required>
+            <ServiceMultiSelect
+              value={draftPolicy.services}
+              onChange={value =>
+                setDraftPolicy(current => ({
+                  ...current,
+                  services: value,
+                  serviceLabel: value.join(', '),
+                }))
+              }
+              ariaLabel="적용 서비스 수정"
+              className="mb-5"
+            />
+          </DetailInput>
+
+          <div className="mb-4 flex items-center gap-2">
+            <h4 className="text-sm font-bold text-slate-900">탐지 항목</h4>
+            <CircleHelp className="h-4 w-4 text-slate-400" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+            {detectionItems.map(item => {
+              const checked = draftPolicy.detects.includes(item);
+              const muted = draftPolicy.exceptions.includes(item);
+
+              return (
+                <label key={item} className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() =>
+                      setDraftPolicy(current => ({
+                        ...current,
+                        detects: checked
+                          ? current.detects.filter(detect => detect !== item)
+                          : [...current.detects, item],
+                      }))
+                    }
+                    className={joinClasses(
+                      'h-4 w-4 rounded border-slate-300 accent-[#4338CA]',
+                      muted ? 'opacity-50' : ''
+                    )}
+                  />
+                  <span className={muted ? 'text-slate-400' : ''}>{item}</span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="border-b border-slate-200 px-5 py-5 sm:px-6 xl:border-r xl:border-b-0">
+          <h3 className="mb-4 text-base font-bold text-slate-900">조치 방식</h3>
+
+          <div className="space-y-4">
+            {['허용', '마스킹', '승인 필요', '차단'].map(option => (
+              <label key={option} className="flex items-center gap-3 text-sm font-medium text-slate-700">
+                <input
+                  type="radio"
+                  name="policy-handling"
+                  checked={draftPolicy.handling === option}
+                  onChange={() => setDraftPolicy(current => ({ ...current, handling: option }))}
+                  className="h-4 w-4 accent-[#4338CA]"
+                />
+                {option}
+              </label>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-xl border border-[#D9D6FE] bg-[#F5F3FF] px-4 py-3 text-sm leading-6 text-[#4338CA]">
+            <div className="flex items-start gap-2">
+              <Info className="mt-0.5 h-4 w-4 shrink-0" />
+              <p>{getActionLabel(draftPolicy.handling)}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-5 py-5 sm:px-6">
+          <h3 className="mb-6 text-base font-bold text-slate-900">정책 운영 설정</h3>
+
+          <div className="space-y-6">
+            <ToggleRow
+              label="정책 사용 여부"
+              description="선택한 정책의 활성화 상태를 확인합니다."
+              checked={draftPolicy.status === '사용'}
+              onToggle={() =>
+                setDraftPolicy(current => ({
+                  ...current,
+                  status: current.status === '사용' ? '미사용' : '사용',
+                }))
+              }
+            />
+            <ToggleRow
+              label="관리자 알림"
+              description="정책 위반 시 관리자에게 알림을 전송합니다."
+              checked={draftPolicy.alerts.admin}
+              onToggle={() =>
+                setDraftPolicy(current => ({
+                  ...current,
+                  alerts: { ...current.alerts, admin: !current.alerts.admin },
+                }))
+              }
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-3 border-t border-slate-200 px-5 py-5 sm:px-6">
+        <button
+          type="button"
+          onClick={handleCancelEdit}
+          className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-6 text-sm font-semibold text-slate-500 transition hover:bg-slate-50"
+        >
+          취소
+        </button>
+        <button
+          type="button"
+          onClick={handleSavePolicy}
+          className="inline-flex h-11 items-center justify-center rounded-xl border border-[#4338CA] bg-[#4338CA] px-6 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(67,56,202,0.24)] transition hover:bg-[#3730A3] active:bg-[#312E81]"
+        >
+          저장
+        </button>
+      </div>
     </div>
   );
 }
@@ -488,35 +709,10 @@ export default function PolicyPage() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isCreateModalOpen]);
 
-  const handleDownloadTemplate = () => {
-    const template = [
-      '정책명,분류,적용 서비스,조치 방식,사용 여부,우선순위',
-      '새 정책,개인정보,ChatGPT,마스킹,사용,10',
-    ].join('\n');
-
-    const blob = new Blob([template], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'policy-template.csv';
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
   const handleCreatePolicy = () => {
     setCreateDraft(createEmptyPolicy());
     setCreateStep(1);
     setIsCreateModalOpen(true);
-  };
-
-  const handleClonePolicy = () => {
-    if (!selectedPolicy) return;
-    const clonedPolicy = createPolicyDraft(selectedPolicy);
-    clonedPolicy.id = `pol_${Date.now()}`;
-    clonedPolicy.name = `${selectedPolicy.name} 복제본`;
-    clonedPolicy.updatedAt = '2026-05-20 15:30';
-    setPolicyList(current => [clonedPolicy, ...current]);
-    setSelectedId(clonedPolicy.id);
   };
 
   const handleDeletePolicy = () => {
@@ -620,14 +816,6 @@ export default function PolicyPage() {
               >
                 <Plus className="h-4 w-4" />새 정책 추가
               </button>
-              <button
-                type="button"
-                onClick={handleDownloadTemplate}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-[#4338CA] transition hover:border-[#C7D2FE] hover:bg-[#F8FAFF]"
-              >
-                <Download className="h-4 w-4" />
-                정책 템플릿 다운로드
-              </button>
             </div>
           </div>
         </div>
@@ -651,50 +839,74 @@ export default function PolicyPage() {
                   const isSelected = policy.id === selectedId;
 
                   return (
-                    <tr
-                      key={policy.id}
-                      className={joinClasses(
-                        'cursor-pointer transition',
-                        isSelected ? 'bg-[#F5F3FF]' : 'bg-white hover:bg-slate-50'
-                      )}
-                      onClick={() => handleSelectPolicy(policy.id)}
-                    >
-                      <td className="px-5 py-4 align-middle sm:px-6">
-                        <button
-                          type="button"
-                          aria-label={`${policy.name} 선택`}
-                          className={joinClasses(
-                            'flex h-5 w-5 items-center justify-center rounded-full border transition',
-                            isSelected ? 'border-[#4338CA]' : 'border-slate-300'
-                          )}
-                        >
-                          <span
+                    <Fragment key={policy.id}>
+                      <tr
+                        className={joinClasses(
+                          'cursor-pointer transition',
+                          isSelected ? 'bg-[#F5F3FF]' : 'bg-white hover:bg-slate-50'
+                        )}
+                        onClick={() => handleSelectPolicy(policy.id)}
+                      >
+                        <td className="px-5 py-4 align-middle sm:px-6">
+                          <button
+                            type="button"
+                            aria-label={`${policy.name} 선택`}
                             className={joinClasses(
-                              'h-2.5 w-2.5 rounded-full transition',
-                              isSelected ? 'bg-[#4338CA]' : 'bg-transparent'
+                              'flex h-5 w-5 items-center justify-center rounded-full border transition',
+                              isSelected ? 'border-[#4338CA]' : 'border-slate-300'
                             )}
+                          >
+                            <span
+                              className={joinClasses(
+                                'h-2.5 w-2.5 rounded-full transition',
+                                isSelected ? 'bg-[#4338CA]' : 'bg-transparent'
+                              )}
+                            />
+                          </button>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-4 text-[15px] font-semibold text-slate-800">
+                          {policy.name}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-4 text-[15px] font-semibold text-slate-700">
+                          {policy.category}
+                        </td>
+                        <td className="px-4 py-4">
+                          <ServiceLabel services={policy.services} fallback={policy.serviceLabel} />
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-4 text-[15px] font-semibold text-slate-700">
+                          {policy.action}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-4 text-[15px] font-semibold text-slate-600">
+                          <StatusToggleIndicator
+                            checked={policy.status === '사용'}
+                            ariaLabel={`${policy.name} 사용 여부`}
                           />
-                        </button>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-4 text-[15px] font-semibold text-slate-800">
-                        {policy.name}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-4 text-[15px] font-semibold text-slate-700">
-                        {policy.category}
-                      </td>
-                      <td className="px-4 py-4">
-                        <ServiceLabel services={policy.services} fallback={policy.serviceLabel} />
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-4 text-[15px] font-semibold text-slate-700">
-                        {policy.action}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-4 text-[15px] font-semibold text-slate-600">
-                        {policy.status}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-4 text-[15px] text-slate-600">
-                        {policy.updatedAt}
-                      </td>
-                    </tr>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-4 text-[15px] text-slate-600">
+                          <div className="flex items-center justify-between gap-3">
+                            <span>{policy.updatedAt}</span>
+                            {isSelected ? (
+                              <ChevronUp className="h-4 w-4 shrink-0 text-slate-400" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                      {isSelected && selectedPolicy && draftPolicy ? (
+                        <tr className="bg-[#FFFFFF]">
+                          <td colSpan={7} className="border-t border-[#E6EAF4] px-0 py-0">
+                            <PolicyDetailPanel
+                              draftPolicy={draftPolicy}
+                              handleDeletePolicy={handleDeletePolicy}
+                              handleCancelEdit={handleCancelEdit}
+                              handleSavePolicy={handleSavePolicy}
+                              setDraftPolicy={setDraftPolicy}
+                            />
+                          </td>
+                        </tr>
+                      ) : null}
+                    </Fragment>
                   );
                 })}
               </tbody>
@@ -706,251 +918,6 @@ export default function PolicyPage() {
             ) : null}
           </div>
         </SectionCard>
-
-        {selectedPolicy && draftPolicy ? (
-          <SectionCard>
-          <div className="flex flex-col gap-4 border-b border-slate-200 px-5 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h2 className="text-lg font-bold text-slate-900">선택한 정책 상세</h2>
-            </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <span className="text-sm font-medium text-slate-500">
-                정책 ID: {selectedPolicy.id}
-              </span>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleClonePolicy}
-                  className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
-                >
-                  정책 복제
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDeletePolicy}
-                  className="inline-flex h-10 items-center justify-center rounded-xl border border-[#FECACA] bg-[#FEF2F2] px-4 text-sm font-semibold text-[#DC2626] transition hover:bg-[#FEE2E2]"
-                >
-                  삭제
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid gap-0 xl:grid-cols-[1.1fr_1fr_0.8fr_0.95fr]">
-            <div className="border-b border-slate-200 px-5 py-5 sm:px-6 xl:border-r xl:border-b-0">
-              <div className="space-y-4">
-                <DetailInput label="정책명" required>
-                  <input
-                    type="text"
-                    value={draftPolicy.name}
-                    onChange={event =>
-                      setDraftPolicy(current => ({ ...current, name: event.target.value }))
-                    }
-                    className="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none"
-                  />
-                </DetailInput>
-
-                <DetailInput label="분류" required>
-                  <MonitoringDropdown
-                    value={draftPolicy.category}
-                    onChange={value =>
-                      setDraftPolicy(current => ({ ...current, category: value }))
-                    }
-                    options={policyCategoryOptions}
-                    ariaLabel="정책 분류 수정"
-                    widthClass="w-full"
-                    triggerClassName="h-11 rounded-lg border-slate-200 bg-white shadow-none"
-                  />
-                </DetailInput>
-
-                <DetailInput label="설명">
-                  <textarea
-                    value={draftPolicy.description}
-                    onChange={event =>
-                      setDraftPolicy(current => ({ ...current, description: event.target.value }))
-                    }
-                    rows={4}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-700 outline-none"
-                  />
-                </DetailInput>
-
-                <DetailInput label="우선순위" hint="숫자가 낮을수록 우선순위가 높습니다.">
-                  <div className="relative w-full max-w-[9rem]">
-                    <input
-                      type="number"
-                      value={draftPolicy.priority}
-                      onChange={event =>
-                        setDraftPolicy(current => ({
-                          ...current,
-                          priority: Number(event.target.value) || 0,
-                        }))
-                      }
-                      className="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none"
-                    />
-                  </div>
-                </DetailInput>
-              </div>
-            </div>
-
-            <div className="border-b border-slate-200 px-5 py-5 sm:px-6 xl:border-r xl:border-b-0">
-              <DetailInput label="적용 서비스" required>
-                <ServiceMultiSelect
-                  value={draftPolicy.services}
-                  onChange={value =>
-                    setDraftPolicy(current => ({
-                      ...current,
-                      services: value,
-                      serviceLabel: value.join(', '),
-                    }))
-                  }
-                  ariaLabel="적용 서비스 수정"
-                  className="mb-5"
-                />
-              </DetailInput>
-
-              <div className="mb-4 flex items-center gap-2">
-                <h3 className="text-base font-bold text-slate-900">탐지 항목</h3>
-                <CircleHelp className="h-4 w-4 text-slate-400" />
-              </div>
-
-              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-                {detectionItems.map(item => {
-                  const checked = draftPolicy.detects.includes(item);
-                  const muted = draftPolicy.exceptions.includes(item);
-
-                  return (
-                    <label
-                      key={item}
-                      className="flex items-center gap-2 text-sm font-medium text-slate-700"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() =>
-                          setDraftPolicy(current => ({
-                            ...current,
-                            detects: checked
-                              ? current.detects.filter(detect => detect !== item)
-                              : [...current.detects, item],
-                          }))
-                        }
-                        className={joinClasses(
-                          'h-4 w-4 rounded border-slate-300 accent-[#4338CA]',
-                          muted ? 'opacity-50' : ''
-                        )}
-                      />
-                      <span className={muted ? 'text-slate-400' : ''}>{item}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="border-b border-slate-200 px-5 py-5 sm:px-6 xl:border-r xl:border-b-0">
-              <h3 className="mb-4 text-base font-bold text-slate-900">조치 방식</h3>
-
-              <div className="space-y-4">
-                {['허용', '마스킹', '승인 필요', '차단'].map(option => (
-                  <label
-                    key={option}
-                    className="flex items-center gap-3 text-sm font-medium text-slate-700"
-                  >
-                    <input
-                      type="radio"
-                      name="policy-handling"
-                      checked={draftPolicy.handling === option}
-                      onChange={() =>
-                        setDraftPolicy(current => ({
-                          ...current,
-                          handling: option,
-                        }))
-                      }
-                      className="h-4 w-4 accent-[#4338CA]"
-                    />
-                    {option}
-                  </label>
-                ))}
-              </div>
-
-              <div className="mt-6 rounded-xl border border-[#D9D6FE] bg-[#F5F3FF] px-4 py-3 text-sm leading-6 text-[#4338CA]">
-                <div className="flex items-start gap-2">
-                  <Info className="mt-0.5 h-4 w-4 shrink-0" />
-                  <p>{getActionLabel(draftPolicy.handling)}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="px-5 py-5 sm:px-6">
-              <h3 className="mb-6 text-base font-bold text-slate-900">정책 운영 설정</h3>
-
-              <div className="space-y-6">
-                <ToggleRow
-                  label="정책 사용 여부"
-                  description="선택한 정책의 활성화 상태를 확인합니다."
-                  checked={draftPolicy.status === '사용'}
-                  onToggle={() =>
-                    setDraftPolicy(current => ({
-                      ...current,
-                      status: current.status === '사용' ? '미사용' : '사용',
-                    }))
-                  }
-                />
-                <ToggleRow
-                  label="관리자 알림"
-                  description="정책 위반 시 관리자에게 알림을 전송합니다."
-                  checked={draftPolicy.alerts.admin}
-                  onToggle={() =>
-                    setDraftPolicy(current => ({
-                      ...current,
-                      alerts: { ...current.alerts, admin: !current.alerts.admin },
-                    }))
-                  }
-                />
-                <ToggleRow
-                  label="감사 로그 저장"
-                  description="정책 위반 내역을 감사 로그로 저장합니다."
-                  checked={draftPolicy.alerts.log}
-                  onToggle={() =>
-                    setDraftPolicy(current => ({
-                      ...current,
-                      alerts: { ...current.alerts, log: !current.alerts.log },
-                    }))
-                  }
-                />
-                <ToggleRow
-                  label="사용자 경고 메시지"
-                  description="사용자에게 정책 위반 사유를 안내합니다."
-                  checked={draftPolicy.alerts.warning}
-                  onToggle={() =>
-                    setDraftPolicy(current => ({
-                      ...current,
-                      alerts: { ...current.alerts, warning: !current.alerts.warning },
-                    }))
-                  }
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 border-t border-slate-200 px-5 py-4 sm:px-6">
-            <button
-              type="button"
-              onClick={handleCancelEdit}
-              className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-6 text-sm font-semibold text-slate-500 transition hover:bg-slate-50"
-            >
-              취소
-            </button>
-            <button
-              type="button"
-              onClick={handleSavePolicy}
-              className="inline-flex h-11 items-center justify-center rounded-xl border border-[#4338CA] bg-[#4338CA] px-6 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(67,56,202,0.24)] transition hover:bg-[#3730A3] active:bg-[#312E81]"
-            >
-              저장
-            </button>
-          </div>
-        </SectionCard>
-        ) : null}
       </div>
 
       {isCreateModalOpen ? (
@@ -1166,28 +1133,6 @@ export default function PolicyPage() {
                             }))
                           }
                         />
-                        <ToggleRow
-                          label="감사 로그 저장"
-                          description="정책 위반 내역을 감사 로그로 저장합니다."
-                          checked={createDraft.alerts.log}
-                          onToggle={() =>
-                            setCreateDraft(current => ({
-                              ...current,
-                              alerts: { ...current.alerts, log: !current.alerts.log },
-                            }))
-                          }
-                        />
-                        <ToggleRow
-                          label="사용자 경고 메시지"
-                          description="사용자에게 정책 위반 사유를 안내합니다."
-                          checked={createDraft.alerts.warning}
-                          onToggle={() =>
-                            setCreateDraft(current => ({
-                              ...current,
-                              alerts: { ...current.alerts, warning: !current.alerts.warning },
-                            }))
-                          }
-                        />
                       </div>
                     </section>
                   </div>
@@ -1258,18 +1203,6 @@ export default function PolicyPage() {
                             <dt className="font-semibold text-slate-400">관리자 알림</dt>
                             <dd className="text-slate-700">
                               {createDraft.alerts.admin ? 'ON' : 'OFF'}
-                            </dd>
-                          </div>
-                          <div className="grid grid-cols-[6.5rem_1fr] gap-3">
-                            <dt className="font-semibold text-slate-400">감사 로그 저장</dt>
-                            <dd className="text-slate-700">
-                              {createDraft.alerts.log ? 'ON' : 'OFF'}
-                            </dd>
-                          </div>
-                          <div className="grid grid-cols-[6.5rem_1fr] gap-3">
-                            <dt className="font-semibold text-slate-400">사용자 경고 메시지</dt>
-                            <dd className="text-slate-700">
-                              {createDraft.alerts.warning ? 'ON' : 'OFF'}
                             </dd>
                           </div>
                         </dl>

@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
+import { Download } from 'lucide-react';
 import caretDownIcon from '../../assets/icons/caret_down.svg';
 import searchIcon from '../../assets/icons/search-data.svg';
 import {
@@ -67,7 +68,10 @@ export function MonitoringCsvActionMenu({
             widthClass="w-full min-w-0"
             heightClass="h-10"
           >
-            CSV 다운로드
+            <span className="inline-flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              CSV 다운로드
+            </span>
           </MonitoringActionButton>
         </div>
       ) : null}
@@ -257,38 +261,55 @@ export function MonitoringDataTable({
   activeRowId,
   onSelectRow,
   renderExpandedRow,
+  selectedRowIds = [],
+  onToggleRowSelection,
+  onToggleAllRowsSelection,
+  rowNumberStart = 1,
   className = '',
   bodyClassName = '',
 }) {
+  const allRowsSelected = rows.length > 0 && rows.every(row => selectedRowIds.includes(row.id));
+
   return (
     <div
       className={`flex min-h-0 w-full flex-col overflow-hidden rounded-[14px] border border-[#ECEFF5] bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)] ${className}`.trim()}
     >
       <div className="min-h-0 w-full overflow-x-auto xl:overflow-x-hidden">
-        <table className="min-w-[980px] w-full table-fixed border-separate border-spacing-0 xl:min-w-0">
+        <table className="min-w-[918px] w-full table-fixed border-separate border-spacing-0 xl:min-w-0">
           <colgroup>
+            <col className="w-[38px]" />
+            <col className="w-[40px]" />
             <col className="w-[108px]" />
             <col className="w-[74px]" />
-            <col className="w-[236px]" />
+            <col className="w-[220px]" />
             <col className="w-[116px]" />
-            <col className="w-[214px]" />
-            <col className="w-[104px]" />
+            <col className="w-[206px]" />
             <col className="w-[128px]" />
           </colgroup>
           <thead className="bg-[linear-gradient(180deg,#F8FAFF_0%,#F2F5FC_100%)]">
             <tr className="text-[14px] font-semibold leading-[1.4] text-[#4A5578] xl:text-[15px]">
+              <th className="border-b border-[#E7EBF4] px-0 py-[14px] text-center align-middle font-semibold">
+                <input
+                  type="checkbox"
+                  checked={allRowsSelected}
+                  onChange={() => onToggleAllRowsSelection?.(rows.map(row => row.id))}
+                  aria-label="현재 페이지 전체 선택"
+                  className="mx-auto block h-4 w-4 cursor-pointer rounded border-slate-300 accent-[#4338CA]"
+                />
+              </th>
+              <th className="border-b border-[#E7EBF4] px-0 py-[14px] text-center font-semibold">No.</th>
               <th className="border-b border-[#E7EBF4] px-4 py-[14px] text-left font-semibold xl:px-5">탐지 일시</th>
-              <th className="border-b border-[#E7EBF4] px-3 py-[14px] text-left font-semibold xl:px-4">AI 타입</th>
+              <th className="border-b border-[#E7EBF4] px-3 py-[14px] text-left font-semibold xl:px-4">서비스</th>
               <th className="border-b border-[#E7EBF4] px-3 py-[14px] text-left font-semibold xl:px-4">프롬프트</th>
               <th className="border-b border-[#E7EBF4] px-3 py-[14px] text-left font-semibold xl:px-4">탐지 결과</th>
               <th className="border-b border-[#E7EBF4] px-3 py-[14px] text-left font-semibold xl:px-4">탐지 내용</th>
-              <th className="border-b border-[#E7EBF4] px-3 py-[14px] text-left font-semibold xl:px-4">이용자 IP</th>
               <th className="border-b border-[#E7EBF4] px-3 py-[14px] text-left font-semibold xl:px-4">이용자 ID</th>
             </tr>
           </thead>
           <tbody className={bodyClassName}>
             {rows.map((row, index) => {
               const isSelected = activeRowId === row.id;
+              const isChecked = selectedRowIds.includes(row.id);
               const isStriped = index % 2 === 1;
               const baseRowClass = isStriped ? 'bg-[#FEFEFF]' : 'bg-white';
               const rowClassName = isSelected
@@ -303,6 +324,23 @@ export function MonitoringDataTable({
                     className={`cursor-pointer transition ${rowClassName}`.trim()}
                     onClick={() => onSelectRow(row)}
                   >
+                    <td
+                      className={`${cellBorderClass} px-0 py-[13px] text-center align-middle`.trim()}
+                      onClick={event => event.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => onToggleRowSelection?.(row.id)}
+                        aria-label={`${row.aiType} 행 선택`}
+                        className="mx-auto block h-4 w-4 cursor-pointer rounded border-slate-300 accent-[#4338CA]"
+                      />
+                    </td>
+                    <td
+                      className={`${cellBorderClass} px-0 py-[13px] text-center text-[14px] leading-[1.45] xl:text-[15px] ${isSelected ? 'font-semibold text-[#353E73]' : 'text-[#667085]'}`.trim()}
+                    >
+                      {rowNumberStart + index}
+                    </td>
                     <td
                       className={`${cellBorderClass} px-4 py-[13px] text-[14px] leading-[1.45] xl:px-5 xl:text-[15px] ${isSelected ? 'font-semibold text-[#353E73]' : 'text-[#475467]'}`.trim()}
                     >
@@ -331,11 +369,6 @@ export function MonitoringDataTable({
                       <div className="overflow-hidden text-ellipsis whitespace-nowrap">{row.content}</div>
                     </td>
                     <td
-                      className={`${cellBorderClass} px-3 py-[13px] text-[14px] leading-[1.45] xl:px-4 xl:text-[15px] ${isSelected ? 'font-semibold text-[#353E73]' : 'text-[#475467]'}`.trim()}
-                    >
-                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">{row.userIp}</div>
-                    </td>
-                    <td
                       className={`${cellBorderClass} px-3 py-[13px] text-[14px] leading-[1.45] xl:px-4 xl:text-[15px] ${isSelected ? 'font-semibold text-[#252B5C]' : 'text-[#2E3363]'}`.trim()}
                     >
                       <div className="overflow-hidden text-ellipsis whitespace-nowrap">{row.userId}</div>
@@ -343,7 +376,7 @@ export function MonitoringDataTable({
                   </tr>
                   {isSelected && renderExpandedRow ? (
                     <tr>
-                      <td colSpan={7} className="border-t border-[#E5EBF5] bg-[#FBFCFF] px-4 py-4 lg:px-5">
+                      <td colSpan={8} className="border-t border-[#E5EBF5] bg-white px-0 py-0">
                         {renderExpandedRow(row)}
                       </td>
                     </tr>
@@ -363,9 +396,8 @@ export function MonitoringDomainTable({ rows, renderLogo, renderToggle, classNam
     <div className={`flex min-h-0 w-full flex-col pb-0 ${className}`.trim()}>
       <div className="min-h-0 w-full overflow-x-auto">
         <div className="min-w-[760px] rounded-[22px]">
-          <div className="grid h-[46px] w-full grid-cols-[6.5rem_minmax(9rem,1.1fr)_minmax(16rem,2fr)_8rem] items-center rounded-t-[22px] border-b border-[#E7EBF4] bg-[linear-gradient(180deg,#F8FAFF_0%,#F2F5FC_100%)] px-6 text-[14px] font-semibold tracking-[-0.01em] text-[#59627A] lg:px-8">
-            <span className="pl-2">Logo</span>
-            <span>이름</span>
+          <div className="grid h-[46px] w-full grid-cols-[minmax(15rem,1.45fr)_minmax(16rem,2fr)_8rem] items-center rounded-t-[22px] border-b border-[#E7EBF4] bg-[linear-gradient(180deg,#F8FAFF_0%,#F2F5FC_100%)] px-6 text-[14px] font-semibold tracking-[-0.01em] text-[#59627A] lg:px-8">
+            <span>서비스</span>
             <span>URL</span>
             <span className="text-center">사용/비사용</span>
           </div>
@@ -375,12 +407,14 @@ export function MonitoringDomainTable({ rows, renderLogo, renderToggle, classNam
               return (
                 <div
                   key={row.id}
-                  className={`grid min-h-[66px] w-full grid-cols-[6.5rem_minmax(9rem,1.1fr)_minmax(16rem,2fr)_8rem] items-center bg-white px-6 text-[14px] leading-[150%] text-[#334155] lg:px-8 ${
+                  className={`grid min-h-[66px] w-full grid-cols-[minmax(15rem,1.45fr)_minmax(16rem,2fr)_8rem] items-center bg-white px-6 text-[14px] leading-[150%] text-[#334155] lg:px-8 ${
                     index === 0 ? '' : 'border-t border-[#EEF1F6]'
                   }`.trim()}
                 >
-                  <div className="py-3 pl-1">{renderLogo(row)}</div>
-                  <div className="truncate pr-4 font-semibold text-[#1F2A44]">{row.name}</div>
+                  <div className="flex items-center gap-3 py-3 pr-4">
+                    {renderLogo(row)}
+                    <div className="truncate font-semibold text-[#1F2A44]">{row.name}</div>
+                  </div>
                   <a
                     href={row.url}
                     target="_blank"

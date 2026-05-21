@@ -1,11 +1,8 @@
+import { LogOut } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import questionIcon from '../assets/icons/question.svg';
-import questionWhiteIcon from '../assets/icons/question-white.svg';
 import settingIcon from '../assets/icons/setting.svg';
 import settingWhiteIcon from '../assets/icons/setting-white.svg';
-import userIcon from '../assets/icons/user.svg';
-import userWhiteIcon from '../assets/icons/user-white.svg';
 import {
   APP_PAGE_HORIZONTAL_PADDING_CLASS,
   APP_PAGE_INNER_WIDTH_CLASS,
@@ -26,6 +23,8 @@ const PAGE_DESCRIPTIONS = {
   '/policies': '정책을 관리하고 서비스별 적용 기준을 설정할 수 있습니다.',
   '/domains': '외부 AI 서비스 도메인을 관리하고 사용 여부를 설정할 수 있습니다.',
 };
+
+const PENDING_FEATURE_MESSAGE = '아직 구현 안 되었습니다.';
 
 function HeaderIconButton({
   label,
@@ -53,9 +52,32 @@ function HeaderIconButton({
   );
 }
 
+function FilledBellIcon({ className = '' }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className}
+      fill="currentColor"
+    >
+      <path d="M12 2.75a5.25 5.25 0 0 0-5.25 5.25v1.13c0 .92-.24 1.83-.69 2.63l-1.07 1.88A2.25 2.25 0 0 0 6.94 17h10.12a2.25 2.25 0 0 0 1.95-3.36l-1.07-1.88a5.38 5.38 0 0 1-.69-2.63V8A5.25 5.25 0 0 0 12 2.75Zm0 18.5a2.63 2.63 0 0 0 2.47-1.75H9.53A2.63 2.63 0 0 0 12 21.25Z" />
+    </svg>
+  );
+}
+
+function HeaderPopover({ children, className = 'w-36' }) {
+  return (
+    <div
+      className={`absolute top-[calc(100%+8px)] right-0 z-30 overflow-hidden rounded-xl border border-[#E4E7F2] bg-white shadow-[0_18px_48px_rgba(11,18,32,0.18)] ${className}`.trim()}
+    >
+      {children}
+    </div>
+  );
+}
+
 function UserMenu({ onClose }) {
   return (
-    <div className="absolute top-[calc(100%+8px)] right-0 z-30 w-36 overflow-hidden rounded-xl border border-[#E4E7F2] bg-white shadow-[0_18px_48px_rgba(11,18,32,0.18)]">
+    <HeaderPopover>
       <button
         type="button"
         className="flex h-11 w-full items-center justify-center text-sm font-semibold text-[#4338CA] transition hover:bg-[#F6F4FF]"
@@ -63,37 +85,41 @@ function UserMenu({ onClose }) {
       >
         내 계정
       </button>
-      <button
-        type="button"
-        className="flex h-11 w-full items-center justify-center border-t border-[#E9EAF4] text-sm font-semibold text-[#4338CA] transition hover:bg-[#F6F4FF]"
-        onClick={onClose}
-      >
-        로그아웃
-      </button>
-    </div>
+    </HeaderPopover>
+  );
+}
+
+function PendingFeatureMenu() {
+  return (
+    <HeaderPopover className="w-44">
+      <div className="flex min-h-11 items-center justify-center px-4 py-3 text-center text-sm font-semibold text-[#4338CA]">
+        {PENDING_FEATURE_MESSAGE}
+      </div>
+    </HeaderPopover>
   );
 }
 
 export default function AppHeader({ onMenuClick, isSidebarOpen = false }) {
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const menuRef = useRef(null);
+  const [openPopover, setOpenPopover] = useState(null);
+  const popoverRootRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
   const pageTitle = PAGE_TITLES[location.pathname] ?? 'GARIM';
   const pageDescription = PAGE_DESCRIPTIONS[location.pathname] ?? '';
+  const userName = 'C2lab';
 
   useEffect(() => {
-    if (!isUserMenuOpen) return undefined;
+    if (!openPopover) return undefined;
 
     const handlePointerDown = event => {
-      if (!menuRef.current?.contains(event.target)) {
-        setIsUserMenuOpen(false);
+      if (!event.target.closest('[data-header-popover-root="true"]')) {
+        setOpenPopover(null);
       }
     };
 
     const handleKeyDown = event => {
       if (event.key === 'Escape') {
-        setIsUserMenuOpen(false);
+        setOpenPopover(null);
       }
     };
 
@@ -104,7 +130,11 @@ export default function AppHeader({ onMenuClick, isSidebarOpen = false }) {
       document.removeEventListener('pointerdown', handlePointerDown);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isUserMenuOpen]);
+  }, [openPopover]);
+
+  const togglePopover = key => {
+    setOpenPopover(current => (current === key ? null : key));
+  };
 
   return (
     <header className="w-full bg-[#1A1A1A]">
@@ -132,77 +162,68 @@ export default function AppHeader({ onMenuClick, isSidebarOpen = false }) {
         </div>
 
         <div className="ml-auto flex items-center gap-1.5">
-          <HeaderIconButton
-            label="설정"
-            tooltip="설정"
-            className="group active:bg-[#4338CA] active:text-white"
-            hoverClassName="hover:bg-[#4338CA] hover:text-white"
-          >
-            <img
-              src={settingIcon}
-              alt=""
-              aria-hidden="true"
-              className="h-[15px] w-[15px] transition-opacity group-hover:opacity-0 group-active:opacity-0"
-            />
-            <img
-              src={settingWhiteIcon}
-              alt=""
-              aria-hidden="true"
-              className="pointer-events-none absolute h-[15px] w-[15px] opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100"
-            />
-          </HeaderIconButton>
-          <HeaderIconButton
-            label="도움말"
-            tooltip="가이드페이지"
-            className="group active:bg-[#4338CA] active:text-white"
-            hoverClassName="hover:bg-[#4338CA] hover:text-white"
-          >
-            <img
-              src={questionIcon}
-              alt=""
-              aria-hidden="true"
-              className="h-[18px] w-[12px] transition-opacity group-hover:opacity-0 group-active:opacity-0"
-            />
-            <img
-              src={questionWhiteIcon}
-              alt=""
-              aria-hidden="true"
-              className="pointer-events-none absolute h-[18px] w-[12px] opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100"
-            />
-          </HeaderIconButton>
-          <div ref={menuRef} className="relative">
-            <HeaderIconButton
-              label="사용자 메뉴"
-              tooltip="프로필"
-              className="group"
-              hoverClassName="hover:bg-[#4338CA] hover:text-white"
-              isActive={isUserMenuOpen}
-              aria-expanded={isUserMenuOpen}
+          <div ref={popoverRootRef} className="relative" data-header-popover-root="true">
+            <button
+              type="button"
+              className="flex h-9 items-center rounded-full px-3 text-[0.82rem] font-semibold text-white/82 transition hover:bg-white/8 hover:text-white"
+              aria-expanded={openPopover === 'user'}
               aria-haspopup="menu"
-              onClick={() => setIsUserMenuOpen(open => !open)}
+              onClick={() => togglePopover('user')}
+            >
+              <span className="text-[#8F7CFF]">{userName}</span>
+              <span className="pl-1 text-white/82">님 반갑습니다.</span>
+            </button>
+            {openPopover === 'user' ? <UserMenu onClose={() => setOpenPopover(null)} /> : null}
+          </div>
+          <div className="relative" data-header-popover-root="true">
+            <HeaderIconButton
+              label="알람"
+              tooltip=""
+              className="group active:bg-[#4338CA] active:text-white"
+              hoverClassName="hover:bg-[#4338CA] hover:text-white"
+              isActive={openPopover === 'alarm'}
+              onClick={() => togglePopover('alarm')}
+            >
+              <FilledBellIcon className="h-[17px] w-[17px] lg:h-[18px] lg:w-[18px]" />
+            </HeaderIconButton>
+            {openPopover === 'alarm' ? <PendingFeatureMenu /> : null}
+          </div>
+          <div className="relative" data-header-popover-root="true">
+            <HeaderIconButton
+              label="설정"
+              tooltip=""
+              className="group active:bg-[#4338CA] active:text-white"
+              hoverClassName="hover:bg-[#4338CA] hover:text-white"
+              isActive={openPopover === 'setting'}
+              onClick={() => togglePopover('setting')}
             >
               <img
-                src={userIcon}
+                src={settingIcon}
                 alt=""
                 aria-hidden="true"
-                className={`pointer-events-none absolute inset-0 m-auto h-[19px] w-auto transition-opacity ${
-                  isUserMenuOpen
-                    ? 'opacity-0'
-                    : 'opacity-100 group-hover:opacity-0 group-active:opacity-0'
-                }`.trim()}
+                className="h-[15px] w-[15px] transition-opacity group-hover:opacity-0 group-active:opacity-0"
               />
               <img
-                src={userWhiteIcon}
+                src={settingWhiteIcon}
                 alt=""
                 aria-hidden="true"
-                className={`pointer-events-none absolute inset-0 m-auto h-[19px] w-auto transition-opacity ${
-                  isUserMenuOpen
-                    ? 'opacity-100'
-                    : 'opacity-0 group-hover:opacity-100 group-active:opacity-100'
-                }`.trim()}
+                className="pointer-events-none absolute h-[15px] w-[15px] opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100"
               />
             </HeaderIconButton>
-            {isUserMenuOpen ? <UserMenu onClose={() => setIsUserMenuOpen(false)} /> : null}
+            {openPopover === 'setting' ? <PendingFeatureMenu /> : null}
+          </div>
+          <div className="relative" data-header-popover-root="true">
+            <HeaderIconButton
+              label="로그아웃"
+              tooltip=""
+              className="group active:bg-[#4338CA] active:text-white"
+              hoverClassName="hover:bg-[#4338CA] hover:text-white"
+              isActive={openPopover === 'logout'}
+              onClick={() => togglePopover('logout')}
+            >
+              <LogOut className="h-[15px] w-[15px] stroke-[2.1] lg:h-[16px] lg:w-[16px]" />
+            </HeaderIconButton>
+            {openPopover === 'logout' ? <PendingFeatureMenu /> : null}
           </div>
         </div>
       </div>
@@ -241,88 +262,79 @@ export default function AppHeader({ onMenuClick, isSidebarOpen = false }) {
                 ) : null}
               </div>
               <div className="flex shrink-0 items-center gap-4 xl:gap-5">
-  <p className="hidden text-[0.88rem] font-semibold text-white xl:block">
-    <span className="text-[#8F7CFF]">C2lab</span> 님 반갑습니다.
-  </p>
+                <div className="relative" data-header-popover-root="true">
+                  <button
+                    type="button"
+                    className={`hidden h-9 items-center rounded-full px-3 text-[0.88rem] font-semibold transition xl:flex ${
+                      openPopover === 'user'
+                        ? 'bg-white/10 text-white'
+                        : 'text-white/82 hover:bg-white/8 hover:text-white'
+                    }`.trim()}
+                    aria-expanded={openPopover === 'user'}
+                    aria-haspopup="menu"
+                    onClick={() => togglePopover('user')}
+                  >
+                    <span className="text-[#8F7CFF]">{userName}</span>
+                    <span className="pl-1 text-white/82">님 반갑습니다.</span>
+                  </button>
+                  {openPopover === 'user' ? <UserMenu onClose={() => setOpenPopover(null)} /> : null}
+                </div>
 
-  <div className="flex items-center gap-1 xl:gap-1.5">
-    <HeaderIconButton
-      label="설정"
-      tooltip="설정"
-      className="group active:bg-[#4338CA] active:text-white"
-      hoverClassName="hover:bg-[#4338CA] hover:text-white"
-    >
-      <img
-        src={settingIcon}
-        alt=""
-        aria-hidden="true"
-        className="h-[16px] w-[16px] transition-opacity group-hover:opacity-0 group-active:opacity-0 lg:h-[15px] lg:w-[15px] xl:h-[17px] xl:w-[17px]"
-      />
-      <img
-        src={settingWhiteIcon}
-        alt=""
-        aria-hidden="true"
-        className="pointer-events-none absolute h-[16px] w-[16px] opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100 lg:h-[15px] lg:w-[15px] xl:h-[17px] xl:w-[17px]"
-      />
-    </HeaderIconButton>
+                <div className="flex items-center gap-1 xl:gap-1.5">
+                  <div className="relative" data-header-popover-root="true">
+                    <HeaderIconButton
+                      label="알람"
+                      tooltip=""
+                      className="group active:bg-[#4338CA] active:text-white"
+                      hoverClassName="hover:bg-[#4338CA] hover:text-white"
+                      isActive={openPopover === 'alarm'}
+                      onClick={() => togglePopover('alarm')}
+                    >
+                      <FilledBellIcon className="h-[21px] w-[21px] lg:h-[20px] lg:w-[20px] xl:h-[22px] xl:w-[22px]" />
+                    </HeaderIconButton>
+                    {openPopover === 'alarm' ? <PendingFeatureMenu /> : null}
+                  </div>
 
-    <HeaderIconButton
-      label="도움말"
-      tooltip="가이드페이지"
-      className="group active:bg-[#4338CA] active:text-white"
-      hoverClassName="hover:bg-[#4338CA] hover:text-white"
-    >
-      <img
-        src={questionIcon}
-        alt=""
-        aria-hidden="true"
-        className="h-[20px] w-[13px] transition-opacity group-hover:opacity-0 group-active:opacity-0 lg:h-[18px] lg:w-[12px] xl:h-[22px] xl:w-[14px]"
-      />
-      <img
-        src={questionWhiteIcon}
-        alt=""
-        aria-hidden="true"
-        className="pointer-events-none absolute h-[20px] w-[13px] opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100 lg:h-[18px] lg:w-[12px] xl:h-[22px] xl:w-[14px]"
-      />
-    </HeaderIconButton>
+                  <div className="relative" data-header-popover-root="true">
+                    <HeaderIconButton
+                      label="설정"
+                      tooltip=""
+                      className="group active:bg-[#4338CA] active:text-white"
+                      hoverClassName="hover:bg-[#4338CA] hover:text-white"
+                      isActive={openPopover === 'setting'}
+                      onClick={() => togglePopover('setting')}
+                    >
+                      <img
+                        src={settingIcon}
+                        alt=""
+                        aria-hidden="true"
+                        className="h-[16px] w-[16px] transition-opacity group-hover:opacity-0 group-active:opacity-0 lg:h-[15px] lg:w-[15px] xl:h-[17px] xl:w-[17px]"
+                      />
+                      <img
+                        src={settingWhiteIcon}
+                        alt=""
+                        aria-hidden="true"
+                        className="pointer-events-none absolute h-[16px] w-[16px] opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100 lg:h-[15px] lg:w-[15px] xl:h-[17px] xl:w-[17px]"
+                      />
+                    </HeaderIconButton>
+                    {openPopover === 'setting' ? <PendingFeatureMenu /> : null}
+                  </div>
 
-    <div ref={menuRef} className="relative">
-      <HeaderIconButton
-        label="사용자 메뉴"
-        tooltip="프로필"
-        className="group"
-        hoverClassName="hover:bg-[#4338CA] hover:text-white"
-        isActive={isUserMenuOpen}
-        aria-expanded={isUserMenuOpen}
-        aria-haspopup="menu"
-        onClick={() => setIsUserMenuOpen(open => !open)}
-      >
-        <img
-          src={userIcon}
-          alt=""
-          aria-hidden="true"
-          className={`pointer-events-none absolute inset-0 m-auto h-[21px] w-auto transition-opacity lg:h-[19px] xl:h-[23px] ${
-            isUserMenuOpen
-              ? 'opacity-0'
-              : 'opacity-100 group-hover:opacity-0 group-active:opacity-0'
-          }`.trim()}
-        />
-        <img
-          src={userWhiteIcon}
-          alt=""
-          aria-hidden="true"
-          className={`pointer-events-none absolute inset-0 m-auto h-[21px] w-auto transition-opacity lg:h-[19px] xl:h-[23px] ${
-            isUserMenuOpen
-              ? 'opacity-100'
-              : 'opacity-0 group-hover:opacity-100 group-active:opacity-100'
-          }`.trim()}
-        />
-      </HeaderIconButton>
-
-      {isUserMenuOpen ? <UserMenu onClose={() => setIsUserMenuOpen(false)} /> : null}
-    </div>
-  </div>
-</div>
+                  <div className="relative" data-header-popover-root="true">
+                    <HeaderIconButton
+                      label="로그아웃"
+                      tooltip=""
+                      className="group active:bg-[#4338CA] active:text-white"
+                      hoverClassName="hover:bg-[#4338CA] hover:text-white"
+                      isActive={openPopover === 'logout'}
+                      onClick={() => togglePopover('logout')}
+                    >
+                      <LogOut className="h-[16px] w-[16px] stroke-[4] lg:h-[15px] lg:w-[15px] xl:h-[17px] xl:w-[17px]" />
+                    </HeaderIconButton>
+                    {openPopover === 'logout' ? <PendingFeatureMenu /> : null}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

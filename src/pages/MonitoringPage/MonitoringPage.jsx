@@ -1,3 +1,4 @@
+import { Download } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import GlassPagination from '../../components/GlassPagination.jsx';
 import {
@@ -233,7 +234,6 @@ const logs = [
 const resultOptions = ['전체 결과', '정상', '개인정보 탐지', '기밀정보 탐지', '프롬프트 위협'];
 const ROWS_PER_PAGE = 11;
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
-const DEFAULT_DETAIL_MEMO = '메모를 입력하세요...';
 
 function normalizeLogDateTime(value) {
   return String(value).replace(' ', 'T');
@@ -306,17 +306,6 @@ function isSameDay(left, right) {
   );
 }
 
-function buildMaskedPrompt(promptDetail) {
-  return promptDetail
-    .replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, match => {
-      const [local, domain] = match.split('@');
-      const maskedLocal = `${local.slice(0, 2)}***`;
-      return `${maskedLocal}@${domain}`;
-    })
-    .replace(/김철수|이영희|박민수|최민준|박수진|최유진|정민수|윤서진/g, '***')
-    .replace(/\b\d{1,3}(,\d{3})*원/g, value => `/${value}`);
-}
-
 function buildDetectionItems(row) {
   if (row.result === '개인정보 탐지') {
     return ['이메일 4건', '사용자 식별자', '거래 금액', '내부 문서 정보'];
@@ -335,7 +324,6 @@ function buildDetectionItems(row) {
 
 function buildDetailContext(row) {
   return {
-    sessionId: `sess_20260520_${String(row.id).padStart(3, '0')}`,
     policyName: row.result === '정상' ? '일반 사용 허용 정책' : '개인정보 보호 기본 정책',
     actionStatus: row.result === '정상' ? '자동 승인 완료' : '관리자 검토 필요',
     riskLabel:
@@ -344,7 +332,6 @@ function buildDetailContext(row) {
         : row.level === 'warning'
           ? '자동 마스킹 대기'
           : '정상 처리',
-    maskedPrompt: buildMaskedPrompt(row.promptDetail),
     detectionItems: buildDetectionItems(row),
     evidenceLines: row.detectionDetail
       .split('\n')
@@ -383,20 +370,13 @@ function DetailHeader({ row }) {
   const detail = buildDetailContext(row);
 
   return (
-    <div className="flex flex-col gap-3 border-b border-[#E7EBF5] pb-4">
-      <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="text-[15px] font-bold tracking-[-0.02em] text-[#1F2555]">
-            상세 내역
-          </div>
-          <DetailStatusBadge tone="red">{row.result}</DetailStatusBadge>
-          <DetailStatusBadge tone="red">위험도 높음</DetailStatusBadge>
-          <DetailStatusBadge tone="orange">{detail.riskLabel}</DetailStatusBadge>
-        </div>
-        <span className="text-[12px] font-semibold text-[#7A82A6]">
-          로그 ID {String(row.id).padStart(4, '0')}
-        </span>
+    <div className="flex flex-wrap items-center gap-3">
+      <div className="text-[15px] font-bold tracking-[-0.02em] text-[#1F2555]">
+        상세 내역
       </div>
+      <DetailStatusBadge tone="red">{row.result}</DetailStatusBadge>
+      <DetailStatusBadge tone="red">위험도 높음</DetailStatusBadge>
+      <DetailStatusBadge tone="orange">{detail.riskLabel}</DetailStatusBadge>
     </div>
   );
 }
@@ -416,11 +396,11 @@ function DetailSummaryItem({ label, value, valueClassName = '' }) {
 
 function DetailPanel({ title, children }) {
   return (
-    <section className="overflow-hidden rounded-[10px] border border-[#E7EBF5] bg-white shadow-[0_4px_18px_rgba(15,23,42,0.04)]">
-      <div className="flex items-center justify-between border-b border-[#ECEFFC] bg-[linear-gradient(180deg,#FBFBFF_0%,#F4F5FF_100%)] px-4 py-2.5">
+    <section className="overflow-hidden rounded-[10px] border border-[#E7EBF5] bg-white">
+      <div className="px-4 py-3">
         <DetailSectionLabel>{title}</DetailSectionLabel>
       </div>
-      <div className="px-4 py-3">{children}</div>
+      <div className="border-t border-[#ECEFFC] px-4 py-3">{children}</div>
     </section>
   );
 }
@@ -461,15 +441,6 @@ function DetailChipList({ items }) {
           {item}
         </span>
       ))}
-    </div>
-  );
-}
-
-function DetailMemoBox() {
-  return (
-    <div className="rounded-[8px] border border-[#E2E7F3] bg-white px-3 py-3">
-      <div className="min-h-[62px] text-[12.5px] text-[#A0A8C4]">{DEFAULT_DETAIL_MEMO}</div>
-      <div className="pt-3 text-right text-[11px] font-medium text-[#A0A8C4]">0 / 500</div>
     </div>
   );
 }
@@ -624,6 +595,7 @@ export default function MonitoringPage() {
   const [endDate, setEndDate] = useState('2026-05-20');
   const [selectedResult, setSelectedResult] = useState('전체 결과');
   const [selectedLogId, setSelectedLogId] = useState();
+  const [selectedRowIds, setSelectedRowIds] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
 
   const filteredLogs = useMemo(() => {
@@ -644,6 +616,24 @@ export default function MonitoringPage() {
     const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
     return filteredLogs.slice(startIndex, startIndex + ROWS_PER_PAGE);
   }, [currentPage, filteredLogs]);
+
+  const handleToggleRowSelection = rowId => {
+    setSelectedRowIds(current =>
+      current.includes(rowId) ? current.filter(id => id !== rowId) : [...current, rowId]
+    );
+  };
+
+  const handleToggleAllRowsSelection = rowIds => {
+    setSelectedRowIds(current => {
+      const allSelected = rowIds.every(id => current.includes(id));
+
+      if (allSelected) {
+        return current.filter(id => !rowIds.includes(id));
+      }
+
+      return [...new Set([...current, ...rowIds])];
+    });
+  };
 
   return (
     <div
@@ -717,10 +707,10 @@ export default function MonitoringPage() {
                   widthClass="w-[152px] min-w-[152px]"
                   onClick={() => {}}
                 >
-                  <span className="mr-1.5 text-[13px]" aria-hidden="true">
-                    ↓
+                  <span className="inline-flex items-center gap-2">
+                    <Download className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    CSV 다운로드
                   </span>
-                  CSV 다운로드
                 </MonitoringActionButton>
               </div>
             </div>
@@ -731,34 +721,39 @@ export default function MonitoringPage() {
           <MonitoringDataTable
             rows={pagedLogs}
             activeRowId={selectedLogId}
+            selectedRowIds={selectedRowIds}
+            onToggleRowSelection={handleToggleRowSelection}
+            onToggleAllRowsSelection={handleToggleAllRowsSelection}
+            rowNumberStart={(currentPage - 1) * ROWS_PER_PAGE + 1}
             onSelectRow={log => setSelectedLogId(current => (current === log.id ? null : log.id))}
             renderExpandedRow={row => {
               const detail = buildDetailContext(row);
 
               return (
-                <div className="grid gap-4">
+                <div className="grid gap-4 px-5 py-5">
                   <DetailHeader row={row} />
 
-                  <section className="rounded-[10px] border border-[#E7EBF5] bg-white px-4 py-4 shadow-[0_4px_18px_rgba(15,23,42,0.04)]">
-                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                      <DetailSummaryItem
-                        label="AI 타입"
-                        value={row.aiType}
-                      />
-                      <DetailSummaryItem
-                        label="관리 조직"
-                        value={row.organization}
-                      />
-                      <DetailSummaryItem label="이용자 ID" value={row.userId} />
-                      <DetailSummaryItem label="이용자 IP" value={row.userIp} />
-                      <DetailSummaryItem label="세션 ID" value={detail.sessionId} />
-                      <DetailSummaryItem label="탐지 일시" value={row.detectedAt} />
-                      <DetailSummaryItem label="최종 정책" value={detail.policyName} />
-                      <DetailSummaryItem
-                        label="처리 상태"
-                        value={detail.actionStatus}
-                        valueClassName={row.result === '정상' ? 'text-[#18A0AE]' : 'text-[#F59E0B]'}
-                      />
+                  <section className="rounded-[10px] border border-[#E7EBF5] bg-white">
+                    <div className="grid gap-0 md:grid-cols-2 xl:grid-cols-3">
+                      <div className="px-4 py-4">
+                        <DetailSummaryItem label="서비스" value={row.aiType} />
+                      </div>
+                      <div className="border-t border-[#E7EBF5] px-4 py-4 md:border-t-0 md:border-l">
+                        <DetailSummaryItem label="이용자 ID" value={row.userId} />
+                      </div>
+                      <div className="border-t border-[#E7EBF5] px-4 py-4 xl:border-t-0 xl:border-l">
+                        <DetailSummaryItem label="탐지 일시" value={row.detectedAt} />
+                      </div>
+                      <div className="px-4 py-4 md:border-t md:border-[#E7EBF5]">
+                        <DetailSummaryItem label="최종 정책" value={detail.policyName} />
+                      </div>
+                      <div className="border-t border-[#E7EBF5] px-4 py-4 md:border-l">
+                        <DetailSummaryItem
+                          label="처리 상태"
+                          value={detail.actionStatus}
+                          valueClassName={row.result === '정상' ? 'text-[#18A0AE]' : 'text-[#F59E0B]'}
+                        />
+                      </div>
                     </div>
                   </section>
 
@@ -770,9 +765,6 @@ export default function MonitoringPage() {
                       <DetailPanel title="탐지 근거">
                         <DetailBulletList items={detail.evidenceLines} />
                       </DetailPanel>
-                      <DetailPanel title="마스킹 미리보기">
-                        <DetailPanelText subtle>{detail.maskedPrompt}</DetailPanelText>
-                      </DetailPanel>
                     </div>
 
                     <div className="grid gap-3">
@@ -781,9 +773,6 @@ export default function MonitoringPage() {
                       </DetailPanel>
                       <DetailPanel title="조치 내용">
                         <DetailBulletList items={detail.actionLines} />
-                      </DetailPanel>
-                      <DetailPanel title="관리자 메모">
-                        <DetailMemoBox />
                       </DetailPanel>
                     </div>
                   </div>
