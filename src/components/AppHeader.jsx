@@ -240,7 +240,10 @@ export default function AppHeader({ onMenuClick, isSidebarOpen = false }) {
                   </p>
                 ) : null}
               </div>
-              <div className="flex shrink-0 items-center gap-1 xl:gap-1.5">
+              <div className="flex shrink-0 items-center gap-3 xl:gap-4">
+                <p className="hidden text-[0.88rem] font-semibold text-white xl:block">
+                  <span className="text-[#8F7CFF]">C2lab</span> 님 반갑습니다.
+                </p>
                 <HeaderIconButton
                   label="설정"
                   tooltip="설정"
