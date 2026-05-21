@@ -54,8 +54,8 @@ const policies = [
     id: 'pol_20251207_0003',
     name: '기밀정보 차단 정책',
     category: '기밀정보',
-    services: ['사내 AI 챗봇'],
-    serviceLabel: '사내 AI 챗봇',
+    services: ['Gemini'],
+    serviceLabel: 'Gemini',
     action: '승인 필요',
     status: '사용',
     updatedAt: '2025-12-07 16:18',
@@ -108,8 +108,8 @@ const policies = [
     id: 'pol_20251203_0006',
     name: 'API 키 유출 방지 정책',
     category: '보안',
-    services: ['개발자 도구', 'Claude'],
-    serviceLabel: '개발자 도구, Claude',
+    services: ['Genspark', 'MS Copilot'],
+    serviceLabel: 'Genspark, MS Copilot',
     action: '차단',
     status: '사용',
     updatedAt: '2025-12-03 11:27',
@@ -126,7 +126,7 @@ const policies = [
 
 const categoryOptions = ['전체 분류', '개인정보', '보안', '기밀정보', '파일 검사'];
 const policyCategoryOptions = categoryOptions.filter(option => option !== '전체 분류');
-const serviceOptions = ['전체 서비스', 'ChatGPT', 'Claude', '사내 AI 챗봇', '개발자 도구'];
+const serviceOptions = ['전체 서비스', 'ChatGPT', 'Gemini', 'Claude', 'Genspark', 'MS Copilot'];
 const wizardSteps = ['기본 정보', '탐지 항목', '조치 및 운영 설정', '생성 전 확인'];
 const wizardStepDescriptions = {
   1: '정책의 기본 기준 정보를 입력하세요.',
