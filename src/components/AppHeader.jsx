@@ -240,83 +240,89 @@ export default function AppHeader({ onMenuClick, isSidebarOpen = false }) {
                   </p>
                 ) : null}
               </div>
-              <div className="flex shrink-0 items-center gap-3 xl:gap-4">
-                <p className="hidden text-[0.88rem] font-semibold text-white xl:block">
-                  <span className="text-[#8F7CFF]">C2lab</span> 님 반갑습니다.
-                </p>
-                <HeaderIconButton
-                  label="설정"
-                  tooltip="설정"
-                  className="group active:bg-[#4338CA] active:text-white"
-                  hoverClassName="hover:bg-[#4338CA] hover:text-white"
-                >
-                  <img
-                    src={settingIcon}
-                    alt=""
-                    aria-hidden="true"
-                    className={`h-[16px] w-[16px] lg:h-[15px] lg:w-[15px] xl:h-[17px] xl:w-[17px] transition-opacity group-hover:opacity-0 group-active:opacity-0`.trim()}
-                  />
-                  <img
-                    src={settingWhiteIcon}
-                    alt=""
-                    aria-hidden="true"
-                    className={`pointer-events-none absolute h-[16px] w-[16px] lg:h-[15px] lg:w-[15px] xl:h-[17px] xl:w-[17px] opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100`.trim()}
-                  />
-                </HeaderIconButton>
-                <HeaderIconButton
-                  label="도움말"
-                  tooltip="가이드페이지"
-                  className="group active:bg-[#4338CA] active:text-white"
-                  hoverClassName="hover:bg-[#4338CA] hover:text-white"
-                >
-                  <img
-                    src={questionIcon}
-                    alt=""
-                    aria-hidden="true"
-                    className="h-[20px] w-[13px] lg:h-[18px] lg:w-[12px] xl:h-[22px] xl:w-[14px] transition-opacity group-hover:opacity-0 group-active:opacity-0"
-                  />
-                  <img
-                    src={questionWhiteIcon}
-                    alt=""
-                    aria-hidden="true"
-                    className="pointer-events-none absolute h-[20px] w-[13px] lg:h-[18px] lg:w-[12px] xl:h-[22px] xl:w-[14px] opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100"
-                  />
-                </HeaderIconButton>
-                <div ref={menuRef} className="relative">
-                  <HeaderIconButton
-                    label="사용자 메뉴"
-                    tooltip="프로필"
-                    className="group"
-                    hoverClassName="hover:bg-[#4338CA] hover:text-white"
-                    isActive={isUserMenuOpen}
-                    aria-expanded={isUserMenuOpen}
-                    aria-haspopup="menu"
-                    onClick={() => setIsUserMenuOpen(open => !open)}
-                  >
-                    <img
-                      src={userIcon}
-                      alt=""
-                      aria-hidden="true"
-                      className={`pointer-events-none absolute inset-0 m-auto h-[21px] w-auto lg:h-[19px] xl:h-[23px] transition-opacity ${
-                        isUserMenuOpen
-                          ? 'opacity-0'
-                          : 'opacity-100 group-hover:opacity-0 group-active:opacity-0'
-                      }`.trim()}
-                    />
-                    <img
-                      src={userWhiteIcon}
-                      alt=""
-                      aria-hidden="true"
-                      className={`pointer-events-none absolute inset-0 m-auto h-[21px] w-auto lg:h-[19px] xl:h-[23px] transition-opacity ${
-                        isUserMenuOpen
-                          ? 'opacity-100'
-                          : 'opacity-0 group-hover:opacity-100 group-active:opacity-100'
-                      }`.trim()}
-                    />
-                  </HeaderIconButton>
-                  {isUserMenuOpen ? <UserMenu onClose={() => setIsUserMenuOpen(false)} /> : null}
-                </div>
-              </div>
+              <div className="flex shrink-0 items-center gap-4 xl:gap-5">
+  <p className="hidden text-[0.88rem] font-semibold text-white xl:block">
+    <span className="text-[#8F7CFF]">C2lab</span> 님 반갑습니다.
+  </p>
+
+  <div className="flex items-center gap-1 xl:gap-1.5">
+    <HeaderIconButton
+      label="설정"
+      tooltip="설정"
+      className="group active:bg-[#4338CA] active:text-white"
+      hoverClassName="hover:bg-[#4338CA] hover:text-white"
+    >
+      <img
+        src={settingIcon}
+        alt=""
+        aria-hidden="true"
+        className="h-[16px] w-[16px] transition-opacity group-hover:opacity-0 group-active:opacity-0 lg:h-[15px] lg:w-[15px] xl:h-[17px] xl:w-[17px]"
+      />
+      <img
+        src={settingWhiteIcon}
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute h-[16px] w-[16px] opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100 lg:h-[15px] lg:w-[15px] xl:h-[17px] xl:w-[17px]"
+      />
+    </HeaderIconButton>
+
+    <HeaderIconButton
+      label="도움말"
+      tooltip="가이드페이지"
+      className="group active:bg-[#4338CA] active:text-white"
+      hoverClassName="hover:bg-[#4338CA] hover:text-white"
+    >
+      <img
+        src={questionIcon}
+        alt=""
+        aria-hidden="true"
+        className="h-[20px] w-[13px] transition-opacity group-hover:opacity-0 group-active:opacity-0 lg:h-[18px] lg:w-[12px] xl:h-[22px] xl:w-[14px]"
+      />
+      <img
+        src={questionWhiteIcon}
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute h-[20px] w-[13px] opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100 lg:h-[18px] lg:w-[12px] xl:h-[22px] xl:w-[14px]"
+      />
+    </HeaderIconButton>
+
+    <div ref={menuRef} className="relative">
+      <HeaderIconButton
+        label="사용자 메뉴"
+        tooltip="프로필"
+        className="group"
+        hoverClassName="hover:bg-[#4338CA] hover:text-white"
+        isActive={isUserMenuOpen}
+        aria-expanded={isUserMenuOpen}
+        aria-haspopup="menu"
+        onClick={() => setIsUserMenuOpen(open => !open)}
+      >
+        <img
+          src={userIcon}
+          alt=""
+          aria-hidden="true"
+          className={`pointer-events-none absolute inset-0 m-auto h-[21px] w-auto transition-opacity lg:h-[19px] xl:h-[23px] ${
+            isUserMenuOpen
+              ? 'opacity-0'
+              : 'opacity-100 group-hover:opacity-0 group-active:opacity-0'
+          }`.trim()}
+        />
+        <img
+          src={userWhiteIcon}
+          alt=""
+          aria-hidden="true"
+          className={`pointer-events-none absolute inset-0 m-auto h-[21px] w-auto transition-opacity lg:h-[19px] xl:h-[23px] ${
+            isUserMenuOpen
+              ? 'opacity-100'
+              : 'opacity-0 group-hover:opacity-100 group-active:opacity-100'
+          }`.trim()}
+        />
+      </HeaderIconButton>
+
+      {isUserMenuOpen ? <UserMenu onClose={() => setIsUserMenuOpen(false)} /> : null}
+    </div>
+  </div>
+</div>
             </div>
           </div>
         </div>
