@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CircleHelp, Download, Info, Plus, Search } from 'lucide-react';
+import { Check, CircleHelp, Download, Info, Plus, Search, X } from 'lucide-react';
 
 import { MonitoringDropdown } from '../../components/monitoring/MonitoringListComponents.jsx';
 import PageLayout from '../../layout/PageLayout.jsx';
@@ -136,6 +136,15 @@ const policies = [
 ];
 
 const categoryOptions = ['전체 분류', '개인정보', '보안', '기밀정보', '파일 검사'];
+const policyCategoryOptions = categoryOptions.filter(option => option !== '전체 분류');
+const serviceOptions = ['전체 서비스', 'ChatGPT', 'Claude', '사내 AI 챗봇', '개발자 도구'];
+const wizardSteps = ['기본 정보', '탐지 항목', '조치 및 운영 설정', '생성 전 확인'];
+const wizardStepDescriptions = {
+  1: '정책의 기본 기준 정보를 입력하세요.',
+  2: '정책이 탐지해야 할 항목을 선택하세요.',
+  3: '조치 방식과 운영 옵션을 선택하세요.',
+  4: '입력한 내용을 확인하고 정책을 생성하세요.',
+};
 const detectionItems = [
   '이메일',
   '전화번호',
@@ -168,10 +177,10 @@ function createEmptyPolicy() {
 
   return {
     id: `pol_${timestamp}`,
-    name: '새 정책',
+    name: '',
     category: '개인정보',
-    services: ['ChatGPT'],
-    serviceLabel: 'ChatGPT',
+    services: ['전체 서비스'],
+    serviceLabel: '전체 서비스',
     action: '마스킹 후 전송',
     status: '사용',
     updatedAt: '2026-05-20 15:30',
@@ -193,6 +202,23 @@ function getActionLabel(action) {
   if (action === '승인 필요') return '탐지된 요청은 관리자 승인 대기열로 이동합니다.';
   if (action === '차단') return '탐지된 요청은 즉시 차단되며 사용자에게 사유가 안내됩니다.';
   return '허용된 요청만 대상 서비스로 전송됩니다.';
+}
+
+function toPolicyRecord(draftPolicy) {
+  const normalizedServices = draftPolicy.services.map(service => service.trim()).filter(Boolean);
+
+  return {
+    ...draftPolicy,
+    services: normalizedServices,
+    serviceLabel: normalizedServices.join(', '),
+    action:
+      draftPolicy.handling === '허용'
+        ? '허용'
+        : draftPolicy.handling === '마스킹'
+          ? '마스킹 후 전송'
+          : draftPolicy.handling,
+    updatedAt: '2026-05-20 15:30',
+  };
 }
 
 function ServiceLabel({ services, fallback }) {
@@ -258,13 +284,56 @@ function ToggleRow({ label, description, checked, onToggle }) {
   );
 }
 
+function StepIndicator({ currentStep }) {
+  return (
+    <div className="flex flex-wrap items-center gap-3 border-b border-slate-200 px-6 py-4">
+      {wizardSteps.map((label, index) => {
+        const stepNumber = index + 1;
+        const isActive = currentStep === stepNumber;
+        const isComplete = currentStep > stepNumber;
+
+        return (
+          <div key={label} className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span
+                className={joinClasses(
+                  'flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-bold',
+                  isActive || isComplete
+                    ? 'bg-[#4F46E5] text-white'
+                    : 'bg-slate-100 text-slate-400'
+                )}
+              >
+                {isComplete ? <Check className="h-3.5 w-3.5" /> : stepNumber}
+              </span>
+              <span
+                className={joinClasses(
+                  'text-sm font-semibold',
+                  isActive ? 'text-[#4338CA]' : isComplete ? 'text-slate-700' : 'text-slate-400'
+                )}
+              >
+                {label}
+              </span>
+            </div>
+            {index < wizardSteps.length - 1 ? (
+              <span className="hidden h-px w-6 bg-slate-200 sm:block" aria-hidden="true" />
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function PolicyPage() {
   const [policyList, setPolicyList] = useState(policies);
-  const [selectedId, setSelectedId] = useState(policies[0].id);
+  const [selectedId, setSelectedId] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(categoryOptions[0]);
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [draftPolicy, setDraftPolicy] = useState(() => createPolicyDraft(policies[0]));
+  const [draftPolicy, setDraftPolicy] = useState(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [createStep, setCreateStep] = useState(1);
+  const [createDraft, setCreateDraft] = useState(() => createEmptyPolicy());
 
   const filteredPolicies = useMemo(() => {
     return policyList.filter(policy => {
@@ -278,20 +347,40 @@ export default function PolicyPage() {
     });
   }, [policyList, searchQuery, selectedCategory]);
 
-  const selectedPolicy = policyList.find(policy => policy.id === selectedId) ?? policyList[0];
+  const selectedPolicy = policyList.find(policy => policy.id === selectedId) ?? null;
 
   useEffect(() => {
-    if (!selectedPolicy) return;
+    if (!selectedPolicy) {
+      setDraftPolicy(null);
+      return;
+    }
+
     setDraftPolicy(createPolicyDraft(selectedPolicy));
   }, [selectedPolicy]);
 
   useEffect(() => {
-    if (!filteredPolicies.length) return;
+    if (!selectedId) return;
+
     const hasSelectedPolicy = filteredPolicies.some(policy => policy.id === selectedId);
     if (!hasSelectedPolicy) {
-      setSelectedId(filteredPolicies[0].id);
+      setSelectedId(null);
     }
   }, [filteredPolicies, selectedId]);
+
+  useEffect(() => {
+    if (!isCreateModalOpen) return undefined;
+
+    const handleKeyDown = event => {
+      if (event.key === 'Escape') {
+        setIsCreateModalOpen(false);
+        setCreateStep(1);
+        setCreateDraft(createEmptyPolicy());
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isCreateModalOpen]);
 
   const handleDownloadTemplate = () => {
     const template = [
@@ -309,12 +398,9 @@ export default function PolicyPage() {
   };
 
   const handleCreatePolicy = () => {
-    const newPolicy = createEmptyPolicy();
-    setPolicyList(current => [newPolicy, ...current]);
-    setSelectedId(newPolicy.id);
-    setSearchInput('');
-    setSearchQuery('');
-    setSelectedCategory('전체 분류');
+    setCreateDraft(createEmptyPolicy());
+    setCreateStep(1);
+    setIsCreateModalOpen(true);
   };
 
   const handleClonePolicy = () => {
@@ -331,28 +417,12 @@ export default function PolicyPage() {
     if (!selectedPolicy) return;
     const nextPolicies = policyList.filter(policy => policy.id !== selectedPolicy.id);
     setPolicyList(nextPolicies);
-    if (nextPolicies.length) {
-      setSelectedId(nextPolicies[0].id);
-    }
+    setSelectedId(null);
   };
 
   const handleSavePolicy = () => {
     if (!draftPolicy) return;
-    const normalizedServices = draftPolicy.services
-      .map(service => service.trim())
-      .filter(Boolean);
-    const savedPolicy = {
-      ...draftPolicy,
-      services: normalizedServices,
-      serviceLabel: normalizedServices.join(', '),
-      action:
-        draftPolicy.handling === '허용'
-          ? '허용'
-          : draftPolicy.handling === '마스킹'
-            ? '마스킹 후 전송'
-            : draftPolicy.handling,
-      updatedAt: '2026-05-20 15:30',
-    };
+    const savedPolicy = toPolicyRecord(draftPolicy);
 
     setPolicyList(current =>
       current.map(policy => (policy.id === savedPolicy.id ? savedPolicy : policy))
@@ -360,9 +430,45 @@ export default function PolicyPage() {
   };
 
   const handleCancelEdit = () => {
-    if (!selectedPolicy) return;
-    setDraftPolicy(createPolicyDraft(selectedPolicy));
+    setSelectedId(null);
   };
+
+  const handleSelectPolicy = policyId => {
+    setSelectedId(current => (current === policyId ? null : policyId));
+  };
+
+  const closeCreateModal = () => {
+    setIsCreateModalOpen(false);
+    setCreateStep(1);
+    setCreateDraft(createEmptyPolicy());
+  };
+
+  const handleCreateNext = () => {
+    setCreateStep(current => Math.min(current + 1, 4));
+  };
+
+  const handleCreatePrev = () => {
+    setCreateStep(current => Math.max(current - 1, 1));
+  };
+
+  const handleSubmitCreatePolicy = () => {
+    const newPolicy = toPolicyRecord(createDraft);
+    setPolicyList(current => [newPolicy, ...current]);
+    setSelectedId(newPolicy.id);
+    setSearchInput('');
+    setSearchQuery('');
+    setSelectedCategory('전체 분류');
+    closeCreateModal();
+  };
+
+  const isCreateStepOneValid =
+    createDraft.name.trim() &&
+    createDraft.category.trim() &&
+    createDraft.services.length > 0 &&
+    createDraft.priority > 0;
+  const isCreateStepTwoValid = createDraft.detects.length > 0;
+  const isCreateNextDisabled =
+    (createStep === 1 && !isCreateStepOneValid) || (createStep === 2 && !isCreateStepTwoValid);
 
   return (
     <PageLayout>
@@ -445,7 +551,7 @@ export default function PolicyPage() {
                         'cursor-pointer transition',
                         isSelected ? 'bg-[#F5F3FF]' : 'bg-white hover:bg-slate-50'
                       )}
-                      onClick={() => setSelectedId(policy.id)}
+                      onClick={() => handleSelectPolicy(policy.id)}
                     >
                       <td className="px-5 py-4 align-middle sm:px-6">
                         <button
@@ -493,7 +599,7 @@ export default function PolicyPage() {
           </div>
         </SectionCard>
 
-        {selectedPolicy ? (
+        {selectedPolicy && draftPolicy ? (
           <SectionCard>
           <div className="flex flex-col gap-4 border-b border-slate-200 px-5 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -727,6 +833,390 @@ export default function PolicyPage() {
         </SectionCard>
         ) : null}
       </div>
+
+      {isCreateModalOpen ? (
+        <div className="fixed inset-0 z-50 grid place-items-center p-[clamp(0.75rem,1.8vw,1.25rem)]">
+          <button
+            type="button"
+            className="absolute inset-0 bg-[rgba(15,23,42,0.46)] backdrop-blur-[4px]"
+            aria-label="새 정책 생성 닫기"
+            onClick={closeCreateModal}
+          />
+
+          <div className="relative z-10 col-start-1 row-start-1 flex max-h-[min(82vh,46rem)] w-[min(72vw,52rem)] min-w-[min(92vw,34rem)] self-center flex-col overflow-hidden rounded-[clamp(1.25rem,1.9vw,1.75rem)] border border-white/70 bg-white shadow-[0_30px_80px_rgba(15,23,42,0.22)]">
+            <div className="flex items-center justify-between border-b border-slate-200 px-[clamp(1rem,1.8vw,1.5rem)] py-[clamp(0.9rem,1.6vw,1.25rem)]">
+              <div>
+                <h2 className="text-[clamp(1.1rem,1.55vw,1.4rem)] font-bold tracking-[-0.03em] text-slate-900">
+                  {wizardSteps[createStep - 1]}
+                </h2>
+                <p className="mt-1 text-[clamp(0.82rem,1vw,0.92rem)] text-slate-500">
+                  {wizardStepDescriptions[createStep]}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeCreateModal}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-400 transition hover:bg-slate-50 hover:text-slate-600"
+                aria-label="닫기"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <StepIndicator currentStep={createStep} />
+
+            <div
+              className={joinClasses(
+                'modal-scrollbar overflow-y-auto',
+                createStep === 1
+                  ? 'px-[clamp(1rem,1.8vw,1.5rem)] py-[clamp(0.95rem,1.6vw,1.125rem)]'
+                  : 'px-[clamp(1rem,1.8vw,1.5rem)] py-[clamp(1rem,2vw,1.5rem)]'
+              )}
+            >
+              {createStep === 1 ? (
+                <div className="space-y-3.5">
+                  <div className="grid gap-4">
+                    <DetailInput label="정책명" required>
+                      <input
+                        type="text"
+                        value={createDraft.name}
+                        onChange={event =>
+                          setCreateDraft(current => ({ ...current, name: event.target.value }))
+                        }
+                        placeholder="정책명을 입력하세요"
+                        className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none transition focus:border-[#A5B4FC] focus:ring-4 focus:ring-[#E0E7FF]"
+                      />
+                    </DetailInput>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <DetailInput label="분류" required>
+                        <MonitoringDropdown
+                          value={createDraft.category}
+                          onChange={value =>
+                            setCreateDraft(current => ({ ...current, category: value }))
+                          }
+                          options={policyCategoryOptions}
+                          ariaLabel="정책 분류"
+                          widthClass="w-full"
+                          triggerClassName="h-11 rounded-xl border-slate-200 bg-white shadow-none"
+                        />
+                      </DetailInput>
+
+                      <DetailInput label="적용 서비스" required>
+                        <MonitoringDropdown
+                          value={createDraft.services[0]}
+                          onChange={value =>
+                            setCreateDraft(current => ({
+                              ...current,
+                              services: [value],
+                              serviceLabel: value,
+                            }))
+                          }
+                          options={serviceOptions}
+                          ariaLabel="적용 서비스"
+                          widthClass="w-full"
+                          triggerClassName="h-11 rounded-xl border-slate-200 bg-white shadow-none"
+                        />
+                      </DetailInput>
+                    </div>
+
+                    <DetailInput label="설명">
+                      <textarea
+                        value={createDraft.description}
+                        onChange={event =>
+                          setCreateDraft(current => ({
+                            ...current,
+                            description: event.target.value,
+                          }))
+                        }
+                        rows={2}
+                        placeholder="정책 설명을 입력하세요"
+                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-700 outline-none transition focus:border-[#A5B4FC] focus:ring-4 focus:ring-[#E0E7FF]"
+                      />
+                    </DetailInput>
+
+                    <DetailInput label="우선순위" hint="숫자가 낮을수록 우선순위가 높습니다." required>
+                      <div className="w-full max-w-[10rem]">
+                        <input
+                          type="number"
+                          min="1"
+                          value={createDraft.priority}
+                          onChange={event =>
+                            setCreateDraft(current => ({
+                              ...current,
+                              priority: Number(event.target.value) || 0,
+                            }))
+                          }
+                          className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none transition focus:border-[#A5B4FC] focus:ring-4 focus:ring-[#E0E7FF]"
+                        />
+                      </div>
+                    </DetailInput>
+                  </div>
+                </div>
+              ) : null}
+
+              {createStep === 2 ? (
+                <div className="space-y-5">
+                  <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+                    {detectionItems.map(item => {
+                      const checked = createDraft.detects.includes(item);
+
+                      return (
+                        <label
+                          key={item}
+                          className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-[#C7D2FE] hover:bg-[#FAFBFF]"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() =>
+                              setCreateDraft(current => ({
+                                ...current,
+                                detects: checked
+                                  ? current.detects.filter(detect => detect !== item)
+                                  : [...current.detects, item],
+                              }))
+                            }
+                            className="h-4 w-4 rounded border-slate-300 accent-[#4338CA]"
+                          />
+                          <span>{item}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+
+                  <p className="text-sm text-slate-400">
+                    최소 1개 이상의 탐지 항목을 선택해야 다음 단계로 진행할 수 있습니다.
+                  </p>
+                </div>
+              ) : null}
+
+              {createStep === 3 ? (
+                <div className="space-y-6">
+                  <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+                    <section className="rounded-2xl border border-slate-200 p-5">
+                      <h4 className="text-sm font-bold text-slate-900">조치 방식</h4>
+                      <div className="mt-4 space-y-4">
+                        {['허용', '마스킹', '승인 필요', '차단'].map(option => (
+                          <label
+                            key={option}
+                            className="flex items-center gap-3 text-sm font-medium text-slate-700"
+                          >
+                            <input
+                              type="radio"
+                              name="create-policy-handling"
+                              checked={createDraft.handling === option}
+                              onChange={() =>
+                                setCreateDraft(current => ({ ...current, handling: option }))
+                              }
+                              className="h-4 w-4 accent-[#4338CA]"
+                            />
+                            {option}
+                          </label>
+                        ))}
+                      </div>
+
+                      <div className="mt-5 rounded-xl border border-[#D9D6FE] bg-[#F5F3FF] px-4 py-3 text-sm leading-6 text-[#4338CA]">
+                        <div className="flex items-start gap-2">
+                          <Info className="mt-0.5 h-4 w-4 shrink-0" />
+                          <p>{getActionLabel(createDraft.handling)}</p>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section className="rounded-2xl border border-slate-200 p-5">
+                      <h4 className="text-sm font-bold text-slate-900">정책 운영 설정</h4>
+                      <div className="mt-5 space-y-5">
+                        <ToggleRow
+                          label="정책 사용 여부"
+                          description="생성 후 바로 활성화할지 설정합니다."
+                          checked={createDraft.status === '사용'}
+                          onToggle={() =>
+                            setCreateDraft(current => ({
+                              ...current,
+                              status: current.status === '사용' ? '미사용' : '사용',
+                            }))
+                          }
+                        />
+                        <ToggleRow
+                          label="관리자 알림"
+                          description="위반 탐지 시 관리자에게 알림을 전송합니다."
+                          checked={createDraft.alerts.admin}
+                          onToggle={() =>
+                            setCreateDraft(current => ({
+                              ...current,
+                              alerts: { ...current.alerts, admin: !current.alerts.admin },
+                            }))
+                          }
+                        />
+                        <ToggleRow
+                          label="감사 로그 저장"
+                          description="정책 위반 내역을 감사 로그로 저장합니다."
+                          checked={createDraft.alerts.log}
+                          onToggle={() =>
+                            setCreateDraft(current => ({
+                              ...current,
+                              alerts: { ...current.alerts, log: !current.alerts.log },
+                            }))
+                          }
+                        />
+                        <ToggleRow
+                          label="사용자 경고 메시지"
+                          description="사용자에게 정책 위반 사유를 안내합니다."
+                          checked={createDraft.alerts.warning}
+                          onToggle={() =>
+                            setCreateDraft(current => ({
+                              ...current,
+                              alerts: { ...current.alerts, warning: !current.alerts.warning },
+                            }))
+                          }
+                        />
+                      </div>
+                    </section>
+                  </div>
+                </div>
+              ) : null}
+
+              {createStep === 4 ? (
+                <div className="space-y-5">
+                  <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                    <div className="grid border-b border-slate-200 bg-[#FCFCFF] text-sm font-bold text-slate-900 md:grid-cols-[1.15fr_0.95fr_1fr]">
+                      <div className="px-5 py-4 md:border-r md:border-slate-200">기본 정보</div>
+                      <div className="px-5 py-4 md:border-r md:border-slate-200">탐지 항목</div>
+                      <div className="px-5 py-4">조치 및 운영 설정</div>
+                    </div>
+
+                    <div className="grid md:grid-cols-[1.15fr_0.95fr_1fr]">
+                      <section className="px-5 py-4 md:border-r md:border-slate-200">
+                        <dl className="grid gap-3 text-[0.92rem]">
+                          <div className="grid grid-cols-[5.25rem_1fr] gap-3">
+                            <dt className="font-semibold text-slate-400">정책명</dt>
+                            <dd className="font-semibold text-slate-800">{createDraft.name}</dd>
+                          </div>
+                          <div className="grid grid-cols-[5.25rem_1fr] gap-3">
+                            <dt className="font-semibold text-slate-400">분류</dt>
+                            <dd className="text-slate-700">{createDraft.category}</dd>
+                          </div>
+                          <div className="grid grid-cols-[5.25rem_1fr] gap-3">
+                            <dt className="font-semibold text-slate-400">적용 서비스</dt>
+                            <dd className="text-slate-700">{createDraft.services.join(', ')}</dd>
+                          </div>
+                          <div className="grid grid-cols-[5.25rem_1fr] gap-3">
+                            <dt className="font-semibold text-slate-400">우선순위</dt>
+                            <dd className="text-slate-700">{createDraft.priority}</dd>
+                          </div>
+                          <div className="grid grid-cols-[5.25rem_1fr] gap-3">
+                            <dt className="font-semibold text-slate-400">설명</dt>
+                            <dd className="leading-6 text-slate-700">
+                              {createDraft.description || '설명 없음'}
+                            </dd>
+                          </div>
+                        </dl>
+                      </section>
+
+                      <section className="border-t border-slate-200 px-5 py-4 md:border-t-0 md:border-r md:border-slate-200">
+                        <ul className="space-y-2.5 text-[0.92rem] text-slate-700">
+                          {createDraft.detects.map(item => (
+                            <li key={item} className="flex items-start gap-2">
+                              <span className="mt-[0.45rem] h-1.5 w-1.5 rounded-full bg-[#4338CA]" />
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
+
+                      <section className="border-t border-slate-200 px-5 py-4 md:border-t-0">
+                        <dl className="grid gap-3 text-[0.92rem]">
+                          <div className="grid grid-cols-[6.5rem_1fr] gap-3">
+                            <dt className="font-semibold text-slate-400">조치 방식</dt>
+                            <dd className="text-slate-700">{createDraft.handling}</dd>
+                          </div>
+                          <div className="grid grid-cols-[6.5rem_1fr] gap-3">
+                            <dt className="font-semibold text-slate-400">정책 사용 여부</dt>
+                            <dd className="text-slate-700">
+                              {createDraft.status === '사용' ? 'ON' : 'OFF'}
+                            </dd>
+                          </div>
+                          <div className="grid grid-cols-[6.5rem_1fr] gap-3">
+                            <dt className="font-semibold text-slate-400">관리자 알림</dt>
+                            <dd className="text-slate-700">
+                              {createDraft.alerts.admin ? 'ON' : 'OFF'}
+                            </dd>
+                          </div>
+                          <div className="grid grid-cols-[6.5rem_1fr] gap-3">
+                            <dt className="font-semibold text-slate-400">감사 로그 저장</dt>
+                            <dd className="text-slate-700">
+                              {createDraft.alerts.log ? 'ON' : 'OFF'}
+                            </dd>
+                          </div>
+                          <div className="grid grid-cols-[6.5rem_1fr] gap-3">
+                            <dt className="font-semibold text-slate-400">사용자 경고 메시지</dt>
+                            <dd className="text-slate-700">
+                              {createDraft.alerts.warning ? 'ON' : 'OFF'}
+                            </dd>
+                          </div>
+                        </dl>
+                      </section>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+
+            <div
+              className={joinClasses(
+                'flex flex-wrap items-center justify-end gap-3 border-t border-slate-200 px-[clamp(1rem,1.8vw,1.5rem)]',
+                createStep === 1
+                  ? 'py-[clamp(0.75rem,1.4vw,0.9rem)]'
+                  : 'py-[clamp(0.85rem,1.6vw,1rem)]'
+              )}
+            >
+              {createStep > 1 ? (
+                <button
+                  type="button"
+                  onClick={handleCreatePrev}
+                  className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-6 text-sm font-semibold text-slate-500 transition hover:bg-slate-50"
+                >
+                  이전
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={closeCreateModal}
+                  className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-6 text-sm font-semibold text-slate-500 transition hover:bg-slate-50"
+                >
+                  취소
+                </button>
+              )}
+
+              {createStep < 4 ? (
+                <button
+                  type="button"
+                  onClick={handleCreateNext}
+                  disabled={isCreateNextDisabled}
+                  className={joinClasses(
+                    'inline-flex h-11 items-center justify-center rounded-xl px-6 text-sm font-semibold text-white transition',
+                    isCreateNextDisabled
+                      ? 'cursor-not-allowed bg-slate-300'
+                      : 'border border-[#4338CA] bg-[#4338CA] shadow-[0_10px_24px_rgba(67,56,202,0.24)] hover:bg-[#3730A3] active:bg-[#312E81]'
+                  )}
+                >
+                  다음
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleSubmitCreatePolicy}
+                  className="inline-flex h-11 items-center justify-center rounded-xl border border-[#4338CA] bg-[#4338CA] px-6 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(67,56,202,0.24)] transition hover:bg-[#3730A3] active:bg-[#312E81]"
+                >
+                  정책 생성
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </PageLayout>
   );
 }
