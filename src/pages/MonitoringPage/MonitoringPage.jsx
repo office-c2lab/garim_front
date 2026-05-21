@@ -396,11 +396,11 @@ function DetailSummaryItem({ label, value, valueClassName = '' }) {
 
 function DetailPanel({ title, children }) {
   return (
-    <section className="overflow-hidden rounded-[10px] border border-[#E7EBF5] bg-white">
-      <div className="px-4 py-3">
+    <section className="min-h-[128px] px-5 py-5">
+      <div className="pb-4">
         <DetailSectionLabel>{title}</DetailSectionLabel>
       </div>
-      <div className="border-t border-[#ECEFFC] px-4 py-3">{children}</div>
+      <div>{children}</div>
     </section>
   );
 }
@@ -635,6 +635,22 @@ export default function MonitoringPage() {
     });
   };
 
+  const handleSelectLog = log => {
+    setSelectedLogId(current => {
+      const isClosing = current === log.id;
+
+      setSelectedRowIds(selectedCurrent => {
+        if (isClosing) {
+          return selectedCurrent.filter(id => id !== log.id);
+        }
+
+        return selectedCurrent.includes(log.id) ? selectedCurrent : [...selectedCurrent, log.id];
+      });
+
+      return isClosing ? null : log.id;
+    });
+  };
+
   return (
     <div
       className={`mx-auto -mb-4 flex h-[calc(100%+1rem)] min-h-0 w-full flex-col ${APP_PAGE_HORIZONTAL_PADDING_CLASS} pt-[clamp(0.75rem,1.5vw,1.5rem)] sm:-mb-5 sm:h-[calc(100%+1.25rem)] lg:-mb-4 lg:h-[calc(100%+1rem)] ${APP_PAGE_OUTER_WIDTH_CLASS}`.trim()}
@@ -725,57 +741,64 @@ export default function MonitoringPage() {
             onToggleRowSelection={handleToggleRowSelection}
             onToggleAllRowsSelection={handleToggleAllRowsSelection}
             rowNumberStart={(currentPage - 1) * ROWS_PER_PAGE + 1}
-            onSelectRow={log => setSelectedLogId(current => (current === log.id ? null : log.id))}
+            onSelectRow={handleSelectLog}
             renderExpandedRow={row => {
               const detail = buildDetailContext(row);
 
               return (
-                <div className="grid gap-4 px-5 py-5">
+                <div className="grid gap-0">
+                  <div className="px-5 py-5">
                   <DetailHeader row={row} />
+                  </div>
 
-                  <section className="rounded-[10px] border border-[#E7EBF5] bg-white">
-                    <div className="grid gap-0 md:grid-cols-2 xl:grid-cols-3">
+                  <section className="border-t border-[#E7EBF5] bg-white">
+                    <div className="grid gap-0 md:grid-cols-2 xl:grid-cols-5">
                       <div className="px-4 py-4">
-                        <DetailSummaryItem label="서비스" value={row.aiType} />
-                      </div>
-                      <div className="border-t border-[#E7EBF5] px-4 py-4 md:border-t-0 md:border-l">
-                        <DetailSummaryItem label="이용자 ID" value={row.userId} />
-                      </div>
-                      <div className="border-t border-[#E7EBF5] px-4 py-4 xl:border-t-0 xl:border-l">
                         <DetailSummaryItem label="탐지 일시" value={row.detectedAt} />
                       </div>
-                      <div className="px-4 py-4 md:border-t md:border-[#E7EBF5]">
-                        <DetailSummaryItem label="최종 정책" value={detail.policyName} />
+                      <div className="border-t border-[#E7EBF5] px-4 py-4 md:border-t-0 md:border-l md:border-[#E7EBF5]">
+                        <DetailSummaryItem label="서비스" value={row.aiType} />
                       </div>
-                      <div className="border-t border-[#E7EBF5] px-4 py-4 md:border-l">
+                      <div className="border-t border-[#E7EBF5] px-4 py-4 xl:border-t-0 xl:border-l xl:border-[#E7EBF5]">
                         <DetailSummaryItem
                           label="처리 상태"
                           value={detail.actionStatus}
                           valueClassName={row.result === '정상' ? 'text-[#18A0AE]' : 'text-[#F59E0B]'}
                         />
                       </div>
+                      <div className="border-t border-[#E7EBF5] px-4 py-4 md:border-t md:border-[#E7EBF5] xl:border-t-0 xl:border-l xl:border-[#E7EBF5]">
+                        <DetailSummaryItem label="최종 정책" value={detail.policyName} />
+                      </div>
+                      <div className="border-t border-[#E7EBF5] px-4 py-4 md:border-l md:border-[#E7EBF5] xl:border-t-0">
+                        <DetailSummaryItem label="이용자 ID" value={row.userId} />
+                      </div>
                     </div>
                   </section>
 
-                  <div className="grid gap-3 lg:grid-cols-2">
-                    <div className="grid gap-3">
-                      <DetailPanel title="원본 프롬프트">
-                        <DetailPanelText>{row.promptDetail}</DetailPanelText>
-                      </DetailPanel>
-                      <DetailPanel title="탐지 근거">
-                        <DetailBulletList items={detail.evidenceLines} />
-                      </DetailPanel>
+                  <section className="border-t border-[#E7EBF5] bg-white">
+                    <div className="grid lg:grid-cols-2">
+                      <div className="border-b border-[#E7EBF5] lg:border-r lg:border-[#E7EBF5]">
+                        <DetailPanel title="원본 프롬프트">
+                          <DetailPanelText>{row.promptDetail}</DetailPanelText>
+                        </DetailPanel>
+                      </div>
+                      <div className="border-b border-[#E7EBF5]">
+                        <DetailPanel title="탐지 항목">
+                          <DetailChipList items={detail.detectionItems} />
+                        </DetailPanel>
+                      </div>
+                      <div className="lg:border-r lg:border-[#E7EBF5]">
+                        <DetailPanel title="탐지 근거">
+                          <DetailBulletList items={detail.evidenceLines} />
+                        </DetailPanel>
+                      </div>
+                      <div>
+                        <DetailPanel title="조치 내용">
+                          <DetailBulletList items={detail.actionLines} />
+                        </DetailPanel>
+                      </div>
                     </div>
-
-                    <div className="grid gap-3">
-                      <DetailPanel title="탐지 항목">
-                        <DetailChipList items={detail.detectionItems} />
-                      </DetailPanel>
-                      <DetailPanel title="조치 내용">
-                        <DetailBulletList items={detail.actionLines} />
-                      </DetailPanel>
-                    </div>
-                  </div>
+                  </section>
                 </div>
               );
             }}
