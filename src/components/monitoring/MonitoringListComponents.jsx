@@ -2,6 +2,7 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import { Download } from 'lucide-react';
 import caretDownIcon from '../../assets/icons/caret_down.svg';
 import searchIcon from '../../assets/icons/search-data.svg';
+import ServiceLogoBadge from '../ServiceLogoBadge.jsx';
 import {
   APP_BODY_TEXT_CLASS,
   APP_BUTTON_TEXT_CLASS,
@@ -349,7 +350,14 @@ export function MonitoringDataTable({
                     <td
                       className={`${cellBorderClass} px-3 py-[13px] text-[14px] leading-[1.45] xl:px-4 xl:text-[15px] ${isSelected ? 'font-semibold text-[#353E73]' : 'text-[#475467]'}`.trim()}
                     >
-                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">{row.aiType}</div>
+                      <div className="flex items-center justify-center xl:justify-start">
+                        <ServiceLogoBadge
+                          name={row.aiType}
+                          variant="compact"
+                          className="h-8 w-8"
+                          iconClassName="h-6 w-6"
+                        />
+                      </div>
                     </td>
                     <td
                       className={`${cellBorderClass} px-3 py-[13px] text-[14px] leading-[1.45] xl:px-4 xl:text-[15px] ${isSelected ? 'font-semibold text-[#252B5C]' : 'text-[#2E3363]'}`.trim()}

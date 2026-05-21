@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { Check, ChevronDown, ChevronUp, CircleHelp, Info, Plus, Search, X } from 'lucide-react';
 
+import ServiceLogoBadge, { ALL_SERVICE_LOGO_NAMES } from '../../components/ServiceLogoBadge.jsx';
 import { MonitoringDropdown } from '../../components/monitoring/MonitoringListComponents.jsx';
 import caretDownIcon from '../../assets/icons/caret_down.svg';
 import PageLayout from '../../layout/PageLayout.jsx';
@@ -209,9 +210,22 @@ function toPolicyRecord(draftPolicy) {
 }
 
 function ServiceLabel({ services, fallback }) {
+  const normalizedServices =
+    services?.includes('전체 서비스') ? ALL_SERVICE_LOGO_NAMES : services?.length ? services : fallback;
+
   return (
-    <div className="flex flex-wrap items-center gap-2 text-[15px] font-semibold text-slate-700">
-      {services?.map(service => <span key={service}>{service}</span>) ?? fallback}
+    <div className="flex flex-wrap items-center gap-2">
+      {Array.isArray(normalizedServices)
+        ? normalizedServices.map(service => (
+            <ServiceLogoBadge
+              key={service}
+              name={service}
+              variant="compact"
+              className="h-8 w-8"
+              iconClassName="h-6 w-6"
+            />
+          ))
+        : normalizedServices}
     </div>
   );
 }
