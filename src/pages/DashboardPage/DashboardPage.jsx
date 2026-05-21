@@ -31,8 +31,8 @@ const donutSegments = [
 
 const serviceStatus = [
   { service: 'ChatGPT', url: 'https://chatgpt.com/', status: '정상', policyRate: '100%', detections: '72건' },
-  { service: 'Claude', url: 'https://claude.ai/', status: '정상', policyRate: '100%', detections: '28건' },
   { service: 'Gemini', url: 'https://gemini.google.com/', status: '정상', policyRate: '95%', detections: '18건' },
+  { service: 'Claude', url: 'https://claude.ai/', status: '정상', policyRate: '100%', detections: '28건' },
   { service: 'Genspark', url: 'https://www.genspark.ai/', status: '정상', policyRate: '88%', detections: '14건' },
   { service: 'MS Copilot', url: 'https://copilot.microsoft.com/', status: '정상', policyRate: '90%', detections: '7건' },
 ];
