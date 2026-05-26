@@ -17,6 +17,7 @@ const PAGE_TITLES = {
   '/policies': 'Policy Management',
   '/domains': 'Domains',
   '/support': 'Operation Support',
+  '/download': 'Download',
 };
 
 const PAGE_DESCRIPTIONS = {
@@ -26,6 +27,7 @@ const PAGE_DESCRIPTIONS = {
   '/policies': '정책을 관리하고 서비스별 적용 기준을 설정할 수 있습니다.',
   '/domains': '외부 AI 서비스 도메인을 관리하고 사용 여부를 설정할 수 있습니다.',
   '/support': '운영 가이드, 템플릿, 배포 URL을 관리할 수 있습니다.',
+  '/download': 'GARIM 에이전트와 운영 가이드 파일을 다운로드할 수 있습니다.',
 };
 
 const PENDING_FEATURE_MESSAGE = '아직 구현 안 되었습니다.';
