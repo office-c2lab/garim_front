@@ -1,4 +1,4 @@
-import { MoreVertical, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Fragment, useMemo, useState } from 'react';
 import SectionCard from '../../components/SectionCard.jsx';
 import { MonitoringDropdown } from '../../components/monitoring/MonitoringListComponents.jsx';
@@ -228,17 +228,16 @@ export default function UserPage() {
 
         <SectionCard className="overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-[840px] w-full table-fixed text-left">
+            <table className="min-w-[780px] w-full table-fixed text-left">
               <thead className="bg-[#F8FAFC] text-sm font-semibold text-slate-500">
                 <tr>
                   <th className="w-12 px-5 py-4" />
+                  <th className="w-[16%] px-4 py-4">IP 주소</th>
                   <th className="w-[14%] px-4 py-4">사용자명</th>
                   <th className="w-[28%] px-4 py-4">이메일</th>
-                  <th className="w-[16%] px-4 py-4">IP 주소</th>
                   <th className="w-[13%] px-4 py-4">부서</th>
                   <th className="w-[14%] px-4 py-4">직책</th>
                   <th className="w-[15%] px-4 py-4">최종 수정일</th>
-                  <th className="w-[3rem] px-3 py-4" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 text-sm text-slate-700">
@@ -268,28 +267,18 @@ export default function UserPage() {
                             />
                           </button>
                         </td>
+                        <td className="px-4 py-4">{user.ip}</td>
                         <td className="px-4 py-4">
                           <span className="font-semibold text-slate-800">{user.name}</span>
                         </td>
                         <td className="truncate px-4 py-4">{user.email}</td>
-                        <td className="px-4 py-4">{user.ip}</td>
                         <td className="px-4 py-4 font-semibold">{user.department}</td>
                         <td className="px-4 py-4">{user.position}</td>
                         <td className="px-4 py-4">{user.updatedAt}</td>
-                        <td className="px-3 py-4">
-                          <button
-                            type="button"
-                            className="flex h-8 w-8 items-center justify-center rounded-md text-[#64728C] transition hover:bg-white hover:text-[#3528B8]"
-                            aria-label={`${user.name} 추가 메뉴`}
-                            onClick={event => event.stopPropagation()}
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </button>
-                        </td>
                       </tr>
                       {isSelected ? (
                         <tr>
-                          <td colSpan={8} className="border-t border-slate-200 bg-white p-0">
+                          <td colSpan={7} className="border-t border-slate-200 bg-white p-0">
                             {selectedUser ? (
                               <UserDetailPanel
                                 user={selectedUser}

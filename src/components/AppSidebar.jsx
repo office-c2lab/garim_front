@@ -37,11 +37,6 @@ const DEFAULT_NAV_ITEMS = [
     label: '운영지원',
     path: '/support',
   },
-  {
-    key: 'download',
-    label: '다운로드',
-    path: '/download',
-  },
 ];
 
 function getIsActive(pathname, itemPath) {

@@ -12,6 +12,7 @@ import DownloadPage from './pages/DownloadPage/DownloadPage.jsx';
 export default function App() {
   return (
     <Routes>
+      <Route path="/download" element={<DownloadPage />} />
       <Route element={<AppShell />}>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardPage />} />
@@ -20,7 +21,6 @@ export default function App() {
         <Route path="/policies" element={<PolicyPage />} />
         <Route path="/domains" element={<DomainPage />} />
         <Route path="/support" element={<SupportPage />} />
-        <Route path="/download" element={<DownloadPage />} />
       </Route>
     </Routes>
   );
