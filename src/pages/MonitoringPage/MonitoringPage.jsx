@@ -237,9 +237,36 @@ const ROWS_PER_PAGE = 11;
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
 
 function getLogStatusCategory(log) {
-  if (log.result === '정상') return 'allow';
-  if (log.result === '개인정보 탐지') return 'masking';
+  if (log.result === '정상') return 'normal';
+
+  if (log.actionDetail.includes('경고로 기록')) return 'allow';
+
+  if (
+    log.result === '개인정보 탐지' ||
+    log.actionDetail.includes('마스킹') ||
+    log.actionDetail.includes('치환') ||
+    log.actionDetail.includes('대체') ||
+    log.actionDetail.includes('제거한 버전')
+  ) {
+    return 'masking';
+  }
+
   return 'block';
+}
+
+function getStatusLabel(row) {
+  const statusCategory = getLogStatusCategory(row);
+
+  if (statusCategory === 'allow') return '허용';
+  if (statusCategory === 'masking') return '마스킹';
+  if (statusCategory === 'block') return '차단';
+  return '정상';
+}
+
+function getRiskLabel(row) {
+  if (row.level === 'danger') return '위험도 높음';
+  if (row.level === 'warning') return '위험도 보통';
+  return '위험도 낮음';
 }
 
 function normalizeLogDateTime(value) {
@@ -330,6 +357,10 @@ function buildDetectionItems(row) {
 }
 
 function buildAnswerDetail(row) {
+  if (getLogStatusCategory(row) === 'allow') {
+    return '위험 패턴은 탐지되었지만 정책상 차단 대상은 아니어서 사용자에게 답변을 전달했습니다. 해당 요청은 경고 로그로만 기록됩니다.';
+  }
+
   if (row.result === '정상') {
     return '요청한 내용에 대한 답변이 정상 생성되었습니다. 민감 정보가 포함되지 않아 별도 마스킹 없이 사용자에게 전달되었습니다.';
   }
@@ -350,11 +381,22 @@ function buildAnswerDetail(row) {
 }
 
 function buildDetailContext(row) {
+  const statusCategory = getLogStatusCategory(row);
+
   return {
-    policyName: row.result === '정상' ? '일반 사용 허용 정책' : '개인정보 보호 기본 정책',
-    actionStatus: row.result === '정상' ? '자동 승인 완료' : '관리자 검토 필요',
+    policyName: statusCategory === 'normal' ? '일반 사용 허용 정책' : '개인정보 보호 기본 정책',
+    actionStatus:
+      statusCategory === 'allow'
+        ? '허용 처리'
+        : statusCategory === 'masking'
+          ? '마스킹 처리'
+          : statusCategory === 'block'
+            ? '차단 처리'
+            : '정상 처리',
     riskLabel:
-      row.level === 'danger'
+      statusCategory === 'allow'
+        ? '탐지 후 허용'
+        : row.level === 'danger'
         ? '위험도 높음'
         : row.level === 'warning'
           ? '자동 마스킹 대기'
@@ -404,7 +446,10 @@ function DetailHeader({ row }) {
           상세 내역
         </div>
         <DetailStatusBadge tone="red">{row.result}</DetailStatusBadge>
-        <DetailStatusBadge tone="red">위험도 높음</DetailStatusBadge>
+        <DetailStatusBadge tone="purple">{getStatusLabel(row)}</DetailStatusBadge>
+        <DetailStatusBadge tone={row.level === 'danger' ? 'red' : 'orange'}>
+          {getRiskLabel(row)}
+        </DetailStatusBadge>
         <DetailStatusBadge tone="orange">{detail.riskLabel}</DetailStatusBadge>
       </div>
 
@@ -625,15 +670,18 @@ function DateRangeField({ label, value, onChange, hideLabel = false }) {
   );
 }
 
-export default function MonitoringPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
+export function MonitoringLogView({
+  useStatusFilter = false,
+  emptyMessage = '현재 조건에 맞는 모니터링 로그가 없습니다.',
+}) {
+  const [searchParams] = useSearchParams();
   const [startDate, setStartDate] = useState('2026-05-07');
   const [endDate, setEndDate] = useState('2026-05-20');
   const [selectedResult, setSelectedResult] = useState('전체 결과');
   const [selectedLogId, setSelectedLogId] = useState();
   const [selectedRowIds, setSelectedRowIds] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const statusFilter = searchParams.get('status') ?? 'all';
+  const statusFilter = useStatusFilter ? (searchParams.get('status') ?? 'all') : 'all';
 
   const filteredLogs = useMemo(() => {
     return logs.filter(log => {
@@ -643,11 +691,16 @@ export default function MonitoringPage() {
       const matchesDateRange =
         (!startBoundary || logDate >= startBoundary) && (!endBoundary || logDate <= endBoundary);
       const matchesResult = selectedResult === '전체 결과' || log.result === selectedResult;
+      const logStatusCategory = getLogStatusCategory(log);
       const matchesStatus =
-        statusFilter === 'all' || statusFilter === getLogStatusCategory(log);
+        !useStatusFilter
+          ? true
+          : statusFilter === 'all'
+            ? ['allow', 'masking', 'block'].includes(logStatusCategory)
+            : statusFilter === logStatusCategory;
       return matchesDateRange && matchesResult && matchesStatus;
     });
-  }, [endDate, selectedResult, startDate, statusFilter]);
+  }, [endDate, selectedResult, startDate, statusFilter, useStatusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredLogs.length / ROWS_PER_PAGE));
 
@@ -728,38 +781,39 @@ export default function MonitoringPage() {
                   />
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <p className="text-[13px] font-semibold tracking-[-0.01em] text-[#5C6784]">
-                    검색 조건
-                  </p>
-                  <div className="flex flex-wrap items-center gap-2.5">
-                    <MonitoringDropdown
-                      value={selectedResult}
-                      onChange={value => {
-                        setSelectedResult(value);
-                        setCurrentPage(1);
-                      }}
-                      options={resultOptions}
-                      ariaLabel="탐지 결과"
-                      widthClass="w-full sm:w-[172px] sm:shrink-0"
-                      triggerClassName="h-[42px] border-[#D9DEEA] bg-white shadow-[0_4px_12px_rgba(15,23,42,0.04)]"
-                    />
-                    <MonitoringActionButton
-                      variant="outline"
-                      heightClass="h-[42px]"
-                      widthClass="w-[94px] min-w-[94px]"
-                      onClick={() => {
-                        setStartDate('2026-05-07');
-                        setEndDate('2026-05-20');
-                        setSelectedResult('전체 결과');
-                        setSearchParams({});
-                        setCurrentPage(1);
-                      }}
-                    >
-                      초기화
-                    </MonitoringActionButton>
+                {!useStatusFilter ? (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-[13px] font-semibold tracking-[-0.01em] text-[#5C6784]">
+                      검색 조건
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <MonitoringDropdown
+                        value={selectedResult}
+                        onChange={value => {
+                          setSelectedResult(value);
+                          setCurrentPage(1);
+                        }}
+                        options={resultOptions}
+                        ariaLabel="탐지 결과"
+                        widthClass="w-full sm:w-[172px] sm:shrink-0"
+                        triggerClassName="h-[42px] border-[#D9DEEA] bg-white shadow-[0_4px_12px_rgba(15,23,42,0.04)]"
+                      />
+                      <MonitoringActionButton
+                        variant="outline"
+                        heightClass="h-[42px]"
+                        widthClass="w-[94px] min-w-[94px]"
+                        onClick={() => {
+                          setStartDate('2026-05-07');
+                          setEndDate('2026-05-20');
+                          setSelectedResult('전체 결과');
+                          setCurrentPage(1);
+                        }}
+                      >
+                        초기화
+                      </MonitoringActionButton>
+                    </div>
                   </div>
-                </div>
+                ) : null}
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
@@ -862,10 +916,14 @@ export default function MonitoringPage() {
 
         {!filteredLogs.length ? (
           <section className="mt-4 border-t border-dashed border-[#DCEAF1] px-6 py-12 text-center text-sm text-[#94A3B8]">
-            현재 조건에 맞는 모니터링 로그가 없습니다.
+            {emptyMessage}
           </section>
         ) : null}
       </div>
     </div>
   );
+}
+
+export default function MonitoringPage() {
+  return <MonitoringLogView useStatusFilter />;
 }

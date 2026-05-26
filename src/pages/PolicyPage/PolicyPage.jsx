@@ -179,9 +179,10 @@ function createEmptyPolicy() {
 }
 
 function getActionLabel(action) {
+  if (action === '허용') return '탐지는 기록하되 사용자에게 답변과 안내 메시지를 전달합니다.';
   if (action === '마스킹') return '탐지된 항목은 마스킹 처리 후 대상 서비스로 전송됩니다.';
   if (action === '차단') return '탐지된 요청은 즉시 차단되며 사용자에게 사유가 안내됩니다.';
-  return '허용된 요청만 대상 서비스로 전송됩니다.';
+  return '선택한 조치 방식에 따라 탐지된 요청을 처리합니다.';
 }
 
 function toPolicyRecord(draftPolicy) {

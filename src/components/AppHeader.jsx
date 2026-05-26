@@ -12,6 +12,7 @@ import RadarBrand from './RadarBrand.jsx';
 
 const PAGE_TITLES = {
   '/dashboard': 'Dashboard',
+  '/logs': 'Logs',
   '/monitoring': 'Prompt Monitoring',
   '/policies': 'Policy Management',
   '/domains': 'Domains',
@@ -19,7 +20,8 @@ const PAGE_TITLES = {
 
 const PAGE_DESCRIPTIONS = {
   '/dashboard': 'GARIM 서비스 현황과 주요 탐지 현황을 한눈에 확인할 수 있습니다.',
-  '/monitoring': '프롬프트 이력과 탐지 결과를 조회하고 이상 징후를 확인할 수 있습니다.',
+  '/logs': '프롬프트 처리 이력 전체를 조회하고 상세 로그를 확인할 수 있습니다.',
+  '/monitoring': '프롬프트 처리 상태를 허용, 마스킹, 차단 기준으로 모니터링할 수 있습니다.',
   '/policies': '정책을 관리하고 서비스별 적용 기준을 설정할 수 있습니다.',
   '/domains': '외부 AI 서비스 도메인을 관리하고 사용 여부를 설정할 수 있습니다.',
 };
