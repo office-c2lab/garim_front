@@ -2,6 +2,7 @@ import { Fragment, useEffect, useMemo, useState } from 'react';
 import { Check, ChevronDown, ChevronUp, CircleHelp, Info, Plus, Search, X } from 'lucide-react';
 
 import ServiceLogoBadge, { ALL_SERVICE_LOGO_NAMES } from '../../components/ServiceLogoBadge.jsx';
+import SectionCard from '../../components/SectionCard.jsx';
 import { MonitoringDropdown } from '../../components/monitoring/MonitoringListComponents.jsx';
 import caretDownIcon from '../../assets/icons/caret_down.svg';
 import PageLayout from '../../layout/PageLayout.jsx';
@@ -328,19 +329,6 @@ function ServiceMultiSelect({ value, onChange, ariaLabel, className = '' }) {
   );
 }
 
-function SectionCard({ children, className = '' }) {
-  return (
-    <section
-      className={joinClasses(
-        'rounded-[22px] border border-slate-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]',
-        className
-      )}
-    >
-      {children}
-    </section>
-  );
-}
-
 function DetailInput({ label, required = false, children, hint }) {
   return (
     <label className="flex flex-col gap-2">
@@ -485,7 +473,7 @@ function PolicyDetailPanel({
                 onChange={event =>
                   setDraftPolicy(current => ({ ...current, name: event.target.value }))
                 }
-                className="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none"
+                className="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none transition focus:border-[#A5B4FC] focus:ring-4 focus:ring-[#E0E7FF]"
               />
             </DetailInput>
 
@@ -496,7 +484,7 @@ function PolicyDetailPanel({
                 options={policyCategoryOptions}
                 ariaLabel="정책 분류 수정"
                 widthClass="w-full"
-                triggerClassName="h-11 rounded-lg border-slate-200 bg-white shadow-none"
+                triggerClassName="h-11 rounded-lg border-slate-200 bg-white shadow-none focus:border-[#A5B4FC] focus:ring-4 focus:ring-[#E0E7FF]"
               />
             </DetailInput>
 
@@ -507,7 +495,7 @@ function PolicyDetailPanel({
                   setDraftPolicy(current => ({ ...current, description: event.target.value }))
                 }
                 rows={4}
-                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-700 outline-none"
+                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-700 outline-none transition focus:border-[#A5B4FC] focus:ring-4 focus:ring-[#E0E7FF]"
               />
             </DetailInput>
 

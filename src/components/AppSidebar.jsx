@@ -23,6 +23,11 @@ const DEFAULT_NAV_ITEMS = [
     ],
   },
   {
+    key: 'users',
+    label: '사용자 관리',
+    path: '/users',
+  },
+  {
     key: 'policy',
     label: '정책',
     path: '/policies',
