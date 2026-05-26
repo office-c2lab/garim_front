@@ -7,11 +7,6 @@ const DEFAULT_NAV_ITEMS = [
     path: '/dashboard',
   },
   {
-    key: 'logs',
-    label: '로그',
-    path: '/logs',
-  },
-  {
     key: 'monitoring',
     label: '모니터링',
     path: '/monitoring',
@@ -36,6 +31,11 @@ const DEFAULT_NAV_ITEMS = [
     key: 'domain',
     label: '도메인',
     path: '/domains',
+  },
+  {
+    key: 'support',
+    label: '운영지원',
+    path: '/support',
   },
 ];
 

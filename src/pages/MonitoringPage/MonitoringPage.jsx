@@ -696,7 +696,7 @@ export function MonitoringLogView({
         !useStatusFilter
           ? true
           : statusFilter === 'all'
-            ? ['allow', 'masking', 'block'].includes(logStatusCategory)
+            ? true
             : statusFilter === logStatusCategory;
       return matchesDateRange && matchesResult && matchesStatus;
     });
@@ -781,39 +781,37 @@ export function MonitoringLogView({
                   />
                 </div>
 
-                {!useStatusFilter ? (
-                  <div className="flex flex-col gap-2">
-                    <p className="text-[13px] font-semibold tracking-[-0.01em] text-[#5C6784]">
-                      검색 조건
-                    </p>
-                    <div className="flex flex-wrap items-center gap-2.5">
-                      <MonitoringDropdown
-                        value={selectedResult}
-                        onChange={value => {
-                          setSelectedResult(value);
-                          setCurrentPage(1);
-                        }}
-                        options={resultOptions}
-                        ariaLabel="탐지 결과"
-                        widthClass="w-full sm:w-[172px] sm:shrink-0"
-                        triggerClassName="h-[42px] border-[#D9DEEA] bg-white shadow-[0_4px_12px_rgba(15,23,42,0.04)]"
-                      />
-                      <MonitoringActionButton
-                        variant="outline"
-                        heightClass="h-[42px]"
-                        widthClass="w-[94px] min-w-[94px]"
-                        onClick={() => {
-                          setStartDate('2026-05-07');
-                          setEndDate('2026-05-20');
-                          setSelectedResult('전체 결과');
-                          setCurrentPage(1);
-                        }}
-                      >
-                        초기화
-                      </MonitoringActionButton>
-                    </div>
+                <div className="flex flex-col gap-2">
+                  <p className="text-[13px] font-semibold tracking-[-0.01em] text-[#5C6784]">
+                    검색 조건
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <MonitoringDropdown
+                      value={selectedResult}
+                      onChange={value => {
+                        setSelectedResult(value);
+                        setCurrentPage(1);
+                      }}
+                      options={resultOptions}
+                      ariaLabel="탐지 결과"
+                      widthClass="w-full sm:w-[172px] sm:shrink-0"
+                      triggerClassName="h-[42px] border-[#D9DEEA] bg-white shadow-[0_4px_12px_rgba(15,23,42,0.04)]"
+                    />
+                    <MonitoringActionButton
+                      variant="outline"
+                      heightClass="h-[42px]"
+                      widthClass="w-[94px] min-w-[94px]"
+                      onClick={() => {
+                        setStartDate('2026-05-07');
+                        setEndDate('2026-05-20');
+                        setSelectedResult('전체 결과');
+                        setCurrentPage(1);
+                      }}
+                    >
+                      초기화
+                    </MonitoringActionButton>
                   </div>
-                ) : null}
+                </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">

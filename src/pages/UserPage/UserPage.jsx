@@ -148,12 +148,12 @@ function UserDetailPanel({ user, onUpdate, onDelete }) {
 
 export default function UserPage() {
   const [users, setUsers] = useState(initialUsers);
-  const [selectedId, setSelectedId] = useState(initialUsers[1].id);
+  const [selectedId, setSelectedId] = useState(null);
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [department, setDepartment] = useState(departmentOptions[0]);
 
-  const selectedUser = users.find(user => user.id === selectedId) ?? users[0];
+  const selectedUser = users.find(user => user.id === selectedId) ?? null;
 
   const filteredUsers = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -172,14 +172,18 @@ export default function UserPage() {
 
   const updateSelectedUser = patch => {
     setUsers(current =>
-      current.map(user => (user.id === selectedUser.id ? { ...user, ...patch } : user))
+      selectedUser
+        ? current.map(user => (user.id === selectedUser.id ? { ...user, ...patch } : user))
+        : current
     );
   };
 
   const handleDeleteSelectedUser = () => {
+    if (!selectedUser) return;
+
     setUsers(current => {
       const nextUsers = current.filter(user => user.id !== selectedUser.id);
-      setSelectedId(nextUsers[0]?.id ?? null);
+      setSelectedId(null);
       return nextUsers;
     });
   };
@@ -224,15 +228,16 @@ export default function UserPage() {
 
         <SectionCard className="overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-[760px] w-full table-fixed text-left">
+            <table className="min-w-[840px] w-full table-fixed text-left">
               <thead className="bg-[#F8FAFC] text-sm font-semibold text-slate-500">
                 <tr>
                   <th className="w-12 px-5 py-4" />
-                  <th className="w-[16%] px-4 py-4">사용자명</th>
-                  <th className="w-[30%] px-4 py-4">이메일</th>
-                  <th className="w-[18%] px-4 py-4">IP 주소</th>
-                  <th className="w-[15%] px-4 py-4">부서</th>
-                  <th className="w-[18%] px-4 py-4">최종 수정일</th>
+                  <th className="w-[14%] px-4 py-4">사용자명</th>
+                  <th className="w-[28%] px-4 py-4">이메일</th>
+                  <th className="w-[16%] px-4 py-4">IP 주소</th>
+                  <th className="w-[13%] px-4 py-4">부서</th>
+                  <th className="w-[14%] px-4 py-4">직책</th>
+                  <th className="w-[15%] px-4 py-4">최종 수정일</th>
                   <th className="w-[3rem] px-3 py-4" />
                 </tr>
               </thead>
@@ -269,6 +274,7 @@ export default function UserPage() {
                         <td className="truncate px-4 py-4">{user.email}</td>
                         <td className="px-4 py-4">{user.ip}</td>
                         <td className="px-4 py-4 font-semibold">{user.department}</td>
+                        <td className="px-4 py-4">{user.position}</td>
                         <td className="px-4 py-4">{user.updatedAt}</td>
                         <td className="px-3 py-4">
                           <button
@@ -283,12 +289,14 @@ export default function UserPage() {
                       </tr>
                       {isSelected ? (
                         <tr>
-                          <td colSpan={7} className="border-t border-slate-200 bg-white p-0">
-                            <UserDetailPanel
-                              user={selectedUser}
-                              onUpdate={updateSelectedUser}
-                              onDelete={handleDeleteSelectedUser}
-                            />
+                          <td colSpan={8} className="border-t border-slate-200 bg-white p-0">
+                            {selectedUser ? (
+                              <UserDetailPanel
+                                user={selectedUser}
+                                onUpdate={updateSelectedUser}
+                                onDelete={handleDeleteSelectedUser}
+                              />
+                            ) : null}
                           </td>
                         </tr>
                       ) : null}
