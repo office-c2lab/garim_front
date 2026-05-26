@@ -10,6 +10,12 @@ const DEFAULT_NAV_ITEMS = [
     key: 'monitoring',
     label: '모니터링',
     path: '/monitoring',
+    children: [
+      { key: 'all', label: '전체', path: '/monitoring' },
+      { key: 'allow', label: '허용', path: '/monitoring?status=allow' },
+      { key: 'masking', label: '마스킹', path: '/monitoring?status=masking' },
+      { key: 'block', label: '차단', path: '/monitoring?status=block' },
+    ],
   },
   {
     key: 'policy',
@@ -29,6 +35,16 @@ function getIsActive(pathname, itemPath) {
   }
 
   return pathname.startsWith(itemPath);
+}
+
+function getIsChildActive(location, childPath) {
+  const [pathname, search = ''] = childPath.split('?');
+
+  if (location.pathname !== pathname) {
+    return false;
+  }
+
+  return search ? location.search === `?${search}` : !location.search;
 }
 
 export default function AppSidebar({
@@ -55,9 +71,10 @@ export default function AppSidebar({
             <ul className="h-full w-full space-y-1.5 text-left">
               {navItems.map(item => {
                 const isActive = getIsActive(location.pathname, item.path);
+                const isExpanded = isActive && item.children?.length;
 
                 return (
-                  <li key={item.key}>
+                  <li key={item.key} className={isExpanded ? 'pb-1' : ''}>
                     <button
                       type="button"
                       onClick={() => handleNavigate(item.path)}
@@ -80,6 +97,51 @@ export default function AppSidebar({
                         }`.trim()}
                       />
                     </button>
+                    {item.children?.length ? (
+                      <div
+                        className={`grid transition-[grid-template-rows,opacity,transform] duration-300 ease-out ${
+                          isExpanded
+                            ? 'grid-rows-[1fr] opacity-100 translate-y-0'
+                            : 'grid-rows-[0fr] opacity-0 -translate-y-1'
+                        }`.trim()}
+                      >
+                        <div className="min-h-0 overflow-hidden">
+                          <ul className="mt-0.5 py-1.5">
+                            {item.children.map((child, childIndex) => {
+                              const isChildActive = getIsChildActive(location, child.path);
+                              const isLastChild = childIndex === item.children.length - 1;
+
+                              return (
+                                <li key={child.key} className="relative ml-[22px] pb-2 pl-5 last:pb-0">
+                                  <span
+                                    aria-hidden="true"
+                                    className={`absolute left-0 top-0 w-px bg-[#D9E0F0] ${
+                                      isLastChild ? 'h-[18px]' : 'bottom-0'
+                                    }`.trim()}
+                                  />
+                                  <span
+                                    aria-hidden="true"
+                                    className="absolute left-0 top-[18px] h-px w-5 bg-[#D9E0F0]"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => handleNavigate(child.path)}
+                                    className={`flex h-9 w-full items-center rounded-[8px] px-4 text-left text-[clamp(0.82rem,1.05vw,0.9rem)] font-semibold transition duration-200 ${
+                                      isChildActive
+                                        ? 'bg-[#E8E2FF] text-[#3528B8]'
+                                        : 'text-[#64728C] hover:bg-[#F8FAFF] hover:text-[#4338CA]'
+                                    }`.trim()}
+                                    aria-current={isChildActive ? 'page' : undefined}
+                                  >
+                                    {child.label}
+                                  </button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+                      </div>
+                    ) : null}
                   </li>
                 );
               })}

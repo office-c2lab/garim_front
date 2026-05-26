@@ -304,7 +304,7 @@ export function MonitoringDataTable({
               <th className="border-b border-[#E7EBF4] px-3 py-[14px] text-left font-semibold xl:px-4">프롬프트</th>
               <th className="border-b border-[#E7EBF4] px-3 py-[14px] text-left font-semibold xl:px-4">탐지 결과</th>
               <th className="border-b border-[#E7EBF4] px-3 py-[14px] text-left font-semibold xl:px-4">탐지 내용</th>
-              <th className="border-b border-[#E7EBF4] px-3 py-[14px] text-left font-semibold xl:px-4">이용자 ID</th>
+              <th className="border-b border-[#E7EBF4] px-3 py-[14px] text-left font-semibold xl:px-4">IP</th>
             </tr>
           </thead>
           <tbody className={bodyClassName}>
@@ -379,7 +379,7 @@ export function MonitoringDataTable({
                     <td
                       className={`${cellBorderClass} px-3 py-[13px] text-[14px] leading-[1.45] xl:px-4 xl:text-[15px] ${isSelected ? 'font-semibold text-[#252B5C]' : 'text-[#2E3363]'}`.trim()}
                     >
-                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">{row.userId}</div>
+                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">{row.userIp}</div>
                     </td>
                   </tr>
                   {isSelected && renderExpandedRow ? (

@@ -1,5 +1,6 @@
 import { Download } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import GlassPagination from '../../components/GlassPagination.jsx';
 import {
   MonitoringActionButton,
@@ -234,6 +235,12 @@ const logs = [
 const resultOptions = ['전체 결과', '정상', '개인정보 탐지', '기밀정보 탐지', '프롬프트 위협'];
 const ROWS_PER_PAGE = 11;
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
+
+function getLogStatusCategory(log) {
+  if (log.result === '정상') return 'allow';
+  if (log.result === '개인정보 탐지') return 'masking';
+  return 'block';
+}
 
 function normalizeLogDateTime(value) {
   return String(value).replace(' ', 'T');
@@ -619,12 +626,14 @@ function DateRangeField({ label, value, onChange, hideLabel = false }) {
 }
 
 export default function MonitoringPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [startDate, setStartDate] = useState('2026-05-07');
   const [endDate, setEndDate] = useState('2026-05-20');
   const [selectedResult, setSelectedResult] = useState('전체 결과');
   const [selectedLogId, setSelectedLogId] = useState();
   const [selectedRowIds, setSelectedRowIds] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const statusFilter = searchParams.get('status') ?? 'all';
 
   const filteredLogs = useMemo(() => {
     return logs.filter(log => {
@@ -634,9 +643,11 @@ export default function MonitoringPage() {
       const matchesDateRange =
         (!startBoundary || logDate >= startBoundary) && (!endBoundary || logDate <= endBoundary);
       const matchesResult = selectedResult === '전체 결과' || log.result === selectedResult;
-      return matchesDateRange && matchesResult;
+      const matchesStatus =
+        statusFilter === 'all' || statusFilter === getLogStatusCategory(log);
+      return matchesDateRange && matchesResult && matchesStatus;
     });
-  }, [endDate, selectedResult, startDate]);
+  }, [endDate, selectedResult, startDate, statusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredLogs.length / ROWS_PER_PAGE));
 
@@ -644,6 +655,12 @@ export default function MonitoringPage() {
     const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
     return filteredLogs.slice(startIndex, startIndex + ROWS_PER_PAGE);
   }, [currentPage, filteredLogs]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+    setSelectedLogId(null);
+    setSelectedRowIds([]);
+  }, [statusFilter]);
 
   const handleToggleRowSelection = rowId => {
     setSelectedRowIds(current =>
@@ -735,6 +752,7 @@ export default function MonitoringPage() {
                         setStartDate('2026-05-07');
                         setEndDate('2026-05-20');
                         setSelectedResult('전체 결과');
+                        setSearchParams({});
                         setCurrentPage(1);
                       }}
                     >
@@ -798,7 +816,7 @@ export default function MonitoringPage() {
                         <DetailSummaryItem label="최종 정책" value={detail.policyName} />
                       </div>
                       <div className="border-t border-[#E7EBF5] px-4 py-4 md:border-l md:border-[#E7EBF5] xl:border-t-0">
-                        <DetailSummaryItem label="이용자 ID" value={row.userId} />
+                        <DetailSummaryItem label="IP" value={row.userIp} />
                       </div>
                     </div>
                   </section>

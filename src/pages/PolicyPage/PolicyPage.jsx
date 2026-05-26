@@ -55,13 +55,13 @@ const policies = [
     category: '기밀정보',
     services: ['Gemini'],
     serviceLabel: 'Gemini',
-    action: '승인 필요',
+    action: '차단',
     status: '사용',
     updatedAt: '2025-12-07 16:18',
-    description: '프로젝트 코드명, 재무 수치, 계약서 초안 등 기밀정보는 관리자 승인 후 처리합니다.',
+    description: '프로젝트 코드명, 재무 수치, 계약서 초안 등 기밀정보는 외부 전송을 차단합니다.',
     detects: ['계약/견적 정보'],
     exceptions: [],
-    handling: '승인 필요',
+    handling: '차단',
     alerts: {
       admin: true,
     },
@@ -180,7 +180,6 @@ function createEmptyPolicy() {
 
 function getActionLabel(action) {
   if (action === '마스킹') return '탐지된 항목은 마스킹 처리 후 대상 서비스로 전송됩니다.';
-  if (action === '승인 필요') return '탐지된 요청은 관리자 승인 대기열로 이동합니다.';
   if (action === '차단') return '탐지된 요청은 즉시 차단되며 사용자에게 사유가 안내됩니다.';
   return '허용된 요청만 대상 서비스로 전송됩니다.';
 }
@@ -571,7 +570,7 @@ function PolicyDetailPanel({
           <h3 className="mb-4 text-base font-bold text-slate-900">조치 방식</h3>
 
           <div className="space-y-4">
-            {['허용', '마스킹', '승인 필요', '차단'].map(option => (
+            {['허용', '마스킹', '차단'].map(option => (
               <label key={option} className="flex items-center gap-3 text-sm font-medium text-slate-700">
                 <input
                   type="radio"
@@ -1056,7 +1055,7 @@ export default function PolicyPage() {
                     <section className="rounded-2xl border border-slate-200 p-5">
                       <h4 className="text-sm font-bold text-slate-900">조치 방식</h4>
                       <div className="mt-4 space-y-4">
-                        {['허용', '마스킹', '승인 필요', '차단'].map(option => (
+                        {['허용', '마스킹', '차단'].map(option => (
                           <label
                             key={option}
                             className="flex items-center gap-3 text-sm font-medium text-slate-700"
