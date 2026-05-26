@@ -17,7 +17,6 @@ const policies = [
     status: '사용',
     updatedAt: '2025-12-08 13:45',
     description: '사용자 입력 및 첨부에 포함된 개인정보를 탐지하여 마스킹 처리 후 전송합니다.',
-    priority: 10,
     detects: [
       '이메일',
       '전화번호',
@@ -43,7 +42,6 @@ const policies = [
     status: '사용',
     updatedAt: '2025-12-08 10:22',
     description: '시스템 프롬프트 우회, 권한 상승, 규칙 무시 패턴을 탐지해 즉시 차단합니다.',
-    priority: 8,
     detects: ['시스템 프롬프트 요청', '인코딩 우회'],
     exceptions: ['역할 우회'],
     handling: '차단',
@@ -61,7 +59,6 @@ const policies = [
     status: '사용',
     updatedAt: '2025-12-07 16:18',
     description: '프로젝트 코드명, 재무 수치, 계약서 초안 등 기밀정보는 관리자 승인 후 처리합니다.',
-    priority: 7,
     detects: ['계약/견적 정보'],
     exceptions: [],
     handling: '승인 필요',
@@ -79,7 +76,6 @@ const policies = [
     status: '미사용',
     updatedAt: '2025-12-05 09:41',
     description: '업로드 파일의 민감정보, 실행 코드, 악성 패턴을 검사한 뒤 이상 시 차단합니다.',
-    priority: 5,
     detects: ['API Key'],
     exceptions: [],
     handling: '차단',
@@ -97,7 +93,6 @@ const policies = [
     status: '사용',
     updatedAt: '2025-12-04 14:03',
     description: '견적 단가, 계약 조건, 미공개 협상 내용은 항목별 마스킹 후 전달합니다.',
-    priority: 6,
     detects: ['계약/견적 정보'],
     exceptions: [],
     handling: '마스킹',
@@ -115,7 +110,6 @@ const policies = [
     status: '사용',
     updatedAt: '2025-12-03 11:27',
     description: '토큰, 키, 비밀값 패턴을 탐지해 외부 서비스 전송을 차단합니다.',
-    priority: 9,
     detects: ['API Key', 'Access Token'],
     exceptions: [],
     handling: '차단',
@@ -175,7 +169,6 @@ function createEmptyPolicy() {
     status: '사용',
     updatedAt: '2026-05-20 15:30',
     description: '',
-    priority: 10,
     detects: [],
     exceptions: [],
     handling: '마스킹',
@@ -518,21 +511,6 @@ function PolicyDetailPanel({
               />
             </DetailInput>
 
-            <DetailInput label="우선순위" hint="숫자가 낮을수록 우선순위가 높습니다.">
-              <div className="relative w-full max-w-[9rem]">
-                <input
-                  type="number"
-                  value={draftPolicy.priority}
-                  onChange={event =>
-                    setDraftPolicy(current => ({
-                      ...current,
-                      priority: Number(event.target.value) || 0,
-                    }))
-                  }
-                  className="h-11 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none"
-                />
-              </div>
-            </DetailInput>
           </div>
         </div>
 
@@ -780,8 +758,7 @@ export default function PolicyPage() {
   const isCreateStepOneValid =
     createDraft.name.trim() &&
     createDraft.category.trim() &&
-    createDraft.services.length > 0 &&
-    createDraft.priority > 0;
+    createDraft.services.length > 0;
   const isCreateStepTwoValid = createDraft.detects.length > 0;
   const isCreateNextDisabled =
     (createStep === 1 && !isCreateStepOneValid) || (createStep === 2 && !isCreateStepTwoValid);
@@ -1033,22 +1010,6 @@ export default function PolicyPage() {
                       />
                     </DetailInput>
 
-                    <DetailInput label="우선순위" hint="숫자가 낮을수록 우선순위가 높습니다." required>
-                      <div className="w-full max-w-[10rem]">
-                        <input
-                          type="number"
-                          min="1"
-                          value={createDraft.priority}
-                          onChange={event =>
-                            setCreateDraft(current => ({
-                              ...current,
-                              priority: Number(event.target.value) || 0,
-                            }))
-                          }
-                          className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-700 outline-none transition focus:border-[#A5B4FC] focus:ring-4 focus:ring-[#E0E7FF]"
-                        />
-                      </div>
-                    </DetailInput>
                   </div>
                 </div>
               ) : null}
@@ -1176,10 +1137,6 @@ export default function PolicyPage() {
                           <div className="grid grid-cols-[5.25rem_1fr] gap-3">
                             <dt className="font-semibold text-slate-400">적용 서비스</dt>
                             <dd className="text-slate-700">{createDraft.services.join(', ')}</dd>
-                          </div>
-                          <div className="grid grid-cols-[5.25rem_1fr] gap-3">
-                            <dt className="font-semibold text-slate-400">우선순위</dt>
-                            <dd className="text-slate-700">{createDraft.priority}</dd>
                           </div>
                           <div className="grid grid-cols-[5.25rem_1fr] gap-3">
                             <dt className="font-semibold text-slate-400">설명</dt>

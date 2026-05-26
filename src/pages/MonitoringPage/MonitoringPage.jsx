@@ -322,6 +322,26 @@ function buildDetectionItems(row) {
   return ['위험 키워드 없음', '민감 정보 없음'];
 }
 
+function buildAnswerDetail(row) {
+  if (row.result === '정상') {
+    return '요청한 내용에 대한 답변이 정상 생성되었습니다. 민감 정보가 포함되지 않아 별도 마스킹 없이 사용자에게 전달되었습니다.';
+  }
+
+  if (row.result === '개인정보 탐지') {
+    return '개인정보가 포함되어 원문 기반 답변 생성을 보류했습니다. 개인정보를 마스킹한 뒤 다시 요청하도록 사용자에게 안내했습니다.';
+  }
+
+  if (row.result === '기밀정보 탐지') {
+    return '기밀정보 보호 정책에 따라 답변 생성을 제한했습니다. 관리자 승인 전까지 외부 AI 응답은 사용자에게 전달되지 않습니다.';
+  }
+
+  if (row.result === '프롬프트 위협') {
+    return '보안 정책상 해당 요청에는 답변하지 않았습니다. 시스템 지시 우회 시도가 탐지되어 차단 안내만 사용자에게 표시했습니다.';
+  }
+
+  return '민감 정보 또는 보안 위험이 확인되어 답변 생성을 차단했습니다. 안전한 입력으로 다시 요청하도록 안내했습니다.';
+}
+
 function buildDetailContext(row) {
   return {
     policyName: row.result === '정상' ? '일반 사용 허용 정책' : '개인정보 보호 기본 정책',
@@ -333,6 +353,7 @@ function buildDetailContext(row) {
           ? '자동 마스킹 대기'
           : '정상 처리',
     detectionItems: buildDetectionItems(row),
+    answerDetail: buildAnswerDetail(row),
     evidenceLines: row.detectionDetail
       .split('\n')
       .map(line => line.replaceAll('·', '').trim())
@@ -370,13 +391,20 @@ function DetailHeader({ row }) {
   const detail = buildDetailContext(row);
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      <div className="text-[15px] font-bold tracking-[-0.02em] text-[#1F2555]">
-        상세 내역
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="text-[15px] font-bold tracking-[-0.02em] text-[#1F2555]">
+          상세 내역
+        </div>
+        <DetailStatusBadge tone="red">{row.result}</DetailStatusBadge>
+        <DetailStatusBadge tone="red">위험도 높음</DetailStatusBadge>
+        <DetailStatusBadge tone="orange">{detail.riskLabel}</DetailStatusBadge>
       </div>
-      <DetailStatusBadge tone="red">{row.result}</DetailStatusBadge>
-      <DetailStatusBadge tone="red">위험도 높음</DetailStatusBadge>
-      <DetailStatusBadge tone="orange">{detail.riskLabel}</DetailStatusBadge>
+
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <DetailSectionLabel>탐지 항목</DetailSectionLabel>
+        <DetailChipList items={detail.detectionItems} />
+      </div>
     </div>
   );
 }
@@ -783,8 +811,8 @@ export default function MonitoringPage() {
                         </DetailPanel>
                       </div>
                       <div className="border-b border-[#E7EBF5]">
-                        <DetailPanel title="탐지 항목">
-                          <DetailChipList items={detail.detectionItems} />
+                        <DetailPanel title="답변">
+                          <DetailPanelText>{detail.answerDetail}</DetailPanelText>
                         </DetailPanel>
                       </div>
                       <div className="lg:border-r lg:border-[#E7EBF5]">
