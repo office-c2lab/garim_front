@@ -14,11 +14,12 @@ import {
 import garimMoonImage from '../../assets/images/garim_moon.png';
 import garimLogo from '../../assets/icons/GARIM.png';
 import logoIcon from '../../assets/icons/logo.png';
+import packIcon from '../../assets/images/pac.png';
 
 const quickSteps = [
-  [FileDown, '팩 파일 다운로드', '운영 환경에 맞는 팩 파일을 다운로드합니다.'],
+  [FileDown, '팩 파일 다운로드', '최신 팩 파일을 다운로드합니다.'],
   [MousePointerClick, '파일 실행', '다운로드한 팩 파일을 실행합니다.'],
-  [CircleCheck, '적용 확인', 'GARIM 설정 또는 정책 적용 상태를 확인합니다.'],
+  [CircleCheck, '적용 확인', '설정 또는 정책 적용 상태를 확인합니다.'],
   [Rocket, '사용 시작', '적용이 완료된 후 서비스를 이용합니다.'],
 ];
 
@@ -26,7 +27,7 @@ const applySteps = [
   [Download, '1. 파일 다운로드', '상단의 팩 파일 다운로드 버튼을 클릭해 파일을 저장합니다.'],
   [MousePointerClick, '2. 파일 실행', '다운로드한 팩 파일을 실행합니다. 보안 경고가 표시되면 관리자의 안내에 따라 진행합니다.'],
   [Settings, '3. 적용 진행', '실행 화면에서 적용 대상과 설정 정보를 확인한 뒤 적용을 진행합니다.'],
-  [Check, '4. 적용 완료 확인', '적용이 완료되면 GARIM 화면에서 정상 적용 여부를 확인합니다.'],
+  [Check, '4. 적용 완료 확인', '적용이 완료되면 정상 적용 여부를 확인합니다.'],
 ];
 
 const checklist = [
@@ -37,15 +38,18 @@ const checklist = [
 ];
 
 const verifyItems = [
-  [Globe2, 'GARIM 서비스 접속이 정상적으로 가능한지 확인'],
+  [Globe2, '서비스 접속이 정상적으로 가능한지 확인'],
   [Settings, '정책 또는 설정이 정상 반영되었는지 확인'],
   [TriangleAlert, '오류 메시지가 표시되지 않는지 확인'],
   [MessageSquare, '문제가 발생하면 관리자에게 문의'],
 ];
 
-function Section({ children, className = '' }) {
+function Section({ children, className = '', ...props }) {
   return (
-    <section className={`rounded-[18px] border border-[#E5EAF3] bg-white shadow-[0_16px_42px_rgba(15,23,42,0.07)] ${className}`.trim()}>
+    <section
+      className={`scroll-mt-28 rounded-[18px] border border-[#E5EAF3] bg-white shadow-[0_16px_42px_rgba(15,23,42,0.07)] ${className}`.trim()}
+      {...props}
+    >
       {children}
     </section>
   );
@@ -83,9 +87,12 @@ export default function DownloadPage() {
     <main className="min-h-screen bg-[#F3F6FA] text-[#111827]">
       <header className="sticky top-0 z-30 h-[4.5rem] bg-black">
         <div className="mx-auto flex h-full max-w-[1280px] items-center justify-between px-8">
-          <img src={garimLogo} alt="GARIM" className="h-8 w-auto" />
+          <div className="flex items-center gap-3">
+            <img src={logoIcon} alt="" className="h-8 w-8 rounded-md object-cover" />
+            <img src={garimLogo} alt="GARIM" className="h-8 w-auto" />
+          </div>
           <nav className="hidden items-center gap-10 text-sm font-bold text-white md:flex">
-            <a href="#guide" className="transition hover:text-[#C4B5FD]">
+            <a href="#pack-download" className="transition hover:text-[#C4B5FD]">
               다운로드 가이드
             </a>
             <a href="#apply" className="transition hover:text-[#C4B5FD]">
@@ -105,10 +112,10 @@ export default function DownloadPage() {
         <div className="absolute inset-0 bg-black/18" />
         <div className="relative z-10 mx-auto max-w-[820px] text-center">
           <h1 className="text-[clamp(2.4rem,5vw,4.2rem)] font-bold leading-tight tracking-[-0.02em]">
-            GARIM 운영지원
+          운영지원
           </h1>
           <p className="mx-auto mt-6 max-w-[42rem] text-xl font-semibold leading-8 text-white/88">
-            GARIM 적용에 필요한 팩 파일을 다운로드하고 실행 및 적용 방법을 확인해 주세요.
+          GARIM 적용에 필요한 팩 파일을 다운로드하고 실행 및 적용 방법을 확인해 주세요.
           </p>
           <button
             type="button"
@@ -120,7 +127,7 @@ export default function DownloadPage() {
         </div>
       </section>
 
-      <div className="mx-auto flex max-w-[1200px] flex-col gap-8 px-8 py-10">
+      <div className="mx-auto flex max-w-[1280px] flex-col gap-8 px-8 py-10">
         <section id="guide">
           <div>
             <h2 className="text-2xl font-black text-slate-900">빠른 시작</h2>
@@ -141,19 +148,17 @@ export default function DownloadPage() {
           </div>
         </section>
 
-        <Section className="p-8">
+        <Section id="pack-download" className="p-8">
           <div>
             <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-900">팩 파일 다운로드</h2>
             <p className="mt-4 text-base font-semibold leading-7 text-[#526078]">
-              GARIM 적용에 필요한 최신 팩 파일을 다운로드하세요. 관리자가 안내한 환경에 맞는 파일을 선택해 실행해 주세요.
+              GARIM 적용에 필요한 최신 팩 파일을 다운로드하세요. <br />관리자가 안내한 환경에 맞는 파일을 선택해 실행해 주세요.
             </p>
           </div>
 
           <div className="mt-8 rounded-xl border border-[#DDE4EF] bg-white p-6">
             <div className="grid gap-6 lg:grid-cols-[10rem_1fr_auto] lg:items-center">
-              <div className="flex h-40 w-40 items-center justify-center rounded-xl bg-[#F4F1FF]">
-                <img src={logoIcon} alt="" className="h-24 w-24 rounded-2xl object-cover" />
-              </div>
+              <img src={packIcon} alt="" className="h-40 w-40 object-contain" />
               <div>
                 <div className="flex flex-wrap items-center gap-3">
                   <h3 className="text-3xl font-black tracking-[-0.04em] text-slate-900">GARIM Pack</h3>
@@ -249,8 +254,17 @@ export default function DownloadPage() {
               팩 파일 다운로드, 실행 또는 적용 중 문제가 발생하면 관리자에게 문의해 주세요.
             </p>
           </div>
-          <div className="mt-8 grid overflow-hidden rounded-xl border border-[#E3E8F2] bg-white md:grid-cols-2">
+          <div className="mt-8 grid overflow-hidden rounded-xl border border-[#E3E8F2] bg-white lg:grid-cols-[1.3fr_1fr_1fr]">
             <div className="flex items-center gap-5 px-10 py-7">
+              <img src={logoIcon} alt="" className="h-20 w-20 shrink-0 object-contain" />
+              <div>
+                <p className="text-base font-black text-slate-900">GARIM Co., Ltd.</p>
+                <p className="mt-2 text-base font-bold leading-7 text-[#526078]">
+                  GARIM은 안전하고 효율적인 IT 환경을 제공하는 기술 기업입니다.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-5 border-t border-[#E3E8F2] px-10 py-7 lg:border-l lg:border-t-0">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#F4F1FF] text-[#5B39D6]">
                 <Mail className="h-8 w-8" />
               </div>
@@ -259,7 +273,7 @@ export default function DownloadPage() {
                 <p className="mt-2 text-base font-bold text-[#526078]">support@garim.com</p>
               </div>
             </div>
-            <div className="flex items-center gap-5 border-t border-[#E3E8F2] px-10 py-7 md:border-l md:border-t-0">
+            <div className="flex items-center gap-5 border-t border-[#E3E8F2] px-10 py-7 lg:border-l lg:border-t-0">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#F4F1FF] text-[#5B39D6]">
                 <MessageSquare className="h-8 w-8" />
               </div>
@@ -273,9 +287,12 @@ export default function DownloadPage() {
       </div>
 
       <footer className="mt-2 bg-[#101722]">
-        <div className="mx-auto flex max-w-[1200px] flex-col gap-4 px-8 py-8 text-sm font-semibold text-white/62 md:flex-row md:items-center md:justify-between">
+        <div className="mx-auto flex max-w-[1280px] flex-col gap-4 px-8 py-8 text-sm font-semibold text-white/62 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-8">
-            <img src={garimLogo} alt="GARIM" className="h-7 w-auto" />
+            <div className="flex items-center gap-3">
+              <img src={logoIcon} alt="" className="h-7 w-7 rounded-md object-cover" />
+              <img src={garimLogo} alt="GARIM" className="h-7 w-auto" />
+            </div>
             <span>GARIM은 안전하고 효율적인 IT 환경을 제공하는 기술 기업입니다.</span>
           </div>
           <span>© 2026 GARIM Co., Ltd. All rights reserved.</span>
