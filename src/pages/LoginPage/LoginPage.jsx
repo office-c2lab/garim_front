@@ -32,12 +32,12 @@ export default function LoginPage() {
                   </div>
                 </div>
               </div>
-
+ 
               <div className="mt-12">
                 <h1 className="text-xl font-black leading-8 tracking-[-0.02em]">
-                  AI 서비스 운영을 위한
+                  AI 서비스의 정책 적용 상태와 위험 탐지를 
                   <br />
-                  정책 관리 및 모니터링 플랫폼
+                  한눈에 관리하는 운영 보안 플랫폼
                 </h1>
                 <p className="mt-6 max-w-[32rem] text-sm font-semibold leading-6 text-white/76">
                   안정적이고 효율적인 AI 서비스 운영을 지원합니다.
