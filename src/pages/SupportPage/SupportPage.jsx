@@ -3,16 +3,13 @@ import { useMemo, useState } from 'react';
 
 import SectionCard from '../../components/SectionCard.jsx';
 import PageLayout from '../../layout/PageLayout.jsx';
-import logoIcon from '../../assets/icons/logo.png';
+import {
+  normalizeDownloadPath,
+  reservedDownloadPaths,
+  useSupportSettingsStore,
+} from '../../stores/supportSettingsStore.js';
 
-const DEFAULT_DOWNLOAD_PATH = '/download';
 const urlExamples = ['/download', '/guide', '/support/download'];
-const initialTemplate = {
-  logoSrc: logoIcon,
-  companyName: 'GARIM Co., Ltd.',
-  companyDescription: 'GARIM은 안전하고 효율적인 IT 환경을 제공하는 기술 기업입니다.',
-  adminContact: 'support@garim.com / 02-1234-5678',
-};
 const modalCancelButtonClass =
   'inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-6 text-sm font-semibold text-slate-500 transition hover:bg-slate-50';
 const modalPrimaryButtonClass =
@@ -146,15 +143,30 @@ function TemplateEditModal({ template, onClose, onSave }) {
           </label>
 
           <label className="grid grid-cols-[6.5rem_1fr] gap-5">
-            <span className="pt-3 text-sm font-bold text-[#475467]">관리자 연락처</span>
+            <span className="pt-3 text-sm font-bold text-[#475467]">이메일</span>
             <div className="relative">
               <input
-                value={draft.adminContact}
-                onChange={event => updateDraft('adminContact', event.target.value.slice(0, 100))}
+                type="email"
+                value={draft.adminEmail}
+                onChange={event => updateDraft('adminEmail', event.target.value.slice(0, 100))}
                 className="h-11 w-full rounded-lg border border-[#DCE3EF] bg-white px-4 pr-16 text-sm font-semibold text-[#475467] outline-none transition focus:border-[#8B7CFF] focus:ring-4 focus:ring-[#EEEAFE]"
               />
               <span className="absolute top-1/2 right-4 -translate-y-1/2 text-xs font-semibold text-[#98A2B3]">
-                {draft.adminContact.length} / 100
+                {draft.adminEmail.length} / 100
+              </span>
+            </div>
+          </label>
+
+          <label className="grid grid-cols-[6.5rem_1fr] gap-5">
+            <span className="pt-3 text-sm font-bold text-[#475467]">전화번호</span>
+            <div className="relative">
+              <input
+                value={draft.adminPhone}
+                onChange={event => updateDraft('adminPhone', event.target.value.slice(0, 50))}
+                className="h-11 w-full rounded-lg border border-[#DCE3EF] bg-white px-4 pr-14 text-sm font-semibold text-[#475467] outline-none transition focus:border-[#8B7CFF] focus:ring-4 focus:ring-[#EEEAFE]"
+              />
+              <span className="absolute top-1/2 right-4 -translate-y-1/2 text-xs font-semibold text-[#98A2B3]">
+                {draft.adminPhone.length} / 50
               </span>
             </div>
           </label>
@@ -175,13 +187,17 @@ function TemplateEditModal({ template, onClose, onSave }) {
 
 function DownloadUrlModal({ currentPath, onClose, onApply }) {
   const [draftPath, setDraftPath] = useState(currentPath);
+  const normalizedDraftPath = normalizeDownloadPath(draftPath);
   const isValid =
-    draftPath.startsWith('/') && !draftPath.includes(' ') && draftPath.trim().length > 1;
+    draftPath.startsWith('/') &&
+    !draftPath.includes(' ') &&
+    draftPath.trim().length > 1 &&
+    !reservedDownloadPaths.includes(normalizedDraftPath);
 
   const handleSubmit = event => {
     event.preventDefault();
     if (!isValid) return;
-    onApply(draftPath);
+    onApply(normalizedDraftPath);
   };
 
   return (
@@ -273,7 +289,7 @@ function DownloadUrlModal({ currentPath, onClose, onApply }) {
             <ul className="mt-2 list-disc space-y-1 pl-6 text-sm font-semibold leading-6">
               <li>URL은 /로 시작해야 합니다.</li>
               <li>공백은 사용할 수 없습니다.</li>
-              <li>이미 사용 중인 경로는 사용할 수 없습니다.</li>
+              <li>앱 내부 페이지 경로는 사용할 수 없습니다.</li>
             </ul>
           </div>
         </div>
@@ -299,9 +315,11 @@ export default function SupportPage() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(true);
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [isDownloadUrlModalOpen, setIsDownloadUrlModalOpen] = useState(false);
-  const [template, setTemplate] = useState(initialTemplate);
-  const [downloadPath, setDownloadPath] = useState(DEFAULT_DOWNLOAD_PATH);
   const [previewKey, setPreviewKey] = useState(0);
+  const template = useSupportSettingsStore(state => state.template);
+  const downloadPath = useSupportSettingsStore(state => state.downloadPath);
+  const setTemplate = useSupportSettingsStore(state => state.setTemplate);
+  const setDownloadPath = useSupportSettingsStore(state => state.setDownloadPath);
   const fullDownloadUrl = useMemo(() => {
     if (typeof window === 'undefined') return downloadPath;
     return `${window.location.origin}${downloadPath}`;
@@ -340,12 +358,12 @@ export default function SupportPage() {
                   alt="GARIM"
                   className="h-10 w-10 rounded-lg border border-slate-200 object-cover"
                 />
-                <span>GARIM</span>
               </div>
             </InfoRow>
             <InfoRow label="회사 정보">{template.companyName}</InfoRow>
             <InfoRow label="회사 설명">{template.companyDescription}</InfoRow>
-            <InfoRow label="관리자 연락처">{template.adminContact}</InfoRow>
+            <InfoRow label="이메일">{template.adminEmail}</InfoRow>
+            <InfoRow label="전화번호">{template.adminPhone}</InfoRow>
           </dl>
         </SectionCard>
 

@@ -15,6 +15,7 @@ import garimMoonImage from '../../assets/images/garim_moon.png';
 import garimLogo from '../../assets/icons/GARIM.png';
 import logoIcon from '../../assets/icons/logo.png';
 import packIcon from '../../assets/images/pac.png';
+import { useSupportSettingsStore } from '../../stores/supportSettingsStore.js';
 
 const quickSteps = [
   [FileDown, '팩 파일 다운로드', '최신 팩 파일을 다운로드합니다.'],
@@ -83,6 +84,8 @@ function ApplyCard({ icon: Icon, title, description }) {
 }
 
 export default function DownloadPage() {
+  const template = useSupportSettingsStore(state => state.template);
+
   return (
     <main className="min-h-screen bg-[#F3F6FA] text-[#111827]">
       <header className="sticky top-0 z-30 h-[4.5rem] bg-black">
@@ -256,11 +259,11 @@ export default function DownloadPage() {
           </div>
           <div className="mt-8 grid overflow-hidden rounded-xl border border-[#E3E8F2] bg-white lg:grid-cols-[1.3fr_1fr_1fr]">
             <div className="flex items-center gap-5 px-10 py-7">
-              <img src={logoIcon} alt="" className="h-20 w-20 shrink-0 object-contain" />
+              <img src={template.logoSrc} alt="" className="h-20 w-20 shrink-0 object-contain" />
               <div>
-                <p className="text-base font-black text-slate-900">GARIM Co., Ltd.</p>
+                <p className="text-base font-black text-slate-900">{template.companyName}</p>
                 <p className="mt-2 text-base font-bold leading-7 text-[#526078]">
-                  GARIM은 안전하고 효율적인 IT 환경을 제공하는 기술 기업입니다.
+                  {template.companyDescription}
                 </p>
               </div>
             </div>
@@ -270,7 +273,7 @@ export default function DownloadPage() {
               </div>
               <div>
                 <p className="text-base font-black text-slate-900">이메일</p>
-                <p className="mt-2 text-base font-bold text-[#526078]">support@garim.com</p>
+                <p className="mt-2 text-base font-bold text-[#526078]">{template.adminEmail}</p>
               </div>
             </div>
             <div className="flex items-center gap-5 border-t border-[#E3E8F2] px-10 py-7 lg:border-l lg:border-t-0">
@@ -279,7 +282,7 @@ export default function DownloadPage() {
               </div>
               <div>
                 <p className="text-base font-black text-slate-900">전화</p>
-                <p className="mt-2 text-base font-bold text-[#526078]">02-1234-5678</p>
+                <p className="mt-2 text-base font-bold text-[#526078]">{template.adminPhone}</p>
               </div>
             </div>
           </div>

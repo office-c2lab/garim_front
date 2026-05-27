@@ -8,11 +8,29 @@ import DomainPage from './pages/DomainPage/DomainPage.jsx';
 import UserPage from './pages/UserPage/UserPage.jsx';
 import SupportPage from './pages/SupportPage/SupportPage.jsx';
 import DownloadPage from './pages/DownloadPage/DownloadPage.jsx';
+import {
+  DEFAULT_DOWNLOAD_PATH,
+  useSupportSettingsStore,
+} from './stores/supportSettingsStore.js';
+
+function DownloadEntryRoute() {
+  const downloadPath = useSupportSettingsStore(state => state.downloadPath);
+
+  if (downloadPath !== DEFAULT_DOWNLOAD_PATH) {
+    return <Navigate to={downloadPath} replace />;
+  }
+
+  return <DownloadPage />;
+}
 
 export default function App() {
+  const downloadPath = useSupportSettingsStore(state => state.downloadPath);
+  const hasCustomDownloadPath = downloadPath !== DEFAULT_DOWNLOAD_PATH;
+
   return (
     <Routes>
-      <Route path="/download" element={<DownloadPage />} />
+      <Route path={DEFAULT_DOWNLOAD_PATH} element={<DownloadEntryRoute />} />
+      {hasCustomDownloadPath ? <Route path={downloadPath} element={<DownloadPage />} /> : null}
       <Route element={<AppShell />}>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardPage />} />
