@@ -232,7 +232,7 @@ const logs = [
   },
 ];
 
-const resultOptions = ['전체 결과', '허용', '마스킹', '차단', '정상'];
+const policyOptions = ['전체 정책', '일반 사용 허용 정책', '개인정보 보호 기본 정책'];
 const ROWS_PER_PAGE = 11;
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -261,6 +261,10 @@ function getStatusLabel(row) {
   if (statusCategory === 'masking') return '마스킹';
   if (statusCategory === 'block') return '차단';
   return '정상';
+}
+
+function getDetectedPolicyName(row) {
+  return getLogStatusCategory(row) === 'normal' ? '일반 사용 허용 정책' : '개인정보 보호 기본 정책';
 }
 
 function getStatusTextClassName(row) {
@@ -370,7 +374,7 @@ function buildDetailContext(row) {
   const statusCategory = getLogStatusCategory(row);
 
   return {
-    policyName: statusCategory === 'normal' ? '일반 사용 허용 정책' : '개인정보 보호 기본 정책',
+    policyName: getDetectedPolicyName(row),
     actionStatus:
       statusCategory === 'allow'
         ? '허용 처리'
@@ -379,7 +383,7 @@ function buildDetailContext(row) {
           : statusCategory === 'block'
             ? '차단 처리'
             : '정상 처리',
-    policyItems: [statusCategory === 'normal' ? '일반 사용 허용 정책' : '개인정보 보호 기본 정책'],
+    policyItems: [getDetectedPolicyName(row)],
     answerDetail: buildAnswerDetail(row),
     evidenceLines: row.detectionDetail
       .split('\n')
@@ -414,7 +418,7 @@ function DetailHeader({ row }) {
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <DetailSectionLabel>걸린 정책</DetailSectionLabel>
+        <DetailSectionLabel>탐지 내용</DetailSectionLabel>
         <DetailChipList items={detail.policyItems} />
       </div>
     </div>
@@ -637,7 +641,7 @@ export function MonitoringLogView({
   const [searchParams] = useSearchParams();
   const [startDate, setStartDate] = useState('2026-05-07');
   const [endDate, setEndDate] = useState('2026-05-20');
-  const [selectedResult, setSelectedResult] = useState('전체 결과');
+  const [selectedPolicy, setSelectedPolicy] = useState('전체 정책');
   const [selectedLogId, setSelectedLogId] = useState();
   const [selectedRowIds, setSelectedRowIds] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -650,8 +654,8 @@ export function MonitoringLogView({
       const endBoundary = endDate ? new Date(`${endDate}T23:59:59`) : null;
       const matchesDateRange =
         (!startBoundary || logDate >= startBoundary) && (!endBoundary || logDate <= endBoundary);
-      const matchesResult =
-        selectedResult === '전체 결과' || getStatusLabel(log) === selectedResult;
+      const matchesPolicy =
+        selectedPolicy === '전체 정책' || getDetectedPolicyName(log) === selectedPolicy;
       const logStatusCategory = getLogStatusCategory(log);
       const matchesStatus =
         !useStatusFilter
@@ -659,9 +663,9 @@ export function MonitoringLogView({
           : statusFilter === 'all'
             ? true
             : statusFilter === logStatusCategory;
-      return matchesDateRange && matchesResult && matchesStatus;
+      return matchesDateRange && matchesPolicy && matchesStatus;
     });
-  }, [endDate, selectedResult, startDate, statusFilter, useStatusFilter]);
+  }, [endDate, selectedPolicy, startDate, statusFilter, useStatusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredLogs.length / ROWS_PER_PAGE));
 
@@ -670,6 +674,7 @@ export function MonitoringLogView({
     return filteredLogs.slice(startIndex, startIndex + ROWS_PER_PAGE).map(log => ({
       ...log,
       displayResult: getStatusLabel(log),
+      detectedPolicy: buildDetailContext(log).policyName,
     }));
   }, [currentPage, filteredLogs]);
 
@@ -751,14 +756,14 @@ export function MonitoringLogView({
                   </p>
                   <div className="flex flex-wrap items-center gap-2.5">
                     <MonitoringDropdown
-                      value={selectedResult}
+                      value={selectedPolicy}
                       onChange={value => {
-                        setSelectedResult(value);
+                        setSelectedPolicy(value);
                         setCurrentPage(1);
                       }}
-                      options={resultOptions}
-                      ariaLabel="탐지 결과"
-                      widthClass="w-full sm:w-[172px] sm:shrink-0"
+                      options={policyOptions}
+                      ariaLabel="탐지된 정책"
+                      widthClass="w-full sm:w-auto sm:min-w-[260px]"
                       triggerClassName="h-[42px] border-[#D9DEEA] bg-white shadow-[0_4px_12px_rgba(15,23,42,0.04)]"
                     />
                     <MonitoringActionButton
@@ -768,7 +773,7 @@ export function MonitoringLogView({
                       onClick={() => {
                         setStartDate('2026-05-07');
                         setEndDate('2026-05-20');
-                        setSelectedResult('전체 결과');
+                        setSelectedPolicy('전체 정책');
                         setCurrentPage(1);
                       }}
                     >

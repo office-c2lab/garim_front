@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import { Check, ChevronDown, ChevronUp, CircleHelp, Info, Plus, Search, X } from 'lucide-react';
+import { Check, CircleHelp, Info, Plus, Search, X } from 'lucide-react';
 
 import ServiceLogoBadge, { ALL_SERVICE_LOGO_NAMES } from '../../components/ServiceLogoBadge.jsx';
 import SectionCard from '../../components/SectionCard.jsx';
@@ -386,14 +386,16 @@ function ToggleRow({ label, description, checked, onToggle }) {
   );
 }
 
-function StatusToggleIndicator({ checked, ariaLabel }) {
+function StatusToggleIndicator({ checked, ariaLabel, onToggle }) {
   return (
-    <span
+    <button
+      type="button"
       role="switch"
       aria-checked={checked}
       aria-label={ariaLabel}
+      onClick={onToggle}
       className={joinClasses(
-        'relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border transition duration-200',
+        'relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full border transition duration-200 hover:brightness-[1.04]',
         checked
           ? 'border-[#5B4BD7] bg-[#5B4BD7] shadow-[0_8px_18px_rgba(91,75,215,0.28)]'
           : 'border-[#D5CFF5] bg-[#C8BDEB]'
@@ -405,7 +407,7 @@ function StatusToggleIndicator({ checked, ariaLabel }) {
           checked ? 'translate-x-[1.35rem]' : 'translate-x-[0.15rem]'
         )}
       />
-    </span>
+    </button>
   );
 }
 
@@ -737,6 +739,21 @@ export default function PolicyPage() {
     setSelectedId(current => (current === policyId ? null : policyId));
   };
 
+  const handleTogglePolicyStatus = policyId => {
+    setPolicyList(current =>
+      current.map(policy =>
+        policy.id === policyId
+          ? { ...policy, status: policy.status === '사용' ? '미사용' : '사용' }
+          : policy
+      )
+    );
+    setDraftPolicy(current =>
+      current && current.id === policyId
+        ? { ...current, status: current.status === '사용' ? '미사용' : '사용' }
+        : current
+    );
+  };
+
   const closeCreateModal = () => {
     setIsCreateModalOpen(false);
     setCreateStep(1);
@@ -902,6 +919,10 @@ export default function PolicyPage() {
                             <StatusToggleIndicator
                               checked={policy.status === '사용'}
                               ariaLabel={`${policy.name} 사용 여부`}
+                              onToggle={event => {
+                                event.stopPropagation();
+                                handleTogglePolicyStatus(policy.id);
+                              }}
                             />
                           </td>
                           <td
@@ -910,14 +931,7 @@ export default function PolicyPage() {
                               'whitespace-nowrap text-slate-600'
                             )}
                           >
-                            <div className="flex items-center justify-between gap-3">
-                              <span>{policy.updatedAt}</span>
-                              {isSelected ? (
-                                <ChevronUp className="h-4 w-4 shrink-0 text-slate-400" />
-                              ) : (
-                                <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
-                              )}
-                            </div>
+                            {policy.updatedAt}
                           </td>
                         </tr>
                         {isSelected && selectedPolicy && draftPolicy ? (

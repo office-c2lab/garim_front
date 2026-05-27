@@ -376,7 +376,7 @@ export function MonitoringDataTable({
                       )}
                     >
                       <div className="overflow-hidden text-ellipsis whitespace-nowrap">
-                        {row.content}
+                        {row.detectedPolicy ?? row.content}
                       </div>
                     </td>
                     <td
