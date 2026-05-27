@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -18,69 +18,70 @@ const summaryCards = [
   { title: '전체 서비스', value: '24', change: '+6%', trend: 'up' },
   { title: '정책 적용 서비스', value: '18', change: '-3%', trend: 'down' },
   { title: '신규 정책', value: '7', change: '+9%', trend: 'up' },
-  { title: '오늘 탐지 건수', value: '27.3k', change: '+3%', trend: 'up' },
+  { title: '오늘 처리 건수', value: '27.3k', change: '+3%', trend: 'up' },
   { title: '차단 건수', value: '95', change: '-2%', trend: 'down' },
   { title: '보호 대상', value: '621', change: '-1%', trend: 'down' },
 ];
 
 const chartSeries = [
   {
-    key: 'personal',
-    label: '개인정보 탐지',
-    color: '#4C59F7',
-    values: [98, 112, 105, 139, 168, 152, 156],
+    key: 'allow',
+    label: '허용',
+    color: '#F59E0B',
+    values: [42, 48, 44, 53, 58, 55, 61],
   },
   {
-    key: 'corporate',
-    label: '기밀정보 탐지',
-    color: '#1FB566',
-    values: [28, 31, 27, 36, 42, 40, 38],
+    key: 'masking',
+    label: '마스킹',
+    color: '#EAB308',
+    values: [98, 112, 105, 139, 168, 152, 156],
   },
-  { key: 'prompt', label: '프롬프트 위협', color: '#FF4B57', values: [8, 9, 17, 14, 16, 13, 20] },
+  { key: 'block', label: '차단', color: '#FF4B57', values: [8, 9, 17, 14, 16, 13, 20] },
+  { key: 'normal', label: '정상', color: '#18A0AE', values: [28, 31, 27, 36, 42, 40, 38] },
 ];
 
 const chartLabels = ['12/02', '12/03', '12/04', '12/05', '12/06', '12/07', '12/08'];
 
 const donutSegments = [
-  { label: '개인정보', value: 52, count: '652건', color: '#5A5FF6' },
-  { label: '기밀정보', value: 24, count: '301건', color: '#72D596' },
-  { label: '프롬프트 위험', value: 14, count: '176건', color: '#FF6675' },
-  { label: '정상', value: 10, count: '125건', color: '#CBD3E5' },
+  { label: '마스킹', value: 52, count: '652건', color: '#EAB308' },
+  { label: '허용', value: 24, count: '301건', color: '#F59E0B' },
+  { label: '차단', value: 14, count: '176건', color: '#FF6675' },
+  { label: '정상', value: 10, count: '125건', color: '#18A0AE' },
 ];
 
 const serviceStatus = [
   {
     service: 'ChatGPT',
     url: 'https://chatgpt.com/',
-    status: '정상',
+    status: 'ON',
     policyRate: '100%',
     detections: '72건',
   },
   {
     service: 'Gemini',
     url: 'https://gemini.google.com/',
-    status: '정상',
+    status: 'ON',
     policyRate: '95%',
     detections: '18건',
   },
   {
     service: 'Claude',
     url: 'https://claude.ai/',
-    status: '정상',
+    status: 'ON',
     policyRate: '100%',
     detections: '28건',
   },
   {
     service: 'Genspark',
     url: 'https://www.genspark.ai/',
-    status: '정상',
+    status: 'OFF',
     policyRate: '88%',
     detections: '14건',
   },
   {
     service: 'MS Copilot',
     url: 'https://copilot.microsoft.com/',
-    status: '정상',
+    status: 'ON',
     policyRate: '90%',
     detections: '7건',
   },
@@ -91,25 +92,25 @@ const recentHistory = [
     time: '2025-12-08 13:45:23',
     service: 'ChatGPT',
     url: 'https://chatgpt.com/',
-    result: '개인정보 탐지',
-    tone: 'danger',
-    detail: '주민등록번호 포함',
+    result: '마스킹',
+    tone: 'warning',
+    policy: '개인정보 보호 기본 정책',
   },
   {
     time: '2025-12-08 13:22:11',
     service: 'Claude',
     url: 'https://claude.ai/',
-    result: '기밀정보 탐지',
-    tone: 'warning',
-    detail: '사내 문서 내용 포함',
+    result: '차단',
+    tone: 'danger',
+    policy: '기밀정보 외부 전송 차단 정책',
   },
   {
     time: '2025-12-08 13:10:07',
     service: 'Gemini',
     url: 'https://gemini.google.com/',
-    result: '프롬프트 위협',
-    tone: 'danger',
-    detail: '시스템 프롬프트 노출',
+    result: '허용',
+    tone: 'warning',
+    policy: '프롬프트 경고 허용 정책',
   },
   {
     time: '2025-12-08 12:55:42',
@@ -117,36 +118,30 @@ const recentHistory = [
     url: 'https://www.genspark.ai/',
     result: '정상',
     tone: 'success',
-    detail: '정상 대화',
+    policy: '일반 사용 허용 정책',
   },
   {
     time: '2025-12-08 12:41:09',
     service: 'MS Copilot',
     url: 'https://copilot.microsoft.com/',
-    result: '기밀정보 탐지',
-    tone: 'warning',
-    detail: '내부 회의록 포함',
+    result: '차단',
+    tone: 'danger',
+    policy: '개인정보 보호 기본 정책',
   },
 ];
 
 const alerts = [
   {
-    title: 'API Key 노출 시도',
-    tone: 'danger',
-    tag: '높음',
-    detail: '외부 채널을 통한 API Key 입력 시도가 5회 탐지되었습니다.',
+    title: '기밀정보 외부 전송 차단 정책',
+    detail: '최근 1시간 동안 차단 처리된 요청이 증가했습니다. 반복되는 서비스와 IP를 확인해 주세요.',
   },
   {
-    title: '프롬프트 인젝션 의심',
-    tone: 'warning',
-    tag: '중간',
-    detail: '프롬프트 인젝션 패턴이 18회 탐지되었습니다.',
+    title: '개인정보 보호 기본 정책',
+    detail: '개인정보 포함 요청이 마스킹 처리되었습니다. 정책 적용 범위와 예외 필요 여부를 검토해 주세요.',
   },
   {
-    title: '주민등록번호 포함 입력',
-    tone: 'warning',
-    tag: '중간',
-    detail: '주민등록번호가 포함된 입력이 7회 탐지되었습니다.',
+    title: '프롬프트 경고 허용 정책',
+    detail: '탐지 후 허용 처리된 요청이 반복되고 있습니다. 사용자 안내 문구와 정책 조건을 확인해 주세요.',
   },
 ];
 
@@ -381,7 +376,7 @@ function DonutChart() {
             })}
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-[0.98rem] font-semibold text-[#55627E]">전체 탐지</span>
+            <span className="text-[0.98rem] font-semibold text-[#55627E]">전체 처리</span>
             <strong className="mt-2 text-[2.2rem] font-black tracking-[-0.05em] text-[#10182E]">
               {totalCount ? `${totalCount.toLocaleString()}건` : '-'}
             </strong>
@@ -435,6 +430,32 @@ function ResultBadge({ tone, children }) {
   );
 }
 
+function ResultText({ result }) {
+  const className =
+    result === '정상'
+      ? 'text-[#18A0AE]'
+      : result === '차단'
+        ? 'text-[#FF4D4F]'
+        : 'text-[#F59E0B]';
+
+  return <span className={cn('text-[15px] font-semibold whitespace-nowrap', className)}>{result}</span>;
+}
+
+function ServiceStatusText({ status }) {
+  const isOn = status === 'ON';
+
+  return (
+    <span
+      className={cn(
+        'text-[15px] font-semibold whitespace-nowrap',
+        isOn ? 'text-[#4338CA]' : 'text-[#8A93A5]'
+      )}
+    >
+      {status}
+    </span>
+  );
+}
+
 function HeaderLink({ children, onClick }) {
   return (
     <button
@@ -459,19 +480,40 @@ export default function DashboardPage() {
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[minmax(0,1.04fr)_minmax(0,1fr)]">
-        <DashboardPanel title="최근 7일 탐지 추이">
+        <DashboardPanel title="최근 7일 처리 상태 추이">
           <LineChart />
         </DashboardPanel>
-        <DashboardPanel title="탐지 유형 분포">
+        <DashboardPanel title="처리 상태 분포">
           <DonutChart />
         </DashboardPanel>
       </section>
 
+      <DashboardPanel title="우선 확인 필요 항목">
+        <div className="grid gap-4 xl:grid-cols-3">
+          {alerts.map(alert => (
+            <article
+              key={alert.title}
+              className="rounded-[18px] border border-[#E7ECF5] bg-[#FCFDFF] px-5 py-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]"
+            >
+              <div className="flex items-start">
+                <div className="min-w-0">
+                  <h3 className="text-[1rem] font-bold text-[#1F2942]">{alert.title}</h3>
+                  <p className="mt-2 text-[0.9rem] leading-6 text-[#647089]">{alert.detail}</p>
+                </div>
+              </div>
+              <div className="mt-4 flex justify-end">
+                <HeaderLink onClick={() => navigate('/monitoring')}>상세 보기</HeaderLink>
+              </div>
+            </article>
+          ))}
+        </div>
+      </DashboardPanel>
+
       <section className="grid gap-5">
         <DashboardPanel
-          title="최근 탐지 이력"
+          title="최근 처리 이력"
           actions={
-            <HeaderLink onClick={() => navigate('/monitoring')}>전체 탐지 이력 보기</HeaderLink>
+            <HeaderLink onClick={() => navigate('/monitoring')}>전체 처리 이력 보기</HeaderLink>
           }
         >
           <div className={monitoringTableSurfaceClass}>
@@ -482,7 +524,7 @@ export default function DashboardPage() {
                     <th className={monitoringTableHeaderCellClass}>시간</th>
                     <th className={monitoringTableHeaderCellClass}>서비스</th>
                     <th className={monitoringTableHeaderCellClass}>탐지 결과</th>
-                    <th className={monitoringTableHeaderCellClass}>탐지 내용</th>
+                    <th className={monitoringTableHeaderCellClass}>탐지된 정책</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -506,7 +548,7 @@ export default function DashboardPage() {
                         </div>
                       </td>
                       <td className={monitoringTableCellClass(index)}>
-                        <ResultBadge tone={row.tone}>{row.result}</ResultBadge>
+                        <ResultText result={row.result} />
                       </td>
                       <td
                         className={monitoringTableCellClass(
@@ -514,7 +556,7 @@ export default function DashboardPage() {
                           'whitespace-nowrap text-[#2D3854]'
                         )}
                       >
-                        {row.detail}
+                        {row.policy}
                       </td>
                     </tr>
                   ))}
@@ -547,8 +589,7 @@ export default function DashboardPage() {
                     <th className={monitoringTableHeaderCellClass}>서비스</th>
                     <th className={monitoringTableHeaderCellClass}>상태</th>
                     <th className={monitoringTableHeaderCellClass}>정책 적용률</th>
-                    <th className={monitoringTableHeaderCellClass}>오늘 탐지 건수</th>
-                    <th className={`${monitoringTableHeaderCellClass} w-10`} />
+                    <th className={monitoringTableHeaderCellClass}>오늘 처리 건수</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -569,13 +610,10 @@ export default function DashboardPage() {
                         </div>
                       </td>
                       <td className={monitoringTableCellClass(index)}>
-                        <ResultBadge tone="success">{row.status}</ResultBadge>
+                        <ServiceStatusText status={row.status} />
                       </td>
                       <td className={monitoringTableCellClass(index)}>{row.policyRate}</td>
                       <td className={monitoringTableCellClass(index)}>{row.detections}</td>
-                      <td className={monitoringTableCellClass(index, 'text-right text-[#77839E]')}>
-                        <ChevronRight className="ml-auto h-4 w-4" />
-                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -585,29 +623,6 @@ export default function DashboardPage() {
         </DashboardPanel>
       </section>
 
-      <DashboardPanel title="우선 확인 필요 항목">
-        <div className="grid gap-4 xl:grid-cols-3">
-          {alerts.map(alert => (
-            <article
-              key={alert.title}
-              className="rounded-[18px] border border-[#E7ECF5] bg-[#FCFDFF] px-5 py-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <h3 className="text-[1rem] font-bold text-[#1F2942]">{alert.title}</h3>
-                  <p className="mt-2 text-[0.9rem] leading-6 text-[#647089]">{alert.detail}</p>
-                </div>
-                <ResultBadge tone={alert.tone === 'danger' ? 'danger' : 'warning'}>
-                  {alert.tag}
-                </ResultBadge>
-              </div>
-              <div className="mt-4 flex justify-end">
-                <HeaderLink onClick={() => navigate('/monitoring')}>상세 보기</HeaderLink>
-              </div>
-            </article>
-          ))}
-        </div>
-      </DashboardPanel>
     </PageLayout>
   );
 }

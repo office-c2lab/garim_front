@@ -35,7 +35,7 @@ export default function App() {
       <Route path={DEFAULT_DOWNLOAD_PATH} element={<DownloadEntryRoute />} />
       {hasCustomDownloadPath ? <Route path={downloadPath} element={<DownloadPage />} /> : null}
       <Route element={<AppShell />}>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/monitoring" element={<MonitoringPage />} />
         <Route path="/users" element={<UserPage />} />
