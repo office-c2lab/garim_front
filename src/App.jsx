@@ -8,6 +8,7 @@ import DomainPage from './pages/DomainPage/DomainPage.jsx';
 import UserPage from './pages/UserPage/UserPage.jsx';
 import SupportPage from './pages/SupportPage/SupportPage.jsx';
 import DownloadPage from './pages/DownloadPage/DownloadPage.jsx';
+import LoginPage from './pages/LoginPage/LoginPage.jsx';
 import {
   DEFAULT_DOWNLOAD_PATH,
   useSupportSettingsStore,
@@ -29,6 +30,7 @@ export default function App() {
 
   return (
     <Routes>
+      <Route path="/login" element={<LoginPage />} />
       <Route path={DEFAULT_DOWNLOAD_PATH} element={<DownloadEntryRoute />} />
       {hasCustomDownloadPath ? <Route path={downloadPath} element={<DownloadPage />} /> : null}
       <Route element={<AppShell />}>

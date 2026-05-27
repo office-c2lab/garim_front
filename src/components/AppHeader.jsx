@@ -142,6 +142,11 @@ export default function AppHeader({ onMenuClick, isSidebarOpen = false }) {
     setOpenPopover(current => (current === key ? null : key));
   };
 
+  const handleLogout = () => {
+    setOpenPopover(null);
+    navigate('/login');
+  };
+
   return (
     <header className="w-full bg-[#1A1A1A]">
       <div className="flex h-[var(--app-header-height)] items-center justify-between px-3 sm:px-4 lg:hidden">
@@ -224,12 +229,10 @@ export default function AppHeader({ onMenuClick, isSidebarOpen = false }) {
               tooltip=""
               className="group active:bg-[#4338CA] active:text-white"
               hoverClassName="hover:bg-[#4338CA] hover:text-white"
-              isActive={openPopover === 'logout'}
-              onClick={() => togglePopover('logout')}
+              onClick={handleLogout}
             >
               <LogOut className="h-[15px] w-[15px] stroke-[2.1] lg:h-[16px] lg:w-[16px]" />
             </HeaderIconButton>
-            {openPopover === 'logout' ? <PendingFeatureMenu /> : null}
           </div>
         </div>
       </div>
@@ -332,12 +335,10 @@ export default function AppHeader({ onMenuClick, isSidebarOpen = false }) {
                       tooltip=""
                       className="group active:bg-[#4338CA] active:text-white"
                       hoverClassName="hover:bg-[#4338CA] hover:text-white"
-                      isActive={openPopover === 'logout'}
-                      onClick={() => togglePopover('logout')}
+                      onClick={handleLogout}
                     >
                       <LogOut className="h-[16px] w-[16px] stroke-[4] lg:h-[15px] lg:w-[15px] xl:h-[17px] xl:w-[17px]" />
                     </HeaderIconButton>
-                    {openPopover === 'logout' ? <PendingFeatureMenu /> : null}
                   </div>
                 </div>
               </div>
