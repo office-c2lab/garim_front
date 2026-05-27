@@ -17,6 +17,7 @@ const PAGE_TITLES = {
   '/policies': 'Policy Management',
   '/domains': 'Domains',
   '/support': 'Operation Support',
+  '/mypage': 'My Page',
   '/download': 'Download',
 };
 
@@ -27,6 +28,7 @@ const PAGE_DESCRIPTIONS = {
   '/policies': '정책을 관리하고 서비스별 적용 기준을 설정할 수 있습니다.',
   '/domains': '외부 AI 서비스 도메인을 관리하고 사용 여부를 설정할 수 있습니다.',
   '/support': '운영 가이드, 템플릿, 배포 URL을 관리할 수 있습니다.',
+  '/mypage': '관리자 계정 정보와 비밀번호를 관리할 수 있습니다.',
   '/download': 'GARIM 에이전트와 운영 가이드 파일을 다운로드할 수 있습니다.',
 };
 
@@ -78,20 +80,6 @@ function HeaderPopover({ children, className = 'w-36' }) {
     >
       {children}
     </div>
-  );
-}
-
-function UserMenu({ onClose }) {
-  return (
-    <HeaderPopover>
-      <button
-        type="button"
-        className="flex h-11 w-full items-center justify-center text-sm font-semibold text-[#4338CA] transition hover:bg-[#F6F4FF]"
-        onClick={onClose}
-      >
-        내 계정
-      </button>
-    </HeaderPopover>
   );
 }
 
@@ -147,6 +135,11 @@ export default function AppHeader({ onMenuClick, isSidebarOpen = false }) {
     navigate('/login');
   };
 
+  const handleNavigateMyPage = () => {
+    setOpenPopover(null);
+    navigate('/mypage');
+  };
+
   return (
     <header className="w-full bg-[#1A1A1A]">
       <div className="flex h-[var(--app-header-height)] items-center justify-between px-3 sm:px-4 lg:hidden">
@@ -177,14 +170,11 @@ export default function AppHeader({ onMenuClick, isSidebarOpen = false }) {
             <button
               type="button"
               className="flex h-9 items-center rounded-full px-3 text-[0.82rem] font-semibold text-white/82 transition hover:bg-white/8 hover:text-white"
-              aria-expanded={openPopover === 'user'}
-              aria-haspopup="menu"
-              onClick={() => togglePopover('user')}
+              onClick={handleNavigateMyPage}
             >
               <span className="text-[#8F7CFF]">{userName}</span>
               <span className="pl-1 text-white/82">님 반갑습니다.</span>
             </button>
-            {openPopover === 'user' ? <UserMenu onClose={() => setOpenPopover(null)} /> : null}
           </div>
           <div className="relative" data-header-popover-root="true">
             <HeaderIconButton
@@ -274,19 +264,12 @@ export default function AppHeader({ onMenuClick, isSidebarOpen = false }) {
                 <div className="relative" data-header-popover-root="true">
                   <button
                     type="button"
-                    className={`hidden h-9 items-center rounded-full px-3 text-[0.88rem] font-semibold transition xl:flex ${
-                      openPopover === 'user'
-                        ? 'bg-white/10 text-white'
-                        : 'text-white/82 hover:bg-white/8 hover:text-white'
-                    }`.trim()}
-                    aria-expanded={openPopover === 'user'}
-                    aria-haspopup="menu"
-                    onClick={() => togglePopover('user')}
+                    className="hidden h-9 items-center rounded-full px-3 text-[0.88rem] font-semibold text-white/82 transition hover:bg-white/8 hover:text-white xl:flex"
+                    onClick={handleNavigateMyPage}
                   >
                     <span className="text-[#8F7CFF]">{userName}</span>
                     <span className="pl-1 text-white/82">님 반갑습니다.</span>
                   </button>
-                  {openPopover === 'user' ? <UserMenu onClose={() => setOpenPopover(null)} /> : null}
                 </div>
 
                 <div className="flex items-center gap-1 xl:gap-1.5">

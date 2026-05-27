@@ -9,6 +9,7 @@ import UserPage from './pages/UserPage/UserPage.jsx';
 import SupportPage from './pages/SupportPage/SupportPage.jsx';
 import DownloadPage from './pages/DownloadPage/DownloadPage.jsx';
 import LoginPage from './pages/LoginPage/LoginPage.jsx';
+import MyPage from './pages/MyPage/MyPage.jsx';
 import {
   DEFAULT_DOWNLOAD_PATH,
   useSupportSettingsStore,
@@ -41,6 +42,7 @@ export default function App() {
         <Route path="/policies" element={<PolicyPage />} />
         <Route path="/domains" element={<DomainPage />} />
         <Route path="/support" element={<SupportPage />} />
+        <Route path="/mypage" element={<MyPage />} />
       </Route>
     </Routes>
   );
