@@ -223,48 +223,16 @@ export function MonitoringSearchField({
   );
 }
 
-function MonitoringResultChip({ level, result }) {
-  const styles =
-    level === 'safe'
-      ? {
-          icon: 'text-[#18A0AE]',
-        }
-      : level === 'danger'
-        ? {
-            icon: 'text-[#FF4D4F]',
-          }
-        : {
-            icon: 'text-[#F59E0B]',
-          };
+function MonitoringResultChip({ result }) {
+  const resultTextClassName =
+    result === '정상'
+      ? 'text-[#18A0AE]'
+      : result === '차단'
+        ? 'text-[#FF4D4F]'
+        : 'text-[#F59E0B]';
 
   return (
-    <span className="inline-flex items-center gap-1.5 text-[15px] font-semibold whitespace-nowrap text-[#344054]">
-      <span className={styles.icon}>
-        {level === 'safe' ? (
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <circle cx="7" cy="7" r="6" fill="currentColor" fillOpacity="0.14" />
-            <path
-              d="M4.35 7.2 6.1 8.95 9.7 5.35"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        ) : (
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <path
-              d="M7 1.6 12.2 11.2a.6.6 0 0 1-.53.9H2.33a.6.6 0 0 1-.53-.9L7 1.6Z"
-              fill="currentColor"
-              fillOpacity="0.16"
-              stroke="currentColor"
-              strokeWidth="1.2"
-            />
-            <path d="M7 4.6v3.1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-            <circle cx="7" cy="9.75" r=".8" fill="currentColor" />
-          </svg>
-        )}
-      </span>
+    <span className={`inline-flex items-center text-[15px] font-semibold whitespace-nowrap ${resultTextClassName}`}>
       {result}
     </span>
   );
@@ -395,7 +363,10 @@ export function MonitoringDataTable({
                       )}
                     >
                       <div className="overflow-hidden">
-                        <MonitoringResultChip level={row.level} result={row.result} />
+                        <MonitoringResultChip
+                          level={row.level}
+                          result={row.displayResult ?? row.result}
+                        />
                       </div>
                     </td>
                     <td

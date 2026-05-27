@@ -284,9 +284,11 @@ export default function UserPage() {
                               />
                             </button>
                           </td>
-                          <td className={monitoringTableCellClass(index)}>{user.ip}</td>
                           <td className={monitoringTableCellClass(index)}>
-                            <span className="font-semibold text-slate-800">{user.name}</span>
+                            <span className="font-semibold text-slate-800">{user.ip}</span>
+                          </td>
+                          <td className={monitoringTableCellClass(index)}>
+                            {user.name}
                           </td>
                           <td className={monitoringTableCellClass(index, 'truncate')}>
                             {user.email}

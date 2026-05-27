@@ -232,7 +232,7 @@ const logs = [
   },
 ];
 
-const resultOptions = ['전체 결과', '정상', '개인정보 탐지', '기밀정보 탐지', '프롬프트 위협'];
+const resultOptions = ['전체 결과', '허용', '마스킹', '차단', '정상'];
 const ROWS_PER_PAGE = 11;
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -263,10 +263,12 @@ function getStatusLabel(row) {
   return '정상';
 }
 
-function getRiskLabel(row) {
-  if (row.level === 'danger') return '위험도 높음';
-  if (row.level === 'warning') return '위험도 보통';
-  return '위험도 낮음';
+function getStatusTextClassName(row) {
+  const statusCategory = getLogStatusCategory(row);
+
+  if (statusCategory === 'normal') return 'text-[#18A0AE]';
+  if (statusCategory === 'block') return 'text-[#FF4D4F]';
+  return 'text-[#F59E0B]';
 }
 
 function normalizeLogDateTime(value) {
@@ -340,22 +342,6 @@ function isSameDay(left, right) {
   );
 }
 
-function buildDetectionItems(row) {
-  if (row.result === '개인정보 탐지') {
-    return ['이메일 4건', '사용자 식별자', '거래 금액', '내부 문서 정보'];
-  }
-
-  if (row.result === '기밀정보 탐지') {
-    return ['내부 계약 문구', '프로젝트명', '담당자 정보'];
-  }
-
-  if (row.result === '프롬프트 위협') {
-    return ['시스템 지시 무시', '인젝션 의심', '내부 규칙 노출'];
-  }
-
-  return ['위험 키워드 없음', '민감 정보 없음'];
-}
-
 function buildAnswerDetail(row) {
   if (getLogStatusCategory(row) === 'allow') {
     return '위험 패턴은 탐지되었지만 정책상 차단 대상은 아니어서 사용자에게 답변을 전달했습니다. 해당 요청은 경고 로그로만 기록됩니다.';
@@ -393,15 +379,7 @@ function buildDetailContext(row) {
           : statusCategory === 'block'
             ? '차단 처리'
             : '정상 처리',
-    riskLabel:
-      statusCategory === 'allow'
-        ? '탐지 후 허용'
-        : row.level === 'danger'
-        ? '위험도 높음'
-        : row.level === 'warning'
-          ? '자동 마스킹 대기'
-          : '정상 처리',
-    detectionItems: buildDetectionItems(row),
+    policyItems: [statusCategory === 'normal' ? '일반 사용 허용 정책' : '개인정보 보호 기본 정책'],
     answerDetail: buildAnswerDetail(row),
     evidenceLines: row.detectionDetail
       .split('\n')
@@ -419,43 +397,25 @@ function DetailSectionLabel({ children }) {
   return <div className="text-[13px] font-bold tracking-[-0.01em] text-[#4A57D1]">{children}</div>;
 }
 
-function DetailStatusBadge({ tone = 'red', children }) {
-  const styles =
-    tone === 'red'
-      ? 'border-[#FFD8D4] bg-[#FFF4F2] text-[#FF4D4F]'
-      : tone === 'orange'
-        ? 'border-[#FFE3BC] bg-[#FFF7EA] text-[#F59E0B]'
-        : 'border-[#D8DBFF] bg-[#F4F5FF] text-[#6A5AE0]';
-
-  return (
-    <span
-      className={`inline-flex h-7 items-center rounded-[8px] border px-3 text-[11px] font-semibold ${styles}`.trim()}
-    >
-      {children}
-    </span>
-  );
-}
-
 function DetailHeader({ row }) {
   const detail = buildDetailContext(row);
+  const statusTextClassName = getStatusTextClassName(row);
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         <div className="text-[15px] font-bold tracking-[-0.02em] text-[#1F2555]">
           상세 내역
         </div>
-        <DetailStatusBadge tone="red">{row.result}</DetailStatusBadge>
-        <DetailStatusBadge tone="purple">{getStatusLabel(row)}</DetailStatusBadge>
-        <DetailStatusBadge tone={row.level === 'danger' ? 'red' : 'orange'}>
-          {getRiskLabel(row)}
-        </DetailStatusBadge>
-        <DetailStatusBadge tone="orange">{detail.riskLabel}</DetailStatusBadge>
+        <span className="h-3 w-px bg-[#D7DDE8]" />
+        <span className={`text-[13px] font-semibold tracking-[-0.01em] ${statusTextClassName}`}>
+          {detail.actionStatus}
+        </span>
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <DetailSectionLabel>탐지 항목</DetailSectionLabel>
-        <DetailChipList items={detail.detectionItems} />
+        <DetailSectionLabel>걸린 정책</DetailSectionLabel>
+        <DetailChipList items={detail.policyItems} />
       </div>
     </div>
   );
@@ -690,7 +650,8 @@ export function MonitoringLogView({
       const endBoundary = endDate ? new Date(`${endDate}T23:59:59`) : null;
       const matchesDateRange =
         (!startBoundary || logDate >= startBoundary) && (!endBoundary || logDate <= endBoundary);
-      const matchesResult = selectedResult === '전체 결과' || log.result === selectedResult;
+      const matchesResult =
+        selectedResult === '전체 결과' || getStatusLabel(log) === selectedResult;
       const logStatusCategory = getLogStatusCategory(log);
       const matchesStatus =
         !useStatusFilter
@@ -706,7 +667,10 @@ export function MonitoringLogView({
 
   const pagedLogs = useMemo(() => {
     const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
-    return filteredLogs.slice(startIndex, startIndex + ROWS_PER_PAGE);
+    return filteredLogs.slice(startIndex, startIndex + ROWS_PER_PAGE).map(log => ({
+      ...log,
+      displayResult: getStatusLabel(log),
+    }));
   }, [currentPage, filteredLogs]);
 
   useEffect(() => {
@@ -861,7 +825,7 @@ export function MonitoringLogView({
                         <DetailSummaryItem
                           label="처리 상태"
                           value={detail.actionStatus}
-                          valueClassName={row.result === '정상' ? 'text-[#18A0AE]' : 'text-[#F59E0B]'}
+                          valueClassName={getStatusTextClassName(row)}
                         />
                       </div>
                       <div className="border-t border-[#E7EBF5] px-4 py-4 md:border-t md:border-[#E7EBF5] xl:border-t-0 xl:border-l xl:border-[#E7EBF5]">
