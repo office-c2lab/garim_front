@@ -4,6 +4,15 @@ import { Check, ChevronDown, ChevronUp, CircleHelp, Info, Plus, Search, X } from
 import ServiceLogoBadge, { ALL_SERVICE_LOGO_NAMES } from '../../components/ServiceLogoBadge.jsx';
 import SectionCard from '../../components/SectionCard.jsx';
 import { MonitoringDropdown } from '../../components/monitoring/MonitoringListComponents.jsx';
+import {
+  monitoringTableCellClass,
+  monitoringTableClass,
+  monitoringTableHeadClass,
+  monitoringTableHeaderCellClass,
+  monitoringTableHeaderRowClass,
+  monitoringTableRowClass,
+  monitoringTableSurfaceClass,
+} from '../../components/monitoring/monitoringTableStyles.js';
 import caretDownIcon from '../../assets/icons/caret_down.svg';
 import PageLayout from '../../layout/PageLayout.jsx';
 
@@ -204,8 +213,11 @@ function toPolicyRecord(draftPolicy) {
 }
 
 function ServiceLabel({ services, fallback }) {
-  const normalizedServices =
-    services?.includes('전체 서비스') ? ALL_SERVICE_LOGO_NAMES : services?.length ? services : fallback;
+  const normalizedServices = services?.includes('전체 서비스')
+    ? ALL_SERVICE_LOGO_NAMES
+    : services?.length
+      ? services
+      : fallback;
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -294,7 +306,10 @@ function ServiceMultiSelect({ value, onChange, ariaLabel, className = '' }) {
           src={caretDownIcon}
           alt=""
           aria-hidden="true"
-          className={joinClasses('h-6 w-6 shrink-0 transition-transform', isOpen ? 'rotate-180' : '')}
+          className={joinClasses(
+            'h-6 w-6 shrink-0 transition-transform',
+            isOpen ? 'rotate-180' : ''
+          )}
         />
       </button>
 
@@ -408,9 +423,7 @@ function StepIndicator({ currentStep }) {
               <span
                 className={joinClasses(
                   'flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-bold',
-                  isActive || isComplete
-                    ? 'bg-[#4F46E5] text-white'
-                    : 'bg-slate-100 text-slate-400'
+                  isActive || isComplete ? 'bg-[#4F46E5] text-white' : 'bg-slate-100 text-slate-400'
                 )}
               >
                 {isComplete ? <Check className="h-3.5 w-3.5" /> : stepNumber}
@@ -498,7 +511,6 @@ function PolicyDetailPanel({
                 className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-700 outline-none transition focus:border-[#A5B4FC] focus:ring-4 focus:ring-[#E0E7FF]"
               />
             </DetailInput>
-
           </div>
         </div>
 
@@ -531,7 +543,10 @@ function PolicyDetailPanel({
               const muted = draftPolicy.exceptions.includes(item);
 
               return (
-                <label key={item} className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                <label
+                  key={item}
+                  className="flex items-center gap-2 text-sm font-medium text-slate-700"
+                >
                   <input
                     type="checkbox"
                     checked={checked}
@@ -560,7 +575,10 @@ function PolicyDetailPanel({
 
           <div className="space-y-4">
             {['허용', '마스킹', '차단'].map(option => (
-              <label key={option} className="flex items-center gap-3 text-sm font-medium text-slate-700">
+              <label
+                key={option}
+                className="flex items-center gap-3 text-sm font-medium text-slate-700"
+              >
                 <input
                   type="radio"
                   name="policy-handling"
@@ -744,9 +762,7 @@ export default function PolicyPage() {
   };
 
   const isCreateStepOneValid =
-    createDraft.name.trim() &&
-    createDraft.category.trim() &&
-    createDraft.services.length > 0;
+    createDraft.name.trim() && createDraft.category.trim() && createDraft.services.length > 0;
   const isCreateStepTwoValid = createDraft.detects.length > 0;
   const isCreateNextDisabled =
     (createStep === 1 && !isCreateStepOneValid) || (createStep === 2 && !isCreateStepTwoValid);
@@ -800,96 +816,129 @@ export default function PolicyPage() {
         </div>
 
         <SectionCard className="overflow-hidden">
-          <div>
-            <table className="w-full table-fixed">
-              <thead className="bg-[#F8FAFC] text-left text-sm font-semibold text-slate-500">
-                <tr>
-                  <th className="w-12 px-5 py-4 sm:px-6" />
-                  <th className="w-[26%] px-4 py-4">정책명</th>
-                  <th className="w-[12%] px-4 py-4">분류</th>
-                  <th className="w-[18%] px-4 py-4">적용 서비스</th>
-                  <th className="w-[16%] px-4 py-4">조치 방식</th>
-                  <th className="w-[10%] px-4 py-4">사용 여부</th>
-                  <th className="w-[18%] px-4 py-4">최종 수정일</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 text-sm text-slate-700">
-                {filteredPolicies.map(policy => {
-                  const isSelected = policy.id === selectedId;
+          <div className={monitoringTableSurfaceClass}>
+            <div className="overflow-x-auto">
+              <table className={`min-w-[920px] ${monitoringTableClass} text-left`}>
+                <thead className={monitoringTableHeadClass}>
+                  <tr className={monitoringTableHeaderRowClass}>
+                    <th className={`${monitoringTableHeaderCellClass} w-12 px-5 sm:px-6`} />
+                    <th className={`${monitoringTableHeaderCellClass} w-[26%]`}>정책명</th>
+                    <th className={`${monitoringTableHeaderCellClass} w-[12%]`}>분류</th>
+                    <th className={`${monitoringTableHeaderCellClass} w-[18%]`}>적용 서비스</th>
+                    <th className={`${monitoringTableHeaderCellClass} w-[16%]`}>조치 방식</th>
+                    <th className={`${monitoringTableHeaderCellClass} w-[10%]`}>사용 여부</th>
+                    <th className={`${monitoringTableHeaderCellClass} w-[18%]`}>최종 수정일</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredPolicies.map((policy, index) => {
+                    const isSelected = policy.id === selectedId;
 
-                  return (
-                    <Fragment key={policy.id}>
-                      <tr
-                        className={joinClasses(
-                          'cursor-pointer transition',
-                          isSelected ? 'bg-[#F5F3FF]' : 'bg-white hover:bg-slate-50'
-                        )}
-                        onClick={() => handleSelectPolicy(policy.id)}
-                      >
-                        <td className="px-5 py-4 align-middle sm:px-6">
-                          <button
-                            type="button"
-                            aria-label={`${policy.name} 선택`}
-                            className={joinClasses(
-                              'flex h-5 w-5 items-center justify-center rounded-full border transition',
-                              isSelected ? 'border-[#4338CA]' : 'border-slate-300'
+                    return (
+                      <Fragment key={policy.id}>
+                        <tr
+                          className={monitoringTableRowClass({
+                            selected: isSelected,
+                            striped: index % 2 === 1,
+                            interactive: true,
+                          })}
+                          onClick={() => handleSelectPolicy(policy.id)}
+                        >
+                          <td
+                            className={monitoringTableCellClass(index, 'px-5 align-middle sm:px-6')}
+                          >
+                            <button
+                              type="button"
+                              aria-label={`${policy.name} 선택`}
+                              className={joinClasses(
+                                'flex h-5 w-5 items-center justify-center rounded-full border transition',
+                                isSelected ? 'border-[#4338CA]' : 'border-slate-300'
+                              )}
+                            >
+                              <span
+                                className={joinClasses(
+                                  'h-2.5 w-2.5 rounded-full transition',
+                                  isSelected ? 'bg-[#4338CA]' : 'bg-transparent'
+                                )}
+                              />
+                            </button>
+                          </td>
+                          <td
+                            className={monitoringTableCellClass(
+                              index,
+                              'whitespace-nowrap font-semibold text-slate-800'
                             )}
                           >
-                            <span
-                              className={joinClasses(
-                                'h-2.5 w-2.5 rounded-full transition',
-                                isSelected ? 'bg-[#4338CA]' : 'bg-transparent'
-                              )}
-                            />
-                          </button>
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-4 text-[15px] font-semibold text-slate-800">
-                          {policy.name}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-4 text-[15px] font-semibold text-slate-700">
-                          {policy.category}
-                        </td>
-                        <td className="px-4 py-4">
-                          <ServiceLabel services={policy.services} fallback={policy.serviceLabel} />
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-4 text-[15px] font-semibold text-slate-700">
-                          {policy.action}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-4 text-[15px] font-semibold text-slate-600">
-                          <StatusToggleIndicator
-                            checked={policy.status === '사용'}
-                            ariaLabel={`${policy.name} 사용 여부`}
-                          />
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-4 text-[15px] text-slate-600">
-                          <div className="flex items-center justify-between gap-3">
-                            <span>{policy.updatedAt}</span>
-                            {isSelected ? (
-                              <ChevronUp className="h-4 w-4 shrink-0 text-slate-400" />
-                            ) : (
-                              <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
+                            {policy.name}
+                          </td>
+                          <td
+                            className={monitoringTableCellClass(
+                              index,
+                              'whitespace-nowrap font-semibold text-slate-700'
                             )}
-                          </div>
-                        </td>
-                      </tr>
-                      {isSelected && selectedPolicy && draftPolicy ? (
-                        <tr className="bg-[#FFFFFF]">
-                          <td colSpan={7} className="border-t border-[#E6EAF4] px-0 py-0">
-                            <PolicyDetailPanel
-                              draftPolicy={draftPolicy}
-                              handleDeletePolicy={handleDeletePolicy}
-                              handleCancelEdit={handleCancelEdit}
-                              handleSavePolicy={handleSavePolicy}
-                              setDraftPolicy={setDraftPolicy}
+                          >
+                            {policy.category}
+                          </td>
+                          <td className={monitoringTableCellClass(index)}>
+                            <ServiceLabel
+                              services={policy.services}
+                              fallback={policy.serviceLabel}
                             />
                           </td>
+                          <td
+                            className={monitoringTableCellClass(
+                              index,
+                              'whitespace-nowrap font-semibold text-slate-700'
+                            )}
+                          >
+                            {policy.action}
+                          </td>
+                          <td
+                            className={monitoringTableCellClass(
+                              index,
+                              'whitespace-nowrap font-semibold text-slate-600'
+                            )}
+                          >
+                            <StatusToggleIndicator
+                              checked={policy.status === '사용'}
+                              ariaLabel={`${policy.name} 사용 여부`}
+                            />
+                          </td>
+                          <td
+                            className={monitoringTableCellClass(
+                              index,
+                              'whitespace-nowrap text-slate-600'
+                            )}
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <span>{policy.updatedAt}</span>
+                              {isSelected ? (
+                                <ChevronUp className="h-4 w-4 shrink-0 text-slate-400" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
+                              )}
+                            </div>
+                          </td>
                         </tr>
-                      ) : null}
-                    </Fragment>
-                  );
-                })}
-              </tbody>
-            </table>
+                        {isSelected && selectedPolicy && draftPolicy ? (
+                          <tr className="bg-[#FFFFFF]">
+                            <td colSpan={7} className="border-t border-[#E6EAF4] px-0 py-0">
+                              <PolicyDetailPanel
+                                draftPolicy={draftPolicy}
+                                handleDeletePolicy={handleDeletePolicy}
+                                handleCancelEdit={handleCancelEdit}
+                                handleSavePolicy={handleSavePolicy}
+                                setDraftPolicy={setDraftPolicy}
+                              />
+                            </td>
+                          </tr>
+                        ) : null}
+                      </Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
             {!filteredPolicies.length ? (
               <div className="px-6 py-12 text-center text-sm text-slate-400">
                 검색 조건에 맞는 정책이 없습니다.
@@ -997,7 +1046,6 @@ export default function PolicyPage() {
                         className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-700 outline-none transition focus:border-[#A5B4FC] focus:ring-4 focus:ring-[#E0E7FF]"
                       />
                     </DetailInput>
-
                   </div>
                 </div>
               ) : null}

@@ -2,6 +2,15 @@ import { Search } from 'lucide-react';
 import { Fragment, useMemo, useState } from 'react';
 import SectionCard from '../../components/SectionCard.jsx';
 import { MonitoringDropdown } from '../../components/monitoring/MonitoringListComponents.jsx';
+import {
+  monitoringTableCellClass,
+  monitoringTableClass,
+  monitoringTableHeadClass,
+  monitoringTableHeaderCellClass,
+  monitoringTableHeaderRowClass,
+  monitoringTableRowClass,
+  monitoringTableSurfaceClass,
+} from '../../components/monitoring/monitoringTableStyles.js';
 import PageLayout from '../../layout/PageLayout.jsx';
 
 const initialUsers = [
@@ -112,7 +121,10 @@ function UserDetailPanel({ user, onUpdate, onDelete }) {
             <TextInput value={user.email} onChange={value => onUpdate({ email: value })} />
           </DetailField>
           <DetailField label="부서">
-            <TextInput value={user.department} onChange={value => onUpdate({ department: value })} />
+            <TextInput
+              value={user.department}
+              onChange={value => onUpdate({ department: value })}
+            />
           </DetailField>
           <DetailField label="직책">
             <TextInput value={user.position} onChange={value => onUpdate({ position: value })} />
@@ -227,75 +239,84 @@ export default function UserPage() {
         </div>
 
         <SectionCard className="overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-[780px] w-full table-fixed text-left">
-              <thead className="bg-[#F8FAFC] text-sm font-semibold text-slate-500">
-                <tr>
-                  <th className="w-12 px-5 py-4" />
-                  <th className="w-[16%] px-4 py-4">IP 주소</th>
-                  <th className="w-[14%] px-4 py-4">사용자명</th>
-                  <th className="w-[28%] px-4 py-4">이메일</th>
-                  <th className="w-[13%] px-4 py-4">부서</th>
-                  <th className="w-[14%] px-4 py-4">직책</th>
-                  <th className="w-[15%] px-4 py-4">최종 수정일</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 text-sm text-slate-700">
-                {filteredUsers.map(user => {
-                  const isSelected = user.id === selectedId;
+          <div className={monitoringTableSurfaceClass}>
+            <div className="overflow-x-auto">
+              <table className={`min-w-[780px] ${monitoringTableClass} text-left`}>
+                <thead className={monitoringTableHeadClass}>
+                  <tr className={monitoringTableHeaderRowClass}>
+                    <th className={`${monitoringTableHeaderCellClass} w-12 px-5`} />
+                    <th className={`${monitoringTableHeaderCellClass} w-[16%]`}>IP 주소</th>
+                    <th className={`${monitoringTableHeaderCellClass} w-[14%]`}>사용자명</th>
+                    <th className={`${monitoringTableHeaderCellClass} w-[28%]`}>이메일</th>
+                    <th className={`${monitoringTableHeaderCellClass} w-[13%]`}>부서</th>
+                    <th className={`${monitoringTableHeaderCellClass} w-[14%]`}>직책</th>
+                    <th className={`${monitoringTableHeaderCellClass} w-[15%]`}>최종 수정일</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredUsers.map((user, index) => {
+                    const isSelected = user.id === selectedId;
 
-                  return (
-                    <Fragment key={user.id}>
-                      <tr
-                        onClick={() => setSelectedId(current => (current === user.id ? null : user.id))}
-                        className={`cursor-pointer transition ${
-                          isSelected ? 'bg-[#F5F3FF]' : 'bg-white hover:bg-slate-50'
-                        }`.trim()}
-                      >
-                        <td className="px-5 py-4 align-middle">
-                          <button
-                            type="button"
-                            aria-label={`${user.name} 선택`}
-                            className={`flex h-5 w-5 items-center justify-center rounded-full border transition ${
-                              isSelected ? 'border-[#4338CA]' : 'border-slate-300'
-                            }`.trim()}
-                          >
-                            <span
-                              className={`h-2.5 w-2.5 rounded-full transition ${
-                                isSelected ? 'bg-[#4338CA]' : 'bg-transparent'
+                    return (
+                      <Fragment key={user.id}>
+                        <tr
+                          onClick={() =>
+                            setSelectedId(current => (current === user.id ? null : user.id))
+                          }
+                          className={monitoringTableRowClass({
+                            selected: isSelected,
+                            striped: index % 2 === 1,
+                            interactive: true,
+                          })}
+                        >
+                          <td className={monitoringTableCellClass(index, 'px-5 align-middle')}>
+                            <button
+                              type="button"
+                              aria-label={`${user.name} 선택`}
+                              className={`flex h-5 w-5 items-center justify-center rounded-full border transition ${
+                                isSelected ? 'border-[#4338CA]' : 'border-slate-300'
                               }`.trim()}
-                            />
-                          </button>
-                        </td>
-                        <td className="px-4 py-4">{user.ip}</td>
-                        <td className="px-4 py-4">
-                          <span className="font-semibold text-slate-800">{user.name}</span>
-                        </td>
-                        <td className="truncate px-4 py-4">{user.email}</td>
-                        <td className="px-4 py-4 font-semibold">{user.department}</td>
-                        <td className="px-4 py-4">{user.position}</td>
-                        <td className="px-4 py-4">{user.updatedAt}</td>
-                      </tr>
-                      {isSelected ? (
-                        <tr>
-                          <td colSpan={7} className="border-t border-slate-200 bg-white p-0">
-                            {selectedUser ? (
-                              <UserDetailPanel
-                                user={selectedUser}
-                                onUpdate={updateSelectedUser}
-                                onDelete={handleDeleteSelectedUser}
+                            >
+                              <span
+                                className={`h-2.5 w-2.5 rounded-full transition ${
+                                  isSelected ? 'bg-[#4338CA]' : 'bg-transparent'
+                                }`.trim()}
                               />
-                            ) : null}
+                            </button>
                           </td>
+                          <td className={monitoringTableCellClass(index)}>{user.ip}</td>
+                          <td className={monitoringTableCellClass(index)}>
+                            <span className="font-semibold text-slate-800">{user.name}</span>
+                          </td>
+                          <td className={monitoringTableCellClass(index, 'truncate')}>
+                            {user.email}
+                          </td>
+                          <td className={monitoringTableCellClass(index, 'font-semibold')}>
+                            {user.department}
+                          </td>
+                          <td className={monitoringTableCellClass(index)}>{user.position}</td>
+                          <td className={monitoringTableCellClass(index)}>{user.updatedAt}</td>
                         </tr>
-                      ) : null}
-                    </Fragment>
-                  );
-                })}
-              </tbody>
-            </table>
+                        {isSelected ? (
+                          <tr>
+                            <td colSpan={7} className="border-t border-[#E5EBF5] bg-white p-0">
+                              {selectedUser ? (
+                                <UserDetailPanel
+                                  user={selectedUser}
+                                  onUpdate={updateSelectedUser}
+                                  onDelete={handleDeleteSelectedUser}
+                                />
+                              ) : null}
+                            </td>
+                          </tr>
+                        ) : null}
+                      </Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-
         </SectionCard>
       </div>
     </PageLayout>

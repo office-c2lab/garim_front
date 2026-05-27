@@ -12,6 +12,15 @@ import {
   Rocket,
 } from 'lucide-react';
 import SectionCard from '../../components/SectionCard.jsx';
+import {
+  monitoringTableCellClass,
+  monitoringTableClass,
+  monitoringTableHeadClass,
+  monitoringTableHeaderCellClass,
+  monitoringTableHeaderRowClass,
+  monitoringTableRowClass,
+  monitoringTableSurfaceClass,
+} from '../../components/monitoring/monitoringTableStyles.js';
 import PageLayout from '../../layout/PageLayout.jsx';
 import garimMoonImage from '../../assets/images/garim_moon.png';
 
@@ -110,7 +119,10 @@ function PanelHeader({ title, action }) {
     <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
       <h2 className="text-base font-bold text-slate-900">{title}</h2>
       {action ? (
-        <button type="button" className="inline-flex items-center gap-1 text-xs font-bold text-[#4338CA]">
+        <button
+          type="button"
+          className="inline-flex items-center gap-1 text-xs font-bold text-[#4338CA]"
+        >
           {action}
           <ChevronRight className="h-4 w-4" />
         </button>
@@ -231,7 +243,10 @@ export default function DownloadPage() {
             <PanelHeader title="사용 가이드" action="전체 보기" />
             <div className="divide-y divide-slate-200">
               {guides.map(([title, description, updatedAt]) => (
-                <div key={title} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 px-5 py-4 text-sm">
+                <div
+                  key={title}
+                  className="grid grid-cols-[1fr_auto_auto] items-center gap-3 px-5 py-4 text-sm"
+                >
                   <div className="min-w-0">
                     <p className="font-bold text-slate-800">{title}</p>
                     <p className="mt-1 truncate text-xs text-slate-400">{description}</p>
@@ -245,38 +260,43 @@ export default function DownloadPage() {
 
           <SectionCard className="overflow-hidden">
             <PanelHeader title="다운로드" />
-            <table className="w-full table-fixed text-left">
-              <thead className="bg-[#F8FAFC] text-sm font-semibold text-slate-500">
-                <tr>
-                  <th className="w-[42%] px-5 py-4">파일명</th>
-                  <th className="w-[18%] px-4 py-4">버전</th>
-                  <th className="w-[18%] px-4 py-4">크기</th>
-                  <th className="w-[22%] px-4 py-4">다운로드</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 text-sm text-slate-700">
-                {downloads.map(([name, type, version, size]) => (
-                  <tr key={name} className="hover:bg-slate-50">
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-3">
-                        <FileIcon type={type} />
-                        <span className="truncate font-bold text-slate-800">{name}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">{version}</td>
-                    <td className="px-4 py-4">{size}</td>
-                    <td className="px-4 py-4">
-                      <button
-                        type="button"
-                        className="inline-flex h-8 items-center justify-center rounded-lg border border-[#DED9FF] bg-white px-3 text-xs font-bold text-[#4338CA] transition hover:bg-[#F5F3FF]"
-                      >
-                        다운로드
-                      </button>
-                    </td>
+            <div className={monitoringTableSurfaceClass}>
+              <table className={`${monitoringTableClass} text-left`}>
+                <thead className={monitoringTableHeadClass}>
+                  <tr className={monitoringTableHeaderRowClass}>
+                    <th className={`${monitoringTableHeaderCellClass} w-[42%] px-5`}>파일명</th>
+                    <th className={`${monitoringTableHeaderCellClass} w-[18%]`}>버전</th>
+                    <th className={`${monitoringTableHeaderCellClass} w-[18%]`}>크기</th>
+                    <th className={`${monitoringTableHeaderCellClass} w-[22%]`}>다운로드</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {downloads.map(([name, type, version, size], index) => (
+                    <tr
+                      key={name}
+                      className={monitoringTableRowClass({ striped: index % 2 === 1 })}
+                    >
+                      <td className={monitoringTableCellClass(index, 'px-5')}>
+                        <div className="flex items-center gap-3">
+                          <FileIcon type={type} />
+                          <span className="truncate font-bold text-slate-800">{name}</span>
+                        </div>
+                      </td>
+                      <td className={monitoringTableCellClass(index)}>{version}</td>
+                      <td className={monitoringTableCellClass(index)}>{size}</td>
+                      <td className={monitoringTableCellClass(index)}>
+                        <button
+                          type="button"
+                          className="inline-flex h-8 items-center justify-center rounded-lg border border-[#DED9FF] bg-white px-3 text-xs font-bold text-[#4338CA] transition hover:bg-[#F5F3FF]"
+                        >
+                          다운로드
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </SectionCard>
 
           <SectionCard className="overflow-hidden">

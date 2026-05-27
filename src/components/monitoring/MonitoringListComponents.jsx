@@ -4,6 +4,16 @@ import caretDownIcon from '../../assets/icons/caret_down.svg';
 import searchIcon from '../../assets/icons/search-data.svg';
 import ServiceLogoBadge from '../ServiceLogoBadge.jsx';
 import {
+  monitoringTableCellClass,
+  monitoringTableClass,
+  monitoringTableHeadClass,
+  monitoringTableHeaderCellClass,
+  monitoringTableHeaderRowClass,
+  monitoringTableRowClass,
+  monitoringTableScrollClass,
+  monitoringTableSurfaceClass,
+} from './monitoringTableStyles.js';
+import {
   APP_BODY_TEXT_CLASS,
   APP_BUTTON_TEXT_CLASS,
   APP_META_TEXT_CLASS,
@@ -28,12 +38,16 @@ export function MonitoringActionButton({
         ? 'border border-slate-200 bg-white text-[#4338CA] hover:border-[#C7D2FE] hover:bg-[#F8FAFF]'
         : variant === 'soft'
           ? 'border border-[#D5E5EE] bg-[#E6F0F5] text-[#2A6F8F]'
-        : variant === 'ghost'
+          : variant === 'ghost'
             ? 'border border-[#31A4BD]/25 bg-[#31A4BD]/10 text-[#8AD4E4]'
             : primaryButtonClassName;
 
   const interactionClassName =
-    variant === 'outline' ? '' : disabled ? 'cursor-not-allowed opacity-60' : 'hover:brightness-[1.02]';
+    variant === 'outline'
+      ? ''
+      : disabled
+        ? 'cursor-not-allowed opacity-60'
+        : 'hover:brightness-[1.02]';
 
   return (
     <button
@@ -102,8 +116,7 @@ export function MonitoringDropdown({
   options,
   ariaLabel,
   widthClass = 'w-full sm:w-[220px]',
-  triggerClassName =
-    'h-10 border-[#E6E6E6] bg-white hover:border-[#C7D2FE] hover:bg-[#F8FAFF] active:border-[#A5B4FC] active:bg-[#EEF2FF] focus:border-[#A5B4FC] focus:ring-4 focus:ring-[#E0E7FF]',
+  triggerClassName = 'h-10 border-[#E6E6E6] bg-white hover:border-[#C7D2FE] hover:bg-[#F8FAFF] active:border-[#A5B4FC] active:bg-[#EEF2FF] focus:border-[#A5B4FC] focus:ring-4 focus:ring-[#E0E7FF]',
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef(null);
@@ -272,11 +285,9 @@ export function MonitoringDataTable({
   const allRowsSelected = rows.length > 0 && rows.every(row => selectedRowIds.includes(row.id));
 
   return (
-    <div
-      className={`flex min-h-0 w-full flex-col overflow-hidden rounded-[14px] border border-[#ECEFF5] bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)] ${className}`.trim()}
-    >
-      <div className="min-h-0 w-full overflow-x-auto xl:overflow-x-hidden">
-        <table className="min-w-[918px] w-full table-fixed border-separate border-spacing-0 xl:min-w-0">
+    <div className={`${monitoringTableSurfaceClass} ${className}`.trim()}>
+      <div className={monitoringTableScrollClass}>
+        <table className={`min-w-[918px] ${monitoringTableClass} xl:min-w-0`}>
           <colgroup>
             <col className="w-[38px]" />
             <col className="w-[40px]" />
@@ -287,9 +298,9 @@ export function MonitoringDataTable({
             <col className="w-[206px]" />
             <col className="w-[128px]" />
           </colgroup>
-          <thead className="bg-[linear-gradient(180deg,#F8FAFF_0%,#F2F5FC_100%)]">
-            <tr className="text-[14px] font-semibold leading-[1.4] text-[#4A5578] xl:text-[15px]">
-              <th className="border-b border-[#E7EBF4] px-0 py-[14px] text-center align-middle font-semibold">
+          <thead className={monitoringTableHeadClass}>
+            <tr className={monitoringTableHeaderRowClass}>
+              <th className={`${monitoringTableHeaderCellClass} px-0 text-center align-middle`}>
                 <input
                   type="checkbox"
                   checked={allRowsSelected}
@@ -298,13 +309,13 @@ export function MonitoringDataTable({
                   className="mx-auto block h-4 w-4 cursor-pointer rounded border-slate-300 accent-[#4338CA]"
                 />
               </th>
-              <th className="border-b border-[#E7EBF4] px-0 py-[14px] text-center font-semibold">No.</th>
-              <th className="border-b border-[#E7EBF4] px-4 py-[14px] text-left font-semibold xl:px-5">탐지 일시</th>
-              <th className="border-b border-[#E7EBF4] px-3 py-[14px] text-left font-semibold xl:px-4">서비스</th>
-              <th className="border-b border-[#E7EBF4] px-3 py-[14px] text-left font-semibold xl:px-4">프롬프트</th>
-              <th className="border-b border-[#E7EBF4] px-3 py-[14px] text-left font-semibold xl:px-4">탐지 결과</th>
-              <th className="border-b border-[#E7EBF4] px-3 py-[14px] text-left font-semibold xl:px-4">탐지 내용</th>
-              <th className="border-b border-[#E7EBF4] px-3 py-[14px] text-left font-semibold xl:px-4">IP</th>
+              <th className={`${monitoringTableHeaderCellClass} px-0 text-center`}>No.</th>
+              <th className={`${monitoringTableHeaderCellClass} xl:px-5`}>탐지 일시</th>
+              <th className={`${monitoringTableHeaderCellClass} px-3 xl:px-4`}>서비스</th>
+              <th className={`${monitoringTableHeaderCellClass} px-3 xl:px-4`}>프롬프트</th>
+              <th className={`${monitoringTableHeaderCellClass} px-3 xl:px-4`}>탐지 결과</th>
+              <th className={`${monitoringTableHeaderCellClass} px-3 xl:px-4`}>탐지 내용</th>
+              <th className={`${monitoringTableHeaderCellClass} px-3 xl:px-4`}>IP</th>
             </tr>
           </thead>
           <tbody className={bodyClassName}>
@@ -312,21 +323,18 @@ export function MonitoringDataTable({
               const isSelected = activeRowId === row.id;
               const isChecked = selectedRowIds.includes(row.id);
               const isStriped = index % 2 === 1;
-              const baseRowClass = isStriped ? 'bg-[#FEFEFF]' : 'bg-white';
-              const rowClassName = isSelected
-                ? 'bg-[#F5F3FF] text-[#20264D]'
-                : `${baseRowClass} text-[#344054] hover:bg-slate-50`;
-
-              const cellBorderClass = index === 0 ? '' : 'border-t border-[#EEF2F7]';
-
               return (
                 <Fragment key={row.id}>
                   <tr
-                    className={`cursor-pointer transition ${rowClassName}`.trim()}
+                    className={monitoringTableRowClass({
+                      selected: isSelected,
+                      striped: isStriped,
+                      interactive: true,
+                    })}
                     onClick={() => onSelectRow(row)}
                   >
                     <td
-                      className={`${cellBorderClass} px-0 py-[13px] text-center align-middle`.trim()}
+                      className={monitoringTableCellClass(index, 'px-0 text-center align-middle')}
                       onClick={event => event.stopPropagation()}
                     >
                       <input
@@ -338,17 +346,28 @@ export function MonitoringDataTable({
                       />
                     </td>
                     <td
-                      className={`${cellBorderClass} px-0 py-[13px] text-center text-[14px] leading-[1.45] xl:text-[15px] ${isSelected ? 'font-semibold text-[#353E73]' : 'text-[#667085]'}`.trim()}
+                      className={monitoringTableCellClass(
+                        index,
+                        `px-0 text-center ${isSelected ? 'font-semibold text-[#353E73]' : 'text-[#667085]'}`
+                      )}
                     >
                       {rowNumberStart + index}
                     </td>
                     <td
-                      className={`${cellBorderClass} px-4 py-[13px] text-[14px] leading-[1.45] xl:px-5 xl:text-[15px] ${isSelected ? 'font-semibold text-[#353E73]' : 'text-[#475467]'}`.trim()}
+                      className={monitoringTableCellClass(
+                        index,
+                        `xl:px-5 ${isSelected ? 'font-semibold text-[#353E73]' : 'text-[#475467]'}`
+                      )}
                     >
-                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">{row.detectedAt}</div>
+                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">
+                        {row.detectedAt}
+                      </div>
                     </td>
                     <td
-                      className={`${cellBorderClass} px-3 py-[13px] text-[14px] leading-[1.45] xl:px-4 xl:text-[15px] ${isSelected ? 'font-semibold text-[#353E73]' : 'text-[#475467]'}`.trim()}
+                      className={monitoringTableCellClass(
+                        index,
+                        `px-3 xl:px-4 ${isSelected ? 'font-semibold text-[#353E73]' : 'text-[#475467]'}`
+                      )}
                     >
                       <div className="flex items-center justify-center xl:justify-start">
                         <ServiceLogoBadge
@@ -360,26 +379,44 @@ export function MonitoringDataTable({
                       </div>
                     </td>
                     <td
-                      className={`${cellBorderClass} px-3 py-[13px] text-[14px] leading-[1.45] xl:px-4 xl:text-[15px] ${isSelected ? 'font-semibold text-[#252B5C]' : 'text-[#2E3363]'}`.trim()}
+                      className={monitoringTableCellClass(
+                        index,
+                        `px-3 xl:px-4 ${isSelected ? 'font-semibold text-[#252B5C]' : 'text-[#2E3363]'}`
+                      )}
                     >
-                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">{row.prompt}</div>
+                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">
+                        {row.prompt}
+                      </div>
                     </td>
                     <td
-                      className={`${cellBorderClass} px-3 py-[13px] text-[14px] leading-[1.45] xl:px-4 xl:text-[15px] ${isSelected ? 'font-semibold' : ''}`.trim()}
+                      className={monitoringTableCellClass(
+                        index,
+                        `px-3 xl:px-4 ${isSelected ? 'font-semibold' : ''}`
+                      )}
                     >
                       <div className="overflow-hidden">
                         <MonitoringResultChip level={row.level} result={row.result} />
                       </div>
                     </td>
                     <td
-                      className={`${cellBorderClass} px-3 py-[13px] text-[14px] leading-[1.45] xl:px-4 xl:text-[15px] ${isSelected ? 'font-semibold text-[#252B5C]' : 'text-[#2E3363]'}`.trim()}
+                      className={monitoringTableCellClass(
+                        index,
+                        `px-3 xl:px-4 ${isSelected ? 'font-semibold text-[#252B5C]' : 'text-[#2E3363]'}`
+                      )}
                     >
-                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">{row.content}</div>
+                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">
+                        {row.content}
+                      </div>
                     </td>
                     <td
-                      className={`${cellBorderClass} px-3 py-[13px] text-[14px] leading-[1.45] xl:px-4 xl:text-[15px] ${isSelected ? 'font-semibold text-[#252B5C]' : 'text-[#2E3363]'}`.trim()}
+                      className={monitoringTableCellClass(
+                        index,
+                        `px-3 xl:px-4 ${isSelected ? 'font-semibold text-[#252B5C]' : 'text-[#2E3363]'}`
+                      )}
                     >
-                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">{row.userIp}</div>
+                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">
+                        {row.userIp}
+                      </div>
                     </td>
                   </tr>
                   {isSelected && renderExpandedRow ? (

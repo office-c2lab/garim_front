@@ -3,6 +3,15 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import ServiceLogoBadge from '../../components/ServiceLogoBadge.jsx';
+import {
+  monitoringTableCellClass,
+  monitoringTableClass,
+  monitoringTableHeadClass,
+  monitoringTableHeaderCellClass,
+  monitoringTableHeaderRowClass,
+  monitoringTableRowClass,
+  monitoringTableSurfaceClass,
+} from '../../components/monitoring/monitoringTableStyles.js';
 import PageLayout from '../../layout/PageLayout.jsx';
 
 const summaryCards = [
@@ -15,8 +24,18 @@ const summaryCards = [
 ];
 
 const chartSeries = [
-  { key: 'personal', label: '개인정보 탐지', color: '#4C59F7', values: [98, 112, 105, 139, 168, 152, 156] },
-  { key: 'corporate', label: '기밀정보 탐지', color: '#1FB566', values: [28, 31, 27, 36, 42, 40, 38] },
+  {
+    key: 'personal',
+    label: '개인정보 탐지',
+    color: '#4C59F7',
+    values: [98, 112, 105, 139, 168, 152, 156],
+  },
+  {
+    key: 'corporate',
+    label: '기밀정보 탐지',
+    color: '#1FB566',
+    values: [28, 31, 27, 36, 42, 40, 38],
+  },
   { key: 'prompt', label: '프롬프트 위협', color: '#FF4B57', values: [8, 9, 17, 14, 16, 13, 20] },
 ];
 
@@ -30,11 +49,41 @@ const donutSegments = [
 ];
 
 const serviceStatus = [
-  { service: 'ChatGPT', url: 'https://chatgpt.com/', status: '정상', policyRate: '100%', detections: '72건' },
-  { service: 'Gemini', url: 'https://gemini.google.com/', status: '정상', policyRate: '95%', detections: '18건' },
-  { service: 'Claude', url: 'https://claude.ai/', status: '정상', policyRate: '100%', detections: '28건' },
-  { service: 'Genspark', url: 'https://www.genspark.ai/', status: '정상', policyRate: '88%', detections: '14건' },
-  { service: 'MS Copilot', url: 'https://copilot.microsoft.com/', status: '정상', policyRate: '90%', detections: '7건' },
+  {
+    service: 'ChatGPT',
+    url: 'https://chatgpt.com/',
+    status: '정상',
+    policyRate: '100%',
+    detections: '72건',
+  },
+  {
+    service: 'Gemini',
+    url: 'https://gemini.google.com/',
+    status: '정상',
+    policyRate: '95%',
+    detections: '18건',
+  },
+  {
+    service: 'Claude',
+    url: 'https://claude.ai/',
+    status: '정상',
+    policyRate: '100%',
+    detections: '28건',
+  },
+  {
+    service: 'Genspark',
+    url: 'https://www.genspark.ai/',
+    status: '정상',
+    policyRate: '88%',
+    detections: '14건',
+  },
+  {
+    service: 'MS Copilot',
+    url: 'https://copilot.microsoft.com/',
+    status: '정상',
+    policyRate: '90%',
+    detections: '7건',
+  },
 ];
 
 const recentHistory = [
@@ -205,7 +254,14 @@ function LineChart() {
 
           return (
             <g key={value}>
-              <line x1={paddingX} y1={y} x2={width - paddingX} y2={y} stroke="#E8EDF7" strokeWidth="1" />
+              <line
+                x1={paddingX}
+                y1={y}
+                x2={width - paddingX}
+                y2={y}
+                stroke="#E8EDF7"
+                strokeWidth="1"
+              />
               <text x="18" y={y + 4} fill="#71809D" fontSize="12" fontWeight="700">
                 {value}
               </text>
@@ -228,7 +284,14 @@ function LineChart() {
               return (
                 <g key={`${series.key}-${chartLabels[index]}`}>
                   <circle cx={x} cy={y} r="4" fill="#FFF" stroke={series.color} strokeWidth="2" />
-                  <text x={x} y={y - 12} textAnchor="middle" fill={series.color} fontSize="11" fontWeight="700">
+                  <text
+                    x={x}
+                    y={y - 12}
+                    textAnchor="middle"
+                    fill={series.color}
+                    fontSize="11"
+                    fontWeight="700"
+                  >
                     {value}
                   </text>
                 </g>
@@ -253,7 +316,15 @@ function LineChart() {
         {chartLabels.map((label, index) => {
           const x = paddingX + stepX * index;
           return (
-            <text key={label} x={x} y={height + 20} textAnchor="middle" fill="#71809D" fontSize="12" fontWeight="700">
+            <text
+              key={label}
+              x={x}
+              y={height + 20}
+              textAnchor="middle"
+              fill="#71809D"
+              fontSize="12"
+              fontWeight="700"
+            >
               {label}
             </text>
           );
@@ -268,8 +339,13 @@ function DonutChart() {
   const radius = 76;
   const circumference = 2 * Math.PI * radius;
   let offset = 0;
-  const visibleSegments = donutSegments.filter(segment => !hiddenSegmentLabels.includes(segment.label));
-  const totalCount = visibleSegments.reduce((sum, segment) => sum + Number(segment.count.replace(/[^\d]/g, '')), 0);
+  const visibleSegments = donutSegments.filter(
+    segment => !hiddenSegmentLabels.includes(segment.label)
+  );
+  const totalCount = visibleSegments.reduce(
+    (sum, segment) => sum + Number(segment.count.replace(/[^\d]/g, '')),
+    0
+  );
 
   const handleToggleSegment = label => {
     setHiddenSegmentLabels(current =>
@@ -327,7 +403,10 @@ function DonutChart() {
             )}
           >
             <div className="flex items-center gap-3">
-              <span className="h-3.5 w-3.5 rounded-full" style={{ backgroundColor: segment.color }} />
+              <span
+                className="h-3.5 w-3.5 rounded-full"
+                style={{ backgroundColor: segment.color }}
+              />
               <span className="text-[1rem] font-semibold text-[#33415B]">{segment.label}</span>
             </div>
             <span className="shrink-0 text-[1rem] font-semibold text-[#33415B]">
@@ -391,41 +470,57 @@ export default function DashboardPage() {
       <section className="grid gap-5">
         <DashboardPanel
           title="최근 탐지 이력"
-          actions={<HeaderLink onClick={() => navigate('/monitoring')}>전체 탐지 이력 보기</HeaderLink>}
+          actions={
+            <HeaderLink onClick={() => navigate('/monitoring')}>전체 탐지 이력 보기</HeaderLink>
+          }
         >
-          <div className="overflow-x-auto">
-            <table className="min-w-[760px] w-full overflow-hidden rounded-[16px] border border-[#E8EDF6] text-left">
-              <thead className="bg-[#F9FBFF] text-[0.88rem] font-bold text-[#66718D]">
-                <tr>
-                  <th className="px-4 py-3.5">시간</th>
-                  <th className="px-4 py-3.5">서비스</th>
-                  <th className="px-4 py-3.5">탐지 결과</th>
-                  <th className="px-4 py-3.5">탐지 내용</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#E8EDF6] text-[0.92rem] font-semibold text-[#202A42]">
-                {recentHistory.map(row => (
-                  <tr key={`${row.time}-${row.service}`} className="bg-white">
-                    <td className="px-4 py-3 whitespace-nowrap">{row.time}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        <ServiceLogoBadge
-                          name={row.service}
-                          url={row.url}
-                          className="h-7 w-7 rounded-[9px] shadow-none"
-                          iconClassName="h-4.5 w-4.5"
-                        />
-                        <span>{row.service}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <ResultBadge tone={row.tone}>{row.result}</ResultBadge>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-[#2D3854]">{row.detail}</td>
+          <div className={monitoringTableSurfaceClass}>
+            <div className="overflow-x-auto">
+              <table className={`min-w-[760px] ${monitoringTableClass} text-left`}>
+                <thead className={monitoringTableHeadClass}>
+                  <tr className={monitoringTableHeaderRowClass}>
+                    <th className={monitoringTableHeaderCellClass}>시간</th>
+                    <th className={monitoringTableHeaderCellClass}>서비스</th>
+                    <th className={monitoringTableHeaderCellClass}>탐지 결과</th>
+                    <th className={monitoringTableHeaderCellClass}>탐지 내용</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {recentHistory.map((row, index) => (
+                    <tr
+                      key={`${row.time}-${row.service}`}
+                      className={monitoringTableRowClass({ striped: index % 2 === 1 })}
+                    >
+                      <td className={monitoringTableCellClass(index, 'whitespace-nowrap')}>
+                        {row.time}
+                      </td>
+                      <td className={monitoringTableCellClass(index, 'whitespace-nowrap')}>
+                        <div className="flex items-center gap-3">
+                          <ServiceLogoBadge
+                            name={row.service}
+                            url={row.url}
+                            className="h-7 w-7 rounded-[9px] shadow-none"
+                            iconClassName="h-4.5 w-4.5"
+                          />
+                          <span>{row.service}</span>
+                        </div>
+                      </td>
+                      <td className={monitoringTableCellClass(index)}>
+                        <ResultBadge tone={row.tone}>{row.result}</ResultBadge>
+                      </td>
+                      <td
+                        className={monitoringTableCellClass(
+                          index,
+                          'whitespace-nowrap text-[#2D3854]'
+                        )}
+                      >
+                        {row.detail}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <div className="mt-4 flex justify-center">
@@ -444,46 +539,50 @@ export default function DashboardPage() {
           title="서비스별 상태"
           actions={<HeaderLink onClick={() => navigate('/domains')}>전체 서비스 보기</HeaderLink>}
         >
-          <div className="overflow-x-auto">
-            <table className="min-w-[640px] w-full overflow-hidden rounded-[16px] border border-[#E8EDF6] text-left">
-              <thead className="bg-[#F9FBFF] text-[0.88rem] font-bold text-[#66718D]">
-                <tr>
-                  <th className="px-4 py-3.5">서비스</th>
-                  <th className="px-4 py-3.5">상태</th>
-                  <th className="px-4 py-3.5">정책 적용률</th>
-                  <th className="px-4 py-3.5">오늘 탐지 건수</th>
-                  <th className="w-10 px-4 py-3.5" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#E8EDF6] text-[0.94rem] font-semibold text-[#202A42]">
-                {serviceStatus.map(row => (
-                  <tr key={row.service} className="bg-white">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <ServiceLogoBadge
-                          name={row.service}
-                          url={row.url}
-                          className="h-7 w-7 rounded-[9px] shadow-none"
-                          iconClassName="h-4.5 w-4.5"
-                        />
-                        <span>{row.service}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <ResultBadge tone="success">{row.status}</ResultBadge>
-                    </td>
-                    <td className="px-4 py-3">{row.policyRate}</td>
-                    <td className="px-4 py-3">{row.detections}</td>
-                    <td className="px-4 py-3 text-right text-[#77839E]">
-                      <ChevronRight className="ml-auto h-4 w-4" />
-                    </td>
+          <div className={monitoringTableSurfaceClass}>
+            <div className="overflow-x-auto">
+              <table className={`min-w-[640px] ${monitoringTableClass} text-left`}>
+                <thead className={monitoringTableHeadClass}>
+                  <tr className={monitoringTableHeaderRowClass}>
+                    <th className={monitoringTableHeaderCellClass}>서비스</th>
+                    <th className={monitoringTableHeaderCellClass}>상태</th>
+                    <th className={monitoringTableHeaderCellClass}>정책 적용률</th>
+                    <th className={monitoringTableHeaderCellClass}>오늘 탐지 건수</th>
+                    <th className={`${monitoringTableHeaderCellClass} w-10`} />
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {serviceStatus.map((row, index) => (
+                    <tr
+                      key={row.service}
+                      className={monitoringTableRowClass({ striped: index % 2 === 1 })}
+                    >
+                      <td className={monitoringTableCellClass(index)}>
+                        <div className="flex items-center gap-3">
+                          <ServiceLogoBadge
+                            name={row.service}
+                            url={row.url}
+                            className="h-7 w-7 rounded-[9px] shadow-none"
+                            iconClassName="h-4.5 w-4.5"
+                          />
+                          <span>{row.service}</span>
+                        </div>
+                      </td>
+                      <td className={monitoringTableCellClass(index)}>
+                        <ResultBadge tone="success">{row.status}</ResultBadge>
+                      </td>
+                      <td className={monitoringTableCellClass(index)}>{row.policyRate}</td>
+                      <td className={monitoringTableCellClass(index)}>{row.detections}</td>
+                      <td className={monitoringTableCellClass(index, 'text-right text-[#77839E]')}>
+                        <ChevronRight className="ml-auto h-4 w-4" />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </DashboardPanel>
-
       </section>
 
       <DashboardPanel title="우선 확인 필요 항목">
