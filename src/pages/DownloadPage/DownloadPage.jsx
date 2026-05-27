@@ -1,321 +1,286 @@
 import {
-  Apple,
-  BookOpen,
-  Box,
   Check,
-  ChevronDown,
-  ChevronRight,
+  CircleCheck,
   Download,
-  ExternalLink,
-  FileText,
-  HelpCircle,
+  FileDown,
+  Globe2,
+  Mail,
+  MousePointerClick,
   Rocket,
+  Settings,
+  TriangleAlert,
+  MessageSquare,
 } from 'lucide-react';
-import SectionCard from '../../components/SectionCard.jsx';
-import {
-  monitoringTableCellClass,
-  monitoringTableClass,
-  monitoringTableHeadClass,
-  monitoringTableHeaderCellClass,
-  monitoringTableHeaderRowClass,
-  monitoringTableRowClass,
-  monitoringTableSurfaceClass,
-} from '../../components/monitoring/monitoringTableStyles.js';
-import PageLayout from '../../layout/PageLayout.jsx';
 import garimMoonImage from '../../assets/images/garim_moon.png';
-
-const installSteps = [
-  ['설치 파일 다운로드', '운영 환경에 맞는 설치 파일을 다운로드하세요.', '완료'],
-  ['에이전트 설치', '다운로드한 파일을 실행하여 설치를 진행하세요.', '진행 중'],
-  ['가이드 확인', '설치 후 운영 가이드를 통해 설정을 완료하세요.', '대기'],
-  ['시작하기', 'GARIM을 실행하고 서비스를 이용하세요.', '대기'],
-];
+import garimLogo from '../../assets/icons/GARIM.png';
+import logoIcon from '../../assets/icons/logo.png';
 
 const quickSteps = [
-  [Download, '설치 파일 다운로드', '운영 환경에 맞는 파일을 다운로드합니다.'],
-  [Box, '에이전트 설치', '파일을 실행하여 설치를 진행합니다.'],
-  [BookOpen, '가이드 확인', '운영 가이드를 확인하고 설정합니다.'],
-  [Rocket, '시작하기', 'GARIM을 실행하고 이용을 시작하세요.'],
+  [FileDown, '팩 파일 다운로드', '운영 환경에 맞는 팩 파일을 다운로드합니다.'],
+  [MousePointerClick, '파일 실행', '다운로드한 팩 파일을 실행합니다.'],
+  [CircleCheck, '적용 확인', 'GARIM 설정 또는 정책 적용 상태를 확인합니다.'],
+  [Rocket, '사용 시작', '적용이 완료된 후 서비스를 이용합니다.'],
 ];
 
-const guides = [
-  ['에이전트 설치 방법', 'Windows, macOS 설치 절차 안내', '2026-05-20'],
-  ['로그인 및 초기 설정', '최초 로그인 및 기본 설정 방법', '2026-05-19'],
-  ['정책 설정 가이드', '보안 정책 생성 및 배포 방법', '2026-05-18'],
-  ['문제 해결 가이드', '일반적인 오류 및 해결 방법', '2026-05-16'],
+const applySteps = [
+  [Download, '1. 파일 다운로드', '상단의 팩 파일 다운로드 버튼을 클릭해 파일을 저장합니다.'],
+  [MousePointerClick, '2. 파일 실행', '다운로드한 팩 파일을 실행합니다. 보안 경고가 표시되면 관리자의 안내에 따라 진행합니다.'],
+  [Settings, '3. 적용 진행', '실행 화면에서 적용 대상과 설정 정보를 확인한 뒤 적용을 진행합니다.'],
+  [Check, '4. 적용 완료 확인', '적용이 완료되면 GARIM 화면에서 정상 적용 여부를 확인합니다.'],
 ];
 
-const downloads = [
-  ['GARIM 에이전트 (Windows)', 'Windows', 'v1.2.0', '85.4 MB'],
-  ['GARIM 에이전트 (macOS)', 'macOS', 'v1.2.0', '92.1 MB'],
-  ['사용자 매뉴얼 (PDF)', 'PDF', 'v1.2.0', '12.6 MB'],
-  ['빠른 시작 가이드 (PDF)', 'PDF', 'v1.2.0', '2.4 MB'],
+const checklist = [
+  '관리자에게 안내받은 팩 파일인지 확인해 주세요.',
+  '이미 적용 중인 설정이 있다면 중복 적용 여부를 확인해 주세요.',
+  '신뢰할 수 있는 환경에서 실행해 주세요.',
+  '실행 중 브라우저나 프로그램을 종료하지 마세요.',
 ];
 
-const faqs = [
-  '에이전트 설치가 실패하는 경우 어떻게 하나요?',
-  '로그인 정보를 분실했을 때 어떻게 하나요?',
-  '정책 변경 사항은 언제 적용되나요?',
-  'macOS에서 보안 권한 설정 방법은 무엇인가요?',
-  '오프라인 환경에서도 사용 가능한가요?',
+const verifyItems = [
+  [Globe2, 'GARIM 서비스 접속이 정상적으로 가능한지 확인'],
+  [Settings, '정책 또는 설정이 정상 반영되었는지 확인'],
+  [TriangleAlert, '오류 메시지가 표시되지 않는지 확인'],
+  [MessageSquare, '문제가 발생하면 관리자에게 문의'],
 ];
 
-function StatusLabel({ status }) {
-  const className =
-    status === '완료'
-      ? 'text-[#86EFAC]'
-      : status === '진행 중'
-        ? 'text-[#A78BFA]'
-        : 'text-white/55';
-
-  return <span className={`text-xs font-bold ${className}`}>{status}</span>;
-}
-
-function QuickCard({ icon: Icon, title, description, action }) {
+function Section({ children, className = '' }) {
   return (
-    <SectionCard className="p-5">
-      <div className="flex items-start gap-4">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#F1EDFF] text-[#5B39D6]">
-          <Icon className="h-7 w-7" />
-        </div>
-        <div className="min-w-0">
-          <h3 className="text-base font-bold text-slate-900">{title}</h3>
-          <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
-          <button
-            type="button"
-            className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-[#4338CA]"
-          >
-            {action}
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-    </SectionCard>
+    <section className={`rounded-[18px] border border-[#E5EAF3] bg-white shadow-[0_16px_42px_rgba(15,23,42,0.07)] ${className}`.trim()}>
+      {children}
+    </section>
   );
 }
 
-function FileIcon({ type }) {
-  if (type === 'Windows') {
-    return (
-      <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#EAF2FF] text-xs font-black text-[#2563EB]">
-        W
+function StepCard({ icon: Icon, number, title, description }) {
+  return (
+    <div className="relative flex min-h-[13.5rem] flex-col items-center justify-center rounded-[14px] border border-[#E3E8F2] bg-white px-6 py-6 text-center shadow-[0_14px_30px_rgba(15,23,42,0.08)]">
+      <span className="absolute left-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-[#5B39D6] text-sm font-black text-white">
+        {number}
       </span>
-    );
-  }
-
-  if (type === 'macOS') {
-    return <Apple className="h-6 w-6 text-slate-900" />;
-  }
-
-  return (
-    <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#FEE2E2] text-[10px] font-black text-[#DC2626]">
-      PDF
-    </span>
+      <Icon className="h-12 w-12 text-[#5B39D6]" />
+      <h3 className="mt-5 text-lg font-black text-slate-900">{title}</h3>
+      <p className="mt-3 text-sm font-medium leading-6 text-[#526078]">{description}</p>
+    </div>
   );
 }
 
-function PanelHeader({ title, action }) {
+function ApplyCard({ icon: Icon, title, description }) {
   return (
-    <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-      <h2 className="text-base font-bold text-slate-900">{title}</h2>
-      {action ? (
-        <button
-          type="button"
-          className="inline-flex items-center gap-1 text-xs font-bold text-[#4338CA]"
-        >
-          {action}
-          <ChevronRight className="h-4 w-4" />
-        </button>
-      ) : null}
+    <div className="overflow-hidden rounded-[10px] border border-[#E3E8F2] bg-white">
+      <div className="flex h-40 items-center justify-center bg-[linear-gradient(180deg,#F8FAFF_0%,#F1F5FB_100%)] text-[#5B39D6]">
+        <Icon className="h-16 w-16" />
+      </div>
+      <div className="px-5 py-5">
+        <h3 className="text-base font-black text-slate-900">{title}</h3>
+        <p className="mt-3 text-sm font-medium leading-6 text-[#526078]">{description}</p>
+      </div>
     </div>
   );
 }
 
 export default function DownloadPage() {
   return (
-    <PageLayout>
-      <div className="flex flex-col gap-5 pb-3">
-        <section
-          className="relative min-h-[16rem] overflow-hidden rounded-[22px] border border-[#20164A] bg-[#080B28] bg-cover bg-center px-7 py-7 text-white shadow-[0_18px_50px_rgba(35,19,90,0.18)] lg:px-9"
-          style={{ backgroundImage: `url(${garimMoonImage})` }}
-        >
-          <div className="relative z-10 grid gap-6 lg:grid-cols-[1fr_0.48fr]">
-            <div className="flex flex-col justify-center">
-              <span className="inline-flex w-fit rounded-full bg-white/12 px-4 py-1 text-xs font-bold text-[#D8CCFF]">
-                AI AGENT SUPPORT
-              </span>
-              <h1 className="mt-4 text-[clamp(2rem,4vw,3.5rem)] font-black leading-none tracking-[-0.05em]">
-                운영지원
-              </h1>
-              <p className="mt-5 max-w-[34rem] text-base font-medium leading-7 text-white/84">
-                GARIM 에이전트와 설치 파일, 운영 가이드를 다운로드하고 쉽고 빠르게 시작해 보세요.
-              </p>
-              <div className="mt-7 flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-[#6D4CFF] bg-[#5B39D6] px-6 text-sm font-bold text-white shadow-[0_14px_30px_rgba(91,57,214,0.32)] transition hover:bg-[#4C2FC0]"
-                >
-                  <Download className="h-4 w-4" />
-                  에이전트 다운로드
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/15"
-                >
-                  <BookOpen className="h-4 w-4" />
-                  설치 가이드 보기
-                </button>
-              </div>
-            </div>
+    <main className="min-h-screen bg-[#F3F6FA] text-[#111827]">
+      <header className="sticky top-0 z-30 h-[4.5rem] bg-black">
+        <div className="mx-auto flex h-full max-w-[1280px] items-center justify-between px-8">
+          <img src={garimLogo} alt="GARIM" className="h-8 w-auto" />
+          <nav className="hidden items-center gap-10 text-sm font-bold text-white md:flex">
+            <a href="#guide" className="transition hover:text-[#C4B5FD]">
+              다운로드 가이드
+            </a>
+            <a href="#apply" className="transition hover:text-[#C4B5FD]">
+              적용 방법
+            </a>
+            <a href="#contact" className="transition hover:text-[#C4B5FD]">
+              문의하기
+            </a>
+          </nav>
+        </div>
+      </header>
 
-            <div className="hidden lg:block">
-              <div className="rounded-2xl border border-white/10 bg-[#171331]/82 p-5 backdrop-blur">
-                <h2 className="text-sm font-bold text-white">설치 진행 상태</h2>
-                <div className="mt-4 space-y-4">
-                  {installSteps.map(([title, description, status], index) => (
-                    <div key={title} className="grid grid-cols-[1.6rem_1fr_auto] gap-3">
-                      <div
-                        className={`flex h-6 w-6 items-center justify-center rounded-full border text-xs font-bold ${
-                          status === '완료'
-                            ? 'border-[#8B5CF6] bg-[#2F216C] text-[#A78BFA]'
-                            : status === '진행 중'
-                              ? 'border-[#A78BFA] bg-[#7C3AED] text-white'
-                              : 'border-white/25 text-white/55'
-                        }`}
-                      >
-                        {status === '완료' ? <Check className="h-4 w-4" /> : index + 1}
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-white">{title}</p>
-                        <p className="mt-1 text-xs leading-5 text-white/55">{description}</p>
-                      </div>
-                      <StatusLabel status={status} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+      <section
+        className="relative flex min-h-[25rem] items-center justify-center overflow-hidden bg-[#080B28] bg-cover bg-center px-6 text-white"
+        style={{ backgroundImage: `url(${garimMoonImage})` }}
+      >
+        <div className="absolute inset-0 bg-black/18" />
+        <div className="relative z-10 mx-auto max-w-[820px] text-center">
+          <h1 className="text-[clamp(2.4rem,5vw,4.2rem)] font-bold leading-tight tracking-[-0.02em]">
+            GARIM 운영지원
+          </h1>
+          <p className="mx-auto mt-6 max-w-[42rem] text-xl font-semibold leading-8 text-white/88">
+            GARIM 적용에 필요한 팩 파일을 다운로드하고 실행 및 적용 방법을 확인해 주세요.
+          </p>
+          <button
+            type="button"
+            className="mt-9 inline-flex h-16 items-center justify-center gap-3 rounded-xl border border-[#6D4CFF] bg-[#5B39D6] px-12 text-lg font-black text-white shadow-[0_18px_36px_rgba(91,57,214,0.34)] transition hover:bg-[#4C2FC0]"
+          >
+            <Download className="h-6 w-6" />
+            팩 파일 다운로드
+          </button>
+        </div>
+      </section>
+
+      <div className="mx-auto flex max-w-[1200px] flex-col gap-8 px-8 py-10">
+        <section id="guide">
+          <div>
+            <h2 className="text-2xl font-black text-slate-900">빠른 시작</h2>
+            <p className="mt-3 text-base font-semibold leading-7 text-[#526078]">
+              4단계만 따라하면 쉽게 적용할 수 있어요.
+            </p>
+          </div>
+          <div className="mt-6 grid gap-7 md:grid-cols-2 xl:grid-cols-4">
+            {quickSteps.map(([Icon, title, description], index) => (
+              <StepCard
+                key={title}
+                icon={Icon}
+                number={index + 1}
+                title={title}
+                description={description}
+              />
+            ))}
           </div>
         </section>
 
-        <SectionCard className="p-5">
-          <div className="grid gap-5 lg:grid-cols-4">
-            {quickSteps.map(([Icon, title, description], index) => (
-              <div key={title} className="relative flex min-w-0 items-center gap-4">
-                <div className="absolute -top-2 left-12 flex h-6 w-6 items-center justify-center rounded-full bg-[#5B39D6] text-xs font-bold text-white shadow-[0_0_0_5px_rgba(91,57,214,0.12)]">
-                  {index + 1}
+        <Section className="p-8">
+          <div>
+            <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-900">팩 파일 다운로드</h2>
+            <p className="mt-4 text-base font-semibold leading-7 text-[#526078]">
+              GARIM 적용에 필요한 최신 팩 파일을 다운로드하세요. 관리자가 안내한 환경에 맞는 파일을 선택해 실행해 주세요.
+            </p>
+          </div>
+
+          <div className="mt-8 rounded-xl border border-[#DDE4EF] bg-white p-6">
+            <div className="grid gap-6 lg:grid-cols-[10rem_1fr_auto] lg:items-center">
+              <div className="flex h-40 w-40 items-center justify-center rounded-xl bg-[#F4F1FF]">
+                <img src={logoIcon} alt="" className="h-24 w-24 rounded-2xl object-cover" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <h3 className="text-3xl font-black tracking-[-0.04em] text-slate-900">GARIM Pack</h3>
+                  <span className="rounded-md border border-[#E3E8F2] bg-white px-3 py-1 text-xs font-black text-[#526078]">
+                    최신 버전
+                  </span>
                 </div>
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-[#DED9FF] bg-[#F4F1FF] text-[#5B39D6]">
-                  <Icon className="h-7 w-7" />
+                <div className="mt-6 flex flex-wrap gap-x-8 gap-y-2 text-sm font-bold text-[#64728C]">
+                  <span>버전 v1.2.0</span>
+                  <span>업데이트 2026.05.20</span>
+                  <span>파일 형식 .pack</span>
+                  <span>크기 85.4MB</span>
                 </div>
-                <div className="min-w-0">
-                  <h3 className="text-sm font-bold text-slate-900">{title}</h3>
-                  <p className="mt-1 text-xs leading-5 text-slate-500">{description}</p>
-                </div>
+                <p className="mt-6 text-base font-semibold text-[#526078]">
+                  GARIM 정책 및 환경 설정 적용을 위한 팩 파일입니다.
+                </p>
+              </div>
+              <div className="flex flex-col items-stretch gap-4 lg:min-w-[14rem]">
+                <button
+                  type="button"
+                  className="inline-flex h-16 items-center justify-center gap-3 rounded-xl border border-[#5B39D6] bg-[#5B39D6] px-8 text-lg font-black text-white shadow-[0_14px_30px_rgba(91,57,214,0.24)] transition hover:bg-[#4C2FC0]"
+                >
+                  <Download className="h-5 w-5" />
+                  팩 파일 다운로드
+                </button>
+                <span className="text-center text-base font-black text-[#526078]">85.4MB</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-center justify-center rounded-lg border border-[#E3E8F2] bg-[#FAFBFF] px-5 py-4 text-sm font-semibold text-[#526078]">
+            다운로드가 시작되지 않는다면?
+            <button type="button" className="mx-1 font-black text-[#5B39D6]">
+              여기
+            </button>
+            를 클릭하여 다시 시도해 주세요.
+          </div>
+        </Section>
+
+        <Section id="apply" className="p-8">
+          <div>
+            <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-900">실행 및 적용 방법</h2>
+            <p className="mt-4 text-base font-semibold leading-7 text-[#526078]">
+              다운로드한 팩 파일을 실행한 뒤 안내에 따라 GARIM 설정을 적용합니다.
+            </p>
+          </div>
+
+          <div className="mt-8 grid gap-8 md:grid-cols-2 xl:grid-cols-4">
+            {applySteps.map(([Icon, title, description]) => (
+              <ApplyCard key={title} icon={Icon} title={title} description={description} />
+            ))}
+          </div>
+        </Section>
+
+        <Section className="p-8">
+          <div>
+            <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-900">적용 전 확인사항</h2>
+            <p className="mt-4 text-base font-semibold leading-7 text-[#526078]">
+              팩 파일을 실행하기 전에 아래 내용을 확인해 주세요.
+            </p>
+          </div>
+          <div className="mt-8 grid gap-5 rounded-xl border border-[#E3E8F2] bg-[#FAFBFF] p-6 md:grid-cols-2">
+            {checklist.map(item => (
+              <div key={item} className="flex items-start gap-3 text-base font-bold leading-7 text-[#344054]">
+                <CircleCheck className="mt-1 h-5 w-5 shrink-0 text-[#5B39D6]" />
+                <span>{item}</span>
               </div>
             ))}
           </div>
-        </SectionCard>
+        </Section>
 
-        <div className="grid gap-5 xl:grid-cols-3">
-          <QuickCard
-            icon={BookOpen}
-            title="사용 가이드"
-            description="설치, 설정, 운영 방법을 단계별로 안내합니다."
-            action="가이드 바로가기"
-          />
-          <QuickCard
-            icon={Download}
-            title="설치 파일 다운로드"
-            description="운영 체제에 맞는 최신 설치 파일을 다운로드하세요."
-            action="다운로드 선택"
-          />
-          <QuickCard
-            icon={HelpCircle}
-            title="FAQ / 지원"
-            description="자주 묻는 질문과 추가 지원 자료를 확인하세요."
-            action="지원 센터 바로가기"
-          />
-        </div>
+        <Section className="p-8">
+          <div>
+            <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-900">적용 후 확인 방법</h2>
+            <p className="mt-4 text-base font-semibold leading-7 text-[#526078]">
+              적용이 완료되면 아래 항목을 확인해 주세요.
+            </p>
+          </div>
+          <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+            {verifyItems.map(([Icon, text]) => (
+              <div key={text} className="flex items-center gap-4 border-l border-[#E3E8F2] px-5">
+                <Icon className="h-11 w-11 shrink-0 text-[#5B39D6]" />
+                <p className="text-base font-bold leading-7 text-[#344054]">{text}</p>
+              </div>
+            ))}
+          </div>
+        </Section>
 
-        <div className="grid gap-5 xl:grid-cols-3">
-          <SectionCard className="overflow-hidden">
-            <PanelHeader title="사용 가이드" action="전체 보기" />
-            <div className="divide-y divide-slate-200">
-              {guides.map(([title, description, updatedAt]) => (
-                <div
-                  key={title}
-                  className="grid grid-cols-[1fr_auto_auto] items-center gap-3 px-5 py-4 text-sm"
-                >
-                  <div className="min-w-0">
-                    <p className="font-bold text-slate-800">{title}</p>
-                    <p className="mt-1 truncate text-xs text-slate-400">{description}</p>
-                  </div>
-                  <span className="text-xs font-semibold text-slate-500">{updatedAt}</span>
-                  <ExternalLink className="h-4 w-4 text-[#4338CA]" />
-                </div>
-              ))}
+        <Section id="contact" className="p-8">
+          <div>
+            <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-900">문제가 발생했나요?</h2>
+            <p className="mt-4 text-base font-semibold leading-7 text-[#526078]">
+              팩 파일 다운로드, 실행 또는 적용 중 문제가 발생하면 관리자에게 문의해 주세요.
+            </p>
+          </div>
+          <div className="mt-8 grid overflow-hidden rounded-xl border border-[#E3E8F2] bg-white md:grid-cols-2">
+            <div className="flex items-center gap-5 px-10 py-7">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#F4F1FF] text-[#5B39D6]">
+                <Mail className="h-8 w-8" />
+              </div>
+              <div>
+                <p className="text-base font-black text-slate-900">이메일</p>
+                <p className="mt-2 text-base font-bold text-[#526078]">support@garim.com</p>
+              </div>
             </div>
-          </SectionCard>
-
-          <SectionCard className="overflow-hidden">
-            <PanelHeader title="다운로드" />
-            <div className={monitoringTableSurfaceClass}>
-              <table className={`${monitoringTableClass} text-left`}>
-                <thead className={monitoringTableHeadClass}>
-                  <tr className={monitoringTableHeaderRowClass}>
-                    <th className={`${monitoringTableHeaderCellClass} w-[42%] px-5`}>파일명</th>
-                    <th className={`${monitoringTableHeaderCellClass} w-[18%]`}>버전</th>
-                    <th className={`${monitoringTableHeaderCellClass} w-[18%]`}>크기</th>
-                    <th className={`${monitoringTableHeaderCellClass} w-[22%]`}>다운로드</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {downloads.map(([name, type, version, size], index) => (
-                    <tr
-                      key={name}
-                      className={monitoringTableRowClass({ striped: index % 2 === 1 })}
-                    >
-                      <td className={monitoringTableCellClass(index, 'px-5')}>
-                        <div className="flex items-center gap-3">
-                          <FileIcon type={type} />
-                          <span className="truncate font-bold text-slate-800">{name}</span>
-                        </div>
-                      </td>
-                      <td className={monitoringTableCellClass(index)}>{version}</td>
-                      <td className={monitoringTableCellClass(index)}>{size}</td>
-                      <td className={monitoringTableCellClass(index)}>
-                        <button
-                          type="button"
-                          className="inline-flex h-8 items-center justify-center rounded-lg border border-[#DED9FF] bg-white px-3 text-xs font-bold text-[#4338CA] transition hover:bg-[#F5F3FF]"
-                        >
-                          다운로드
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="flex items-center gap-5 border-t border-[#E3E8F2] px-10 py-7 md:border-l md:border-t-0">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#F4F1FF] text-[#5B39D6]">
+                <MessageSquare className="h-8 w-8" />
+              </div>
+              <div>
+                <p className="text-base font-black text-slate-900">전화</p>
+                <p className="mt-2 text-base font-bold text-[#526078]">02-1234-5678</p>
+              </div>
             </div>
-          </SectionCard>
-
-          <SectionCard className="overflow-hidden">
-            <PanelHeader title="자주 묻는 질문" action="전체 보기" />
-            <div className="divide-y divide-slate-200">
-              {faqs.map(question => (
-                <button
-                  type="button"
-                  key={question}
-                  className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                >
-                  <span>{question}</span>
-                  <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
-                </button>
-              ))}
-            </div>
-          </SectionCard>
-        </div>
+          </div>
+        </Section>
       </div>
-    </PageLayout>
+
+      <footer className="mt-2 bg-[#101722]">
+        <div className="mx-auto flex max-w-[1200px] flex-col gap-4 px-8 py-8 text-sm font-semibold text-white/62 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-8">
+            <img src={garimLogo} alt="GARIM" className="h-7 w-auto" />
+            <span>GARIM은 안전하고 효율적인 IT 환경을 제공하는 기술 기업입니다.</span>
+          </div>
+          <span>© 2026 GARIM Co., Ltd. All rights reserved.</span>
+        </div>
+      </footer>
+    </main>
   );
 }
