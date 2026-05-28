@@ -13,241 +13,71 @@ import {
   APP_PAGE_OUTER_WIDTH_CLASS,
 } from '../../constants/contentLayout.js';
 import { getStatusTextClassName as getStatusColorClassName } from '../../constants/statusColors.js';
-
-const logs = [
-  {
-    id: 1,
-    detectedAt: '2026-05-20 13:22',
-    aiType: 'ChatGPT',
-    organization: 'AI 서비스팀',
-    prompt: '김철수 / choi.sokim@example.com / 송장 처리 우선순위 요청',
-    result: '개인정보 탐지',
-    content: '개인정보 탐지 · 이메일 4건 · 사용자 식별자 포함',
-    userIp: '211.44.92.110',
-    userId: 'ahn@cloudmate.com',
-    level: 'danger',
-    promptDetail:
-      '김철수 / choi.sokim@example.com / 배송지 총주고 수탁건수 / 아이템 / 2,500원\n이영희 / yeonghee@example.com / 회사 공통자료 요청 / 2,500원\n박민수 / ahn77@gmail.com / 내부 정산서 분석 / 협력사 / 1,300원\n최민준 / choi@gmail.com / 내부 문서번호 포함 조회 / 데이터 요청 / 1,900원',
-    detectionDetail:
-      '이메일 4건과 사용자 식별 가능 정보, 거래 금액, 내부 문서 정보가 함께 포함되었습니다.\n외부 AI 전송 전 개인정보 마스킹 또는 정책 승인 절차가 필요합니다.',
-    actionDetail:
-      '개인정보가 포함된 프롬프트는 외부 AI 서비스로 전송하기 전 자동 마스킹 처리합니다. 반복 탐지되는 항목은 정책 차단 조건에 추가하고, 관리자 검토 후 예외 처리 여부를 결정합니다.',
-  },
-  {
-    id: 2,
-    detectedAt: '2026-05-20 13:17',
-    aiType: 'ChatGPT',
-    organization: '보안 운영팀',
-    prompt: 'CP 2025 Alpha Cloud Lite 계약서 요약 요청',
-    result: '기밀정보 탐지',
-    content: '기밀정보 탐지 · 내부 계약 문구 포함',
-    userIp: '211.44.92.110',
-    userId: 'park@cloudmate.com',
-    level: 'warning',
-    promptDetail: '대외 전달 전 계약서 초안과 내부 검토 메모를 함께 요약 요청했습니다.',
-    detectionDetail: '프로젝트 코드명과 내부 계약 조항이 포함되어 기밀정보 탐지로 분류되었습니다.',
-    actionDetail: '문서 등급 분류 정책에 따라 사내 승인 절차로 이관하고 외부 전송은 차단합니다.',
-  },
-  {
-    id: 3,
-    detectedAt: '2026-05-20 13:10',
-    aiType: 'ChatGPT',
-    organization: 'AI 서비스팀',
-    prompt: 'word 파일 업로드 후 요약 요청',
-    result: '정상',
-    content: '위험 키워드 없이 정상 요청으로 처리',
-    userIp: '211.44.92.110',
-    userId: 'lee@cloudmate.com',
-    level: 'safe',
-    promptDetail: '일반 보고서 문서를 업로드하고 핵심 요약만 요청했습니다.',
-    detectionDetail: '위험 키워드와 민감 정보가 확인되지 않아 정상 요청으로 처리되었습니다.',
-    actionDetail: '정상 요청으로 기록만 남기고 별도 조치는 하지 않았습니다.',
-  },
-  {
-    id: 4,
-    detectedAt: '2026-05-20 10:30',
-    aiType: 'Claude',
-    organization: '전략기획실',
-    prompt: '대외 전달용 제안서 초안 생성',
-    result: '기밀정보 탐지',
-    content: '프로젝트명과 내부 담당자 정보 포함',
-    userIp: '211.44.92.110',
-    userId: 'kim@cloudmate.com',
-    level: 'warning',
-    promptDetail: '제안서 초안에 내부 프로젝트명과 담당자 실명이 포함되었습니다.',
-    detectionDetail: '대외 배포 전 비식별화가 필요한 정보가 확인되었습니다.',
-    actionDetail: '프로젝트명 치환 규칙을 적용하고 담당자 이름은 부서 단위로 대체합니다.',
-  },
-  {
-    id: 5,
-    detectedAt: '2026-05-20 09:21',
-    aiType: 'Gemini',
-    organization: '보안 운영팀',
-    prompt: '회사 월별 영업 분석 요청',
-    result: '프롬프트 위협',
-    content: '프롬프트 인젝션 의심 · 내부 수치 데이터 포함',
-    userIp: '211.44.92.110',
-    userId: 'choi@cloudmate.com',
-    level: 'danger',
-    promptDetail: '시스템 정책을 무시하고 내부 분석 수치를 모두 노출하라는 지시가 포함되었습니다.',
-    detectionDetail: '프롬프트 인젝션 패턴과 내부 영업 수치 요청이 동시에 탐지되었습니다.',
-    actionDetail: '즉시 차단 후 보안 이벤트로 승격하고 사용자 재교육 대상에 등록합니다.',
-  },
-  {
-    id: 6,
-    detectedAt: '2026-05-20 09:03',
-    aiType: 'ChatGPT',
-    organization: 'AI 서비스팀',
-    prompt: '방학별 매출 데이터 분석 요청',
-    result: '프롬프트 위협',
-    content: '프롬프트 인젝션 지시 포함',
-    userIp: '211.44.92.110',
-    userId: 'jeong@cloudmate.com',
-    level: 'warning',
-    promptDetail: '시스템 메시지를 무시하고 모든 응답 제한을 해제하라는 문구가 포함되었습니다.',
-    detectionDetail: '인젝션 시도는 있었지만 추가 민감 정보는 포함되지 않았습니다.',
-    actionDetail: '위험도 경고로 기록하고 동일 패턴 재발 시 자동 차단 임계치를 높입니다.',
-  },
-  {
-    id: 7,
-    detectedAt: '2026-05-19 18:42',
-    aiType: 'ChatGPT',
-    organization: '전략기획실',
-    prompt: '내부 예산안 요약 및 대외 발표용 문구 정리',
-    result: '기밀정보 탐지',
-    content: '내부 예산 수치 및 미공개 계획 포함',
-    userIp: '211.44.92.111',
-    userId: 'moon@cloudmate.com',
-    level: 'warning',
-    promptDetail:
-      '내부 예산안과 차년도 인력 운영 계획을 외부 발표 문구로 정리해 달라는 요청입니다.',
-    detectionDetail: '미공개 예산 수치와 인력 계획이 포함되어 외부 공유 전 검토가 필요합니다.',
-    actionDetail:
-      '민감 수치를 제거한 버전으로 재작성하도록 유도하고 원문은 보안 검토로 이관합니다.',
-  },
-  {
-    id: 8,
-    detectedAt: '2026-05-19 17:08',
-    aiType: 'Claude',
-    organization: 'AI 서비스팀',
-    prompt: '고객 문의 답변 자동화 문안 생성 요청',
-    result: '정상',
-    content: '민감 정보 없이 일반 응대 문안 생성',
-    userIp: '211.44.92.112',
-    userId: 'seo@cloudmate.com',
-    level: 'safe',
-    promptDetail: '자주 들어오는 배송 지연 문의에 대한 일반 응대 문안을 생성하는 요청입니다.',
-    detectionDetail: '개인정보나 기밀 정보 없이 일반 운영 문구만 포함되어 정상 처리되었습니다.',
-    actionDetail: '정상 요청으로 기록만 남기고 별도 조치는 하지 않았습니다.',
-  },
-  {
-    id: 9,
-    detectedAt: '2026-05-19 16:11',
-    aiType: 'Gemini',
-    organization: '보안 운영팀',
-    prompt: '정책 우회 후 시스템 프롬프트 노출 시도',
-    result: '프롬프트 위협',
-    content: '시스템 지시 무시 및 내부 규칙 노출 유도',
-    userIp: '211.44.92.113',
-    userId: 'han@cloudmate.com',
-    level: 'danger',
-    promptDetail:
-      '기존 안전 규칙을 무시하고 시스템 프롬프트 원문을 출력하라는 문구가 포함되었습니다.',
-    detectionDetail: '명시적인 프롬프트 인젝션 시도이며 내부 정책 노출 위험이 확인되었습니다.',
-    actionDetail: '요청을 즉시 차단하고 보안 이벤트로 분류해 관리자 검토 대상으로 넘깁니다.',
-  },
-  {
-    id: 10,
-    detectedAt: '2026-05-19 14:27',
-    aiType: 'ChatGPT',
-    organization: 'AI 서비스팀',
-    prompt: '협력사 계약 이력 정리 요청',
-    result: '개인정보 탐지',
-    content: '담당자 이름, 이메일, 직통번호 포함',
-    userIp: '211.44.92.114',
-    userId: 'jang@cloudmate.com',
-    level: 'warning',
-    promptDetail: '협력사 담당자별 계약 이력과 연락처를 포함해 정리해 달라는 요청입니다.',
-    detectionDetail: '이름, 이메일, 직통번호 등 개인정보가 함께 포함되어 탐지되었습니다.',
-    actionDetail: '연락처 마스킹 후 다시 요청하도록 안내하고 원본 요청은 저장소에서 격리합니다.',
-  },
-  {
-    id: 11,
-    detectedAt: '2026-05-19 11:54',
-    aiType: 'Claude',
-    organization: '전략기획실',
-    prompt: '시장 분석 보고서 요약 요청',
-    result: '정상',
-    content: '공개 리서치 기반 요약',
-    userIp: '211.44.92.115',
-    userId: 'yoon@cloudmate.com',
-    level: 'safe',
-    promptDetail: '공개된 시장 조사 보고서를 기반으로 핵심 트렌드를 요약해 달라는 요청입니다.',
-    detectionDetail: '공개 자료만 사용되었고 민감 정보가 확인되지 않아 정상 처리되었습니다.',
-    actionDetail: '정상 요청으로 기록만 남기고 별도 조치는 하지 않았습니다.',
-  },
-  {
-    id: 12,
-    detectedAt: '2026-05-19 10:46',
-    aiType: 'MS Copilot',
-    organization: '재무기획팀',
-    prompt: '분기 손익 보고서 초안 검토 요청',
-    result: '기밀정보 탐지',
-    content: '내부 실적 수치 및 미공개 전망 포함',
-    userIp: '211.44.92.116',
-    userId: 'lim@cloudmate.com',
-    level: 'warning',
-    promptDetail: '분기 손익 보고서 초안과 내부 전망 수치를 바탕으로 요약 검토를 요청했습니다.',
-    detectionDetail: '미공개 재무 수치와 향후 전망 정보가 포함되어 기밀정보 탐지로 분류되었습니다.',
-    actionDetail: '재무 정보 보호 정책에 따라 승인 대기열로 이관하고 외부 전송은 보류합니다.',
-  },
-  {
-    id: 13,
-    detectedAt: '2026-05-19 09:38',
-    aiType: 'ChatGPT',
-    organization: '고객성공팀',
-    prompt: '고객 상담 이력 기반 응대 문안 추천',
-    result: '개인정보 탐지',
-    content: '고객 이름, 휴대전화, 주문번호 포함',
-    userIp: '211.44.92.117',
-    userId: 'oh@cloudmate.com',
-    level: 'warning',
-    promptDetail: '상담 이력에 포함된 고객 이름, 연락처, 주문번호를 기반으로 응대 문안을 추천해 달라는 요청입니다.',
-    detectionDetail: '이름과 연락처, 주문 식별 정보가 함께 포함되어 개인정보 탐지로 처리되었습니다.',
-    actionDetail: '개인 식별 정보는 마스킹한 뒤 재요청하도록 안내하고 원문은 격리 저장합니다.',
-  },
-  {
-    id: 14,
-    detectedAt: '2026-05-19 08:57',
-    aiType: 'Gemini',
-    organization: '플랫폼개발팀',
-    prompt: '운영 비밀키 포함 설정 파일 문제 원인 분석',
-    result: 'API Key 노출 시도',
-    content: '비밀키 패턴 및 운영 설정값 포함',
-    userIp: '211.44.92.118',
-    userId: 'song@cloudmate.com',
-    level: 'danger',
-    promptDetail: '운영 환경 설정 파일 일부와 함께 장애 원인 분석을 요청했고 비밀키 패턴이 포함되었습니다.',
-    detectionDetail: 'API Key 및 운영 민감 설정값이 함께 탐지되어 즉시 차단 대상으로 분류되었습니다.',
-    actionDetail: '비밀값을 제거한 샘플로 재작성하도록 유도하고 보안 이벤트로 등록해 추적합니다.',
-  },
-];
+import { useMonitoringEventsQuery } from '../../queries/monitoringQueries.js';
 
 const policyOptions = ['전체 정책', '일반 사용 허용 정책', '개인정보 보호 기본 정책'];
 const ROWS_PER_PAGE = 11;
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
 
-function getLogStatusCategory(log) {
-  if (log.result === '정상') return 'normal';
+function normalizeMonitoringEvent(event, index) {
+  if (event.detectedAt) {
+    return event;
+  }
 
-  if (log.actionDetail.includes('경고로 기록')) return 'allow';
+  const result = event.status ?? '정상';
+  const isNormal = result === '정상';
+  const prompt = event.input ?? '-';
+  const answer = event.ai_response ?? '-';
+
+  return {
+    id: event.no ?? `${event.time_kst ?? 'event'}-${index}`,
+    detectedAt: event.time_kst ?? '-',
+    aiType: event.service ?? '-',
+    organization: '-',
+    prompt,
+    result,
+    content: isNormal ? '위험 키워드 없이 정상 요청으로 처리' : `${result} 처리된 요청`,
+    userIp: event.client_ip ?? '-',
+    userId: '-',
+    level: isNormal ? 'safe' : 'danger',
+    promptDetail: prompt,
+    answerDetail: answer,
+    detectionDetail: isNormal
+      ? '위험 키워드와 민감 정보가 확인되지 않아 정상 요청으로 처리되었습니다.'
+      : `${result} 정책에 의해 요청이 처리되었습니다.`,
+    actionDetail: answer,
+  };
+}
+
+function createDefaultDateRange() {
+  const endDate = new Date();
+  const startDate = new Date(endDate);
+
+  startDate.setDate(endDate.getDate() - 13);
+
+  return {
+    startDate: formatDateValue(startDate),
+    endDate: formatDateValue(endDate),
+  };
+}
+
+function getLogStatusCategory(log) {
+  const result = log.result ?? log.status;
+  const actionDetail = log.actionDetail ?? '';
+
+  if (result === '정상') return 'normal';
+  if (result === '허용') return 'allow';
+  if (result === '마스킹') return 'masking';
+  if (result === '차단') return 'block';
+
+  if (actionDetail.includes('경고로 기록')) return 'allow';
 
   if (
-    log.result === '개인정보 탐지' ||
-    log.actionDetail.includes('마스킹') ||
-    log.actionDetail.includes('치환') ||
-    log.actionDetail.includes('대체') ||
-    log.actionDetail.includes('제거한 버전')
+    result === '개인정보 탐지' ||
+    actionDetail.includes('마스킹') ||
+    actionDetail.includes('치환') ||
+    actionDetail.includes('대체') ||
+    actionDetail.includes('제거한 버전')
   ) {
     return 'masking';
   }
@@ -344,6 +174,10 @@ function isSameDay(left, right) {
 }
 
 function buildAnswerDetail(row) {
+  if (row.answerDetail) {
+    return row.answerDetail;
+  }
+
   if (getLogStatusCategory(row) === 'allow') {
     return '위험 패턴은 탐지되었지만 정책상 차단 대상은 아니어서 사용자에게 답변을 전달했습니다. 해당 요청은 경고 로그로만 기록됩니다.';
   }
@@ -369,6 +203,8 @@ function buildAnswerDetail(row) {
 
 function buildDetailContext(row) {
   const statusCategory = getLogStatusCategory(row);
+  const detectionDetail = row.detectionDetail ?? '탐지 근거 상세 정보가 아직 제공되지 않았습니다.';
+  const actionDetail = row.actionDetail ?? '조치 상세 정보가 아직 제공되지 않았습니다.';
 
   return {
     policyName: getDetectedPolicyName(row),
@@ -382,11 +218,11 @@ function buildDetailContext(row) {
             : '정상 처리',
     policyItems: [getDetectedPolicyName(row)],
     answerDetail: buildAnswerDetail(row),
-    evidenceLines: row.detectionDetail
+    evidenceLines: detectionDetail
       .split('\n')
       .map(line => line.replaceAll('·', '').trim())
       .filter(Boolean),
-    actionLines: row.actionDetail
+    actionLines: actionDetail
       .split('. ')
       .map(line => line.trim())
       .filter(Boolean)
@@ -405,9 +241,7 @@ function DetailHeader({ row }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <div className="text-[15px] font-bold tracking-[-0.02em] text-[#1F2555]">
-          상세 내역
-        </div>
+        <div className="text-[15px] font-bold tracking-[-0.02em] text-[#1F2555]">상세 내역</div>
         <span className="h-3 w-px bg-[#D7DDE8]" />
         <span className={`text-[13px] font-semibold tracking-[-0.01em] ${statusTextClassName}`}>
           {detail.actionStatus}
@@ -636,16 +470,31 @@ export function MonitoringLogView({
   emptyMessage = '현재 조건에 맞는 모니터링 로그가 없습니다.',
 }) {
   const [searchParams] = useSearchParams();
-  const [startDate, setStartDate] = useState('2026-05-07');
-  const [endDate, setEndDate] = useState('2026-05-20');
+  const defaultDateRange = useMemo(() => createDefaultDateRange(), []);
+  const [startDate, setStartDate] = useState(defaultDateRange.startDate);
+  const [endDate, setEndDate] = useState(defaultDateRange.endDate);
   const [selectedPolicy, setSelectedPolicy] = useState('전체 정책');
   const [selectedLogId, setSelectedLogId] = useState();
   const [selectedRowIds, setSelectedRowIds] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const statusFilter = useStatusFilter ? (searchParams.get('status') ?? 'all') : 'all';
+  const {
+    data: monitoringData,
+    isError,
+    isFetching,
+    isLoading,
+  } = useMonitoringEventsQuery({
+    statusFilter,
+  });
+
+  const monitoringLogs = useMemo(() => {
+    if (isError) return [];
+
+    return (monitoringData?.events ?? []).map(normalizeMonitoringEvent);
+  }, [isError, monitoringData?.events]);
 
   const filteredLogs = useMemo(() => {
-    return logs.filter(log => {
+    return monitoringLogs.filter(log => {
       const logDate = new Date(normalizeLogDateTime(log.detectedAt));
       const startBoundary = startDate ? new Date(`${startDate}T00:00:00`) : null;
       const endBoundary = endDate ? new Date(`${endDate}T23:59:59`) : null;
@@ -654,15 +503,14 @@ export function MonitoringLogView({
       const matchesPolicy =
         selectedPolicy === '전체 정책' || getDetectedPolicyName(log) === selectedPolicy;
       const logStatusCategory = getLogStatusCategory(log);
-      const matchesStatus =
-        !useStatusFilter
+      const matchesStatus = !useStatusFilter
+        ? true
+        : statusFilter === 'all'
           ? true
-          : statusFilter === 'all'
-            ? true
-            : statusFilter === logStatusCategory;
+          : statusFilter === logStatusCategory;
       return matchesDateRange && matchesPolicy && matchesStatus;
     });
-  }, [endDate, selectedPolicy, startDate, statusFilter, useStatusFilter]);
+  }, [endDate, monitoringLogs, selectedPolicy, startDate, statusFilter, useStatusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredLogs.length / ROWS_PER_PAGE));
 
@@ -675,11 +523,23 @@ export function MonitoringLogView({
     }));
   }, [currentPage, filteredLogs]);
 
+  const statusMessage = isError
+    ? '모니터링 데이터를 불러오지 못했습니다.'
+    : isLoading
+      ? '모니터링 데이터를 불러오는 중입니다.'
+      : isFetching
+        ? '모니터링 데이터를 갱신하는 중입니다.'
+        : !filteredLogs.length
+          ? emptyMessage
+          : '';
+
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setCurrentPage(1);
     setSelectedLogId(null);
     setSelectedRowIds([]);
   }, [statusFilter]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleToggleRowSelection = rowId => {
     setSelectedRowIds(current =>
@@ -768,8 +628,8 @@ export function MonitoringLogView({
                       heightClass="h-[42px]"
                       widthClass="w-[94px] min-w-[94px]"
                       onClick={() => {
-                        setStartDate('2026-05-07');
-                        setEndDate('2026-05-20');
+                        setStartDate(defaultDateRange.startDate);
+                        setEndDate(defaultDateRange.endDate);
                         setSelectedPolicy('전체 정책');
                         setCurrentPage(1);
                       }}
@@ -812,7 +672,7 @@ export function MonitoringLogView({
               return (
                 <div className="grid gap-0">
                   <div className="px-5 py-5">
-                  <DetailHeader row={row} />
+                    <DetailHeader row={row} />
                   </div>
 
                   <section className="border-t border-[#E7EBF5] bg-white">
@@ -869,6 +729,12 @@ export function MonitoringLogView({
             className="flex-1"
           />
 
+          {statusMessage ? (
+            <section className="mt-2 shrink-0 rounded-[10px] border border-[#E3E8F2] bg-[#FAFBFF] px-6 py-4 text-center text-[13px] font-semibold text-[#526078]">
+              {statusMessage}
+            </section>
+          ) : null}
+
           <div className="mt-2 shrink-0 pb-0">
             <GlassPagination
               currentPage={currentPage}
@@ -877,12 +743,6 @@ export function MonitoringLogView({
             />
           </div>
         </div>
-
-        {!filteredLogs.length ? (
-          <section className="mt-4 border-t border-dashed border-[#DCEAF1] px-6 py-12 text-center text-sm text-[#94A3B8]">
-            {emptyMessage}
-          </section>
-        ) : null}
       </div>
     </div>
   );

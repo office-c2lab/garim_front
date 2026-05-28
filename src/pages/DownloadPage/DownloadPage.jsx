@@ -15,6 +15,7 @@ import garimMoonImage from '../../assets/images/garim_moon.png';
 import garimLogo from '../../assets/icons/GARIM.png';
 import logoIcon from '../../assets/icons/logo.png';
 import packIcon from '../../assets/images/pac.png';
+import { useWindowsSetupDownloadMutation } from '../../queries/downloadQueries.js';
 import { useSupportSettingsStore } from '../../stores/supportSettingsStore.js';
 
 const quickSteps = [
@@ -26,7 +27,11 @@ const quickSteps = [
 
 const applySteps = [
   [Download, '1. 파일 다운로드', '상단의 팩 파일 다운로드 버튼을 클릭해 파일을 저장합니다.'],
-  [MousePointerClick, '2. 파일 실행', '다운로드한 팩 파일을 실행합니다. 보안 경고가 표시되면 관리자의 안내에 따라 진행합니다.'],
+  [
+    MousePointerClick,
+    '2. 파일 실행',
+    '다운로드한 팩 파일을 실행합니다. 보안 경고가 표시되면 관리자의 안내에 따라 진행합니다.',
+  ],
   [Settings, '3. 적용 진행', '실행 화면에서 적용 대상과 설정 정보를 확인한 뒤 적용을 진행합니다.'],
   [Check, '4. 적용 완료 확인', '적용이 완료되면 정상 적용 여부를 확인합니다.'],
 ];
@@ -56,7 +61,9 @@ function Section({ children, className = '', ...props }) {
   );
 }
 
-function StepCard({ icon: Icon, number, title, description }) {
+function StepCard({ icon, number, title, description }) {
+  const Icon = icon;
+
   return (
     <div className="relative flex min-h-[13.5rem] flex-col items-center justify-center rounded-[14px] border border-[#E3E8F2] bg-white px-6 py-6 text-center shadow-[0_14px_30px_rgba(15,23,42,0.08)]">
       <span className="absolute left-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-[#5B39D6] text-sm font-black text-white">
@@ -69,7 +76,9 @@ function StepCard({ icon: Icon, number, title, description }) {
   );
 }
 
-function ApplyCard({ icon: Icon, title, description }) {
+function ApplyCard({ icon, title, description }) {
+  const Icon = icon;
+
   return (
     <div className="overflow-hidden rounded-[10px] border border-[#E3E8F2] bg-white">
       <div className="flex h-40 items-center justify-center bg-[linear-gradient(180deg,#F8FAFF_0%,#F1F5FB_100%)] text-[#5B39D6]">
@@ -85,6 +94,15 @@ function ApplyCard({ icon: Icon, title, description }) {
 
 export default function DownloadPage() {
   const template = useSupportSettingsStore(state => state.template);
+  const {
+    mutate: requestWindowsSetupDownload,
+    isPending: isDownloadPending,
+    isError: isDownloadError,
+  } = useWindowsSetupDownloadMutation();
+
+  const handleDownloadClick = () => {
+    requestWindowsSetupDownload();
+  };
 
   return (
     <main className="min-h-screen bg-[#F3F6FA] text-[#111827]">
@@ -115,17 +133,19 @@ export default function DownloadPage() {
         <div className="absolute inset-0 bg-black/18" />
         <div className="relative z-10 mx-auto max-w-[820px] text-center">
           <h1 className="text-[clamp(2.4rem,5vw,4.2rem)] font-bold leading-tight tracking-[-0.02em]">
-          운영지원
+            운영지원
           </h1>
           <p className="mx-auto mt-6 max-w-[42rem] text-xl font-semibold leading-8 text-white/88">
-          GARIM 적용에 필요한 팩 파일을 다운로드하고 실행 및 적용 방법을 확인해 주세요.
+            GARIM 적용에 필요한 팩 파일을 다운로드하고 실행 및 적용 방법을 확인해 주세요.
           </p>
           <button
             type="button"
+            onClick={handleDownloadClick}
+            disabled={isDownloadPending}
             className="mt-9 inline-flex h-16 items-center justify-center gap-3 rounded-xl border border-[#6D4CFF] bg-[#5B39D6] px-12 text-lg font-black text-white shadow-[0_18px_36px_rgba(91,57,214,0.34)] transition hover:bg-[#4C2FC0]"
           >
             <Download className="h-6 w-6" />
-            팩 파일 다운로드
+            {isDownloadPending ? '다운로드 준비 중' : '팩 파일 다운로드'}
           </button>
         </div>
       </section>
@@ -153,9 +173,12 @@ export default function DownloadPage() {
 
         <Section id="pack-download" className="p-8">
           <div>
-            <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-900">팩 파일 다운로드</h2>
+            <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-900">
+              팩 파일 다운로드
+            </h2>
             <p className="mt-4 text-base font-semibold leading-7 text-[#526078]">
-              GARIM 적용에 필요한 최신 팩 파일을 다운로드하세요. <br />관리자가 안내한 환경에 맞는 파일을 선택해 실행해 주세요.
+              GARIM 적용에 필요한 최신 팩 파일을 다운로드하세요. <br />
+              관리자가 안내한 환경에 맞는 파일을 선택해 실행해 주세요.
             </p>
           </div>
 
@@ -164,7 +187,9 @@ export default function DownloadPage() {
               <img src={packIcon} alt="" className="h-40 w-40 object-contain" />
               <div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <h3 className="text-3xl font-black tracking-[-0.04em] text-slate-900">GARIM Pack</h3>
+                  <h3 className="text-3xl font-black tracking-[-0.04em] text-slate-900">
+                    GARIM Pack
+                  </h3>
                   <span className="rounded-md border border-[#E3E8F2] bg-white px-3 py-1 text-xs font-black text-[#526078]">
                     최신 버전
                   </span>
@@ -182,10 +207,12 @@ export default function DownloadPage() {
               <div className="flex flex-col items-stretch gap-4 lg:min-w-[14rem]">
                 <button
                   type="button"
+                  onClick={handleDownloadClick}
+                  disabled={isDownloadPending}
                   className="inline-flex h-16 items-center justify-center gap-3 rounded-xl border border-[#5B39D6] bg-[#5B39D6] px-8 text-lg font-black text-white shadow-[0_14px_30px_rgba(91,57,214,0.24)] transition hover:bg-[#4C2FC0]"
                 >
                   <Download className="h-5 w-5" />
-                  팩 파일 다운로드
+                  {isDownloadPending ? '다운로드 준비 중' : '팩 파일 다운로드'}
                 </button>
                 <span className="text-center text-base font-black text-[#526078]">85.4MB</span>
               </div>
@@ -193,8 +220,13 @@ export default function DownloadPage() {
           </div>
 
           <div className="mt-4 flex items-center justify-center rounded-lg border border-[#E3E8F2] bg-[#FAFBFF] px-5 py-4 text-sm font-semibold text-[#526078]">
-            다운로드가 시작되지 않는다면?
-            <button type="button" className="mx-1 font-black text-[#5B39D6]">
+            {isDownloadError ? '다운로드 중 오류가 발생했습니다.' : '다운로드가 시작되지 않는다면?'}
+            <button
+              type="button"
+              onClick={handleDownloadClick}
+              disabled={isDownloadPending}
+              className="mx-1 font-black text-[#5B39D6] disabled:cursor-not-allowed disabled:opacity-60"
+            >
               여기
             </button>
             를 클릭하여 다시 시도해 주세요.
@@ -203,7 +235,9 @@ export default function DownloadPage() {
 
         <Section id="apply" className="p-8">
           <div>
-            <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-900">실행 및 적용 방법</h2>
+            <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-900">
+              실행 및 적용 방법
+            </h2>
             <p className="mt-4 text-base font-semibold leading-7 text-[#526078]">
               다운로드한 팩 파일을 실행한 뒤 안내에 따라 GARIM 설정을 적용합니다.
             </p>
@@ -218,14 +252,19 @@ export default function DownloadPage() {
 
         <Section className="p-8">
           <div>
-            <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-900">적용 전 확인사항</h2>
+            <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-900">
+              적용 전 확인사항
+            </h2>
             <p className="mt-4 text-base font-semibold leading-7 text-[#526078]">
               팩 파일을 실행하기 전에 아래 내용을 확인해 주세요.
             </p>
           </div>
           <div className="mt-8 grid gap-5 rounded-xl border border-[#E3E8F2] bg-[#FAFBFF] p-6 md:grid-cols-2">
             {checklist.map(item => (
-              <div key={item} className="flex items-start gap-3 text-base font-bold leading-7 text-[#344054]">
+              <div
+                key={item}
+                className="flex items-start gap-3 text-base font-bold leading-7 text-[#344054]"
+              >
                 <CircleCheck className="mt-1 h-5 w-5 shrink-0 text-[#5B39D6]" />
                 <span>{item}</span>
               </div>
@@ -235,24 +274,32 @@ export default function DownloadPage() {
 
         <Section className="p-8">
           <div>
-            <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-900">적용 후 확인 방법</h2>
+            <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-900">
+              적용 후 확인 방법
+            </h2>
             <p className="mt-4 text-base font-semibold leading-7 text-[#526078]">
               적용이 완료되면 아래 항목을 확인해 주세요.
             </p>
           </div>
           <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-            {verifyItems.map(([Icon, text]) => (
-              <div key={text} className="flex items-center gap-4 border-l border-[#E3E8F2] px-5">
-                <Icon className="h-11 w-11 shrink-0 text-[#5B39D6]" />
-                <p className="text-base font-bold leading-7 text-[#344054]">{text}</p>
-              </div>
-            ))}
+            {verifyItems.map(([icon, text]) => {
+              const Icon = icon;
+
+              return (
+                <div key={text} className="flex items-center gap-4 border-l border-[#E3E8F2] px-5">
+                  <Icon className="h-11 w-11 shrink-0 text-[#5B39D6]" />
+                  <p className="text-base font-bold leading-7 text-[#344054]">{text}</p>
+                </div>
+              );
+            })}
           </div>
         </Section>
 
         <Section id="contact" className="p-8">
           <div>
-            <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-900">문제가 발생했나요?</h2>
+            <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-900">
+              문제가 발생했나요?
+            </h2>
             <p className="mt-4 text-base font-semibold leading-7 text-[#526078]">
               팩 파일 다운로드, 실행 또는 적용 중 문제가 발생하면 관리자에게 문의해 주세요.
             </p>
