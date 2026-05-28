@@ -228,7 +228,9 @@ function MonitoringResultChip({ result }) {
   const resultTextClassName = getStatusTextClassName(result);
 
   return (
-    <span className={`inline-flex items-center text-[15px] font-semibold whitespace-nowrap ${resultTextClassName}`}>
+    <span
+      className={`inline-flex items-center text-[15px] font-semibold whitespace-nowrap ${resultTextClassName}`}
+    >
       {result}
     </span>
   );
@@ -251,16 +253,17 @@ export function MonitoringDataTable({
   return (
     <div className={`${monitoringTableSurfaceClass} ${className}`.trim()}>
       <div className={monitoringTableScrollClass}>
-        <table className={`min-w-[918px] ${monitoringTableClass} xl:min-w-0`}>
+        <table className={`min-w-[980px] ${monitoringTableClass} xl:min-w-0`}>
           <colgroup>
             <col className="w-[38px]" />
             <col className="w-[40px]" />
             <col className="w-[108px]" />
             <col className="w-[74px]" />
-            <col className="w-[220px]" />
+            <col className="w-[172px]" />
             <col className="w-[116px]" />
             <col className="w-[206px]" />
             <col className="w-[128px]" />
+            <col className="w-[110px]" />
           </colgroup>
           <thead className={monitoringTableHeadClass}>
             <tr className={monitoringTableHeaderRowClass}>
@@ -280,6 +283,7 @@ export function MonitoringDataTable({
               <th className={`${monitoringTableHeaderCellClass} px-3 xl:px-4`}>탐지 결과</th>
               <th className={`${monitoringTableHeaderCellClass} px-3 xl:px-4`}>탐지 내용</th>
               <th className={`${monitoringTableHeaderCellClass} px-3 xl:px-4`}>IP</th>
+              <th className={`${monitoringTableHeaderCellClass} px-3 xl:px-4`}>사용자명</th>
             </tr>
           </thead>
           <tbody className={bodyClassName}>
@@ -385,10 +389,20 @@ export function MonitoringDataTable({
                         {row.userIp}
                       </div>
                     </td>
+                    <td
+                      className={monitoringTableCellClass(
+                        index,
+                        `px-3 xl:px-4 ${isSelected ? 'font-semibold text-[#252B5C]' : 'text-[#2E3363]'}`
+                      )}
+                    >
+                      <div className="overflow-hidden text-ellipsis whitespace-nowrap">
+                        {row.userId ?? '-'}
+                      </div>
+                    </td>
                   </tr>
                   {isSelected && renderExpandedRow ? (
                     <tr>
-                      <td colSpan={8} className="border-t border-[#E5EBF5] bg-white px-0 py-0">
+                      <td colSpan={9} className="border-t border-[#E5EBF5] bg-white px-0 py-0">
                         {renderExpandedRow(row)}
                       </td>
                     </tr>

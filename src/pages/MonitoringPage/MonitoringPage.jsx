@@ -28,6 +28,8 @@ function normalizeMonitoringEvent(event, index) {
   const isNormal = result === '정상';
   const prompt = event.input ?? '-';
   const answer = event.ai_response ?? '-';
+  const userName =
+    event.username ?? event.user_name ?? event.user ?? event.user_id ?? event.userId ?? '-';
 
   return {
     id: event.no ?? `${event.time_kst ?? 'event'}-${index}`,
@@ -38,7 +40,7 @@ function normalizeMonitoringEvent(event, index) {
     result,
     content: isNormal ? '위험 키워드 없이 정상 요청으로 처리' : `${result} 처리된 요청`,
     userIp: event.client_ip ?? '-',
-    userId: '-',
+    userId: userName,
     level: isNormal ? 'safe' : 'danger',
     promptDetail: prompt,
     answerDetail: answer,
@@ -676,7 +678,7 @@ export function MonitoringLogView({
                   </div>
 
                   <section className="border-t border-[#E7EBF5] bg-white">
-                    <div className="grid gap-0 md:grid-cols-2 xl:grid-cols-5">
+                    <div className="grid gap-0 md:grid-cols-2 xl:grid-cols-6">
                       <div className="px-4 py-4">
                         <DetailSummaryItem label="탐지 일시" value={row.detectedAt} />
                       </div>
@@ -695,6 +697,9 @@ export function MonitoringLogView({
                       </div>
                       <div className="border-t border-[#E7EBF5] px-4 py-4 md:border-l md:border-[#E7EBF5] xl:border-t-0">
                         <DetailSummaryItem label="IP" value={row.userIp} />
+                      </div>
+                      <div className="border-t border-[#E7EBF5] px-4 py-4 md:border-l md:border-[#E7EBF5] xl:border-t-0">
+                        <DetailSummaryItem label="사용자명" value={row.userId ?? '-'} />
                       </div>
                     </div>
                   </section>
@@ -730,7 +735,7 @@ export function MonitoringLogView({
           />
 
           {statusMessage ? (
-            <section className="mt-2 shrink-0 rounded-[10px] border border-[#E3E8F2] bg-[#FAFBFF] px-6 py-4 text-center text-[13px] font-semibold text-[#526078]">
+            <section className="mt-2 shrink-0 border-t border-dashed border-[#DCEAF1] px-6 py-4 text-center text-sm text-[#94A3B8]">
               {statusMessage}
             </section>
           ) : null}
