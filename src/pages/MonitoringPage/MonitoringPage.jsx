@@ -35,6 +35,7 @@ function normalizeMonitoringEvent(event, index) {
 
   return {
     id: event.no ?? `${event.time_kst ?? 'event'}-${index}`,
+    no: event.no ?? index + 1,
     detectedAt: event.time_kst ?? '-',
     aiType: event.service ?? '-',
     organization: '-',

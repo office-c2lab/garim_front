@@ -595,7 +595,7 @@ export function MonitoringDataTable({
                         `px-0 text-center ${isSelected ? 'font-semibold text-[#353E73]' : 'text-[#667085]'}`
                       )}
                     >
-                      {rowNumberStart + index}
+                      {row.no ?? rowNumberStart + index}
                     </td>
                     <td
                       className={monitoringTableCellClass(
