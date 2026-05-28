@@ -12,6 +12,7 @@ import {
   APP_PAGE_INNER_WIDTH_CLASS,
   APP_PAGE_OUTER_WIDTH_CLASS,
 } from '../../constants/contentLayout.js';
+import { getStatusTextClassName as getStatusColorClassName } from '../../constants/statusColors.js';
 
 const logs = [
   {
@@ -268,11 +269,7 @@ function getDetectedPolicyName(row) {
 }
 
 function getStatusTextClassName(row) {
-  const statusCategory = getLogStatusCategory(row);
-
-  if (statusCategory === 'normal') return 'text-[#18A0AE]';
-  if (statusCategory === 'block') return 'text-[#FF4D4F]';
-  return 'text-[#F59E0B]';
+  return getStatusColorClassName(getLogStatusCategory(row));
 }
 
 function normalizeLogDateTime(value) {

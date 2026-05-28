@@ -20,6 +20,7 @@ import {
   APP_PANEL_TITLE_CLASS,
   APP_SMALL_META_TEXT_CLASS,
 } from '../../constants/contentLayout.js';
+import { getStatusTextClassName } from '../../constants/statusColors.js';
 
 export function MonitoringActionButton({
   children,
@@ -224,12 +225,7 @@ export function MonitoringSearchField({
 }
 
 function MonitoringResultChip({ result }) {
-  const resultTextClassName =
-    result === '정상'
-      ? 'text-[#18A0AE]'
-      : result === '차단'
-        ? 'text-[#FF4D4F]'
-        : 'text-[#F59E0B]';
+  const resultTextClassName = getStatusTextClassName(result);
 
   return (
     <span className={`inline-flex items-center text-[15px] font-semibold whitespace-nowrap ${resultTextClassName}`}>

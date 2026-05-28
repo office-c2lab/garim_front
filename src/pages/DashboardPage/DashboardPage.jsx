@@ -1,6 +1,18 @@
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  CartesianGrid,
+  Cell,
+  Line,
+  LineChart as RechartsLineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 import ServiceLogoBadge from '../../components/ServiceLogoBadge.jsx';
 import {
@@ -12,6 +24,7 @@ import {
   monitoringTableRowClass,
   monitoringTableSurfaceClass,
 } from '../../components/monitoring/monitoringTableStyles.js';
+import { STATUS_COLORS, getStatusTextClassName } from '../../constants/statusColors.js';
 import PageLayout from '../../layout/PageLayout.jsx';
 
 const summaryCards = [
@@ -27,26 +40,30 @@ const chartSeries = [
   {
     key: 'allow',
     label: '허용',
-    color: '#F59E0B',
+    color: STATUS_COLORS.allow,
     values: [42, 48, 44, 53, 58, 55, 61],
   },
   {
     key: 'masking',
     label: '마스킹',
-    color: '#EAB308',
+    color: STATUS_COLORS.masking,
     values: [98, 112, 105, 139, 168, 152, 156],
   },
-  { key: 'block', label: '차단', color: '#FF4B57', values: [8, 9, 17, 14, 16, 13, 20] },
-  { key: 'normal', label: '정상', color: '#18A0AE', values: [28, 31, 27, 36, 42, 40, 38] },
+  { key: 'block', label: '차단', color: STATUS_COLORS.block, values: [8, 9, 17, 14, 16, 13, 20] },
+  { key: 'normal', label: '정상', color: STATUS_COLORS.normal, values: [28, 31, 27, 36, 42, 40, 38] },
 ];
 
 const chartLabels = ['12/02', '12/03', '12/04', '12/05', '12/06', '12/07', '12/08'];
+const lineChartData = chartLabels.map((date, index) => ({
+  date,
+  ...Object.fromEntries(chartSeries.map(series => [series.key, series.values[index]])),
+}));
 
 const donutSegments = [
-  { label: '마스킹', value: 52, count: '652건', color: '#EAB308' },
-  { label: '허용', value: 24, count: '301건', color: '#F59E0B' },
-  { label: '차단', value: 14, count: '176건', color: '#FF6675' },
-  { label: '정상', value: 10, count: '125건', color: '#18A0AE' },
+  { label: '마스킹', value: 52, count: '652건', color: STATUS_COLORS.masking },
+  { label: '허용', value: 24, count: '301건', color: STATUS_COLORS.allow },
+  { label: '차단', value: 14, count: '176건', color: STATUS_COLORS.block },
+  { label: '정상', value: 10, count: '125건', color: STATUS_COLORS.normal },
 ];
 
 const serviceStatus = [
@@ -192,148 +209,114 @@ function SummaryCard({ title, value, change, trend }) {
   );
 }
 
-function getLinePoints(values, width, height, maxValue, paddingX, paddingY) {
-  const stepX = (width - paddingX * 2) / (values.length - 1);
-  const drawableHeight = height - paddingY * 2;
-
-  return values
-    .map((value, index) => {
-      const x = paddingX + stepX * index;
-      const y = height - paddingY - (value / maxValue) * drawableHeight;
-      return `${x},${y}`;
-    })
-    .join(' ');
-}
-
-function LineChart() {
-  const [hiddenSeriesKeys, setHiddenSeriesKeys] = useState([]);
-  const width = 760;
-  const height = 250;
-  const paddingX = 54;
-  const paddingY = 18;
-  const maxValue = 200;
-  const gridValues = [0, 40, 80, 120, 160, 200];
-  const stepX = (width - paddingX * 2) / (chartLabels.length - 1);
+function LineChart({ hiddenSeriesKeys }) {
   const visibleSeries = chartSeries.filter(series => !hiddenSeriesKeys.includes(series.key));
 
+  return (
+    <div className="relative h-[286px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <RechartsLineChart data={lineChartData} margin={{ top: 22, right: 18, bottom: 4, left: -8 }}>
+          <CartesianGrid stroke="#E8EDF7" vertical={false} />
+          <XAxis
+            dataKey="date"
+            axisLine={false}
+            tickLine={false}
+            tick={{ fill: '#71809D', fontSize: 12, fontWeight: 700 }}
+            dy={10}
+          />
+          <YAxis
+            domain={[0, 200]}
+            ticks={[0, 40, 80, 120, 160, 200]}
+            axisLine={false}
+            tickLine={false}
+            tick={{ fill: '#71809D', fontSize: 12, fontWeight: 700 }}
+            width={42}
+          />
+          <Tooltip
+            cursor={{ stroke: '#D7DDF0', strokeWidth: 1 }}
+            contentStyle={{
+              border: '1px solid #E5EAF3',
+              borderRadius: 12,
+              boxShadow: '0 14px 30px rgba(15,23,42,0.12)',
+              fontSize: 12,
+              fontWeight: 700,
+            }}
+          />
+          {visibleSeries.map(series => (
+            <Line
+              key={series.key}
+              type="monotone"
+              dataKey={series.key}
+              name={series.label}
+              stroke={series.color}
+              strokeWidth={2.8}
+              dot={{ r: 4, strokeWidth: 2, fill: '#FFFFFF', stroke: series.color }}
+              activeDot={{ r: 5, strokeWidth: 2, fill: '#FFFFFF', stroke: series.color }}
+              isAnimationActive={false}
+            />
+          ))}
+        </RechartsLineChart>
+      </ResponsiveContainer>
+      {!visibleSeries.length ? (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm font-bold text-[#9AA6BD]">
+          표시할 범례를 선택하세요
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function LineChartLegend({ hiddenSeriesKeys, onToggleSeries }) {
   const handleToggleSeries = key => {
-    setHiddenSeriesKeys(current =>
-      current.includes(key) ? current.filter(item => item !== key) : [...current, key]
-    );
+    onToggleSeries(key);
   };
 
   return (
-    <div className="overflow-x-auto">
-      <div className="mb-3 flex flex-wrap items-center justify-end gap-5 text-[0.84rem] font-semibold text-[#65718C]">
-        {chartSeries.map(series => (
-          <button
-            key={series.key}
-            type="button"
-            onClick={() => handleToggleSeries(series.key)}
-            className={cn(
-              'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 transition',
-              hiddenSeriesKeys.includes(series.key)
-                ? 'border-[#E3E8F4] bg-[#F8FAFD] text-[#A0ABC1]'
-                : 'border-transparent bg-transparent text-[#65718C]'
-            )}
-          >
-            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: series.color }} />
-            <span>{series.label}</span>
-          </button>
-        ))}
-      </div>
-
-      <svg viewBox={`0 0 ${width} ${height + 34}`} className="min-w-[680px]">
-        {gridValues.map(value => {
-          const y = height - paddingY - (value / maxValue) * (height - paddingY * 2);
-
-          return (
-            <g key={value}>
-              <line
-                x1={paddingX}
-                y1={y}
-                x2={width - paddingX}
-                y2={y}
-                stroke="#E8EDF7"
-                strokeWidth="1"
-              />
-              <text x="18" y={y + 4} fill="#71809D" fontSize="12" fontWeight="700">
-                {value}
-              </text>
-            </g>
-          );
-        })}
-
-        {visibleSeries.map(series => (
-          <g key={series.key}>
-            <polyline
-              fill="none"
-              stroke={series.color}
-              strokeWidth="2.8"
-              points={getLinePoints(series.values, width, height, maxValue, paddingX, paddingY)}
-            />
-            {series.values.map((value, index) => {
-              const x = paddingX + stepX * index;
-              const y = height - paddingY - (value / maxValue) * (height - paddingY * 2);
-
-              return (
-                <g key={`${series.key}-${chartLabels[index]}`}>
-                  <circle cx={x} cy={y} r="4" fill="#FFF" stroke={series.color} strokeWidth="2" />
-                  <text
-                    x={x}
-                    y={y - 12}
-                    textAnchor="middle"
-                    fill={series.color}
-                    fontSize="11"
-                    fontWeight="700"
-                  >
-                    {value}
-                  </text>
-                </g>
-              );
-            })}
-          </g>
-        ))}
-
-        {!visibleSeries.length ? (
-          <text
-            x={width / 2}
-            y={height / 2}
-            textAnchor="middle"
-            fill="#9AA6BD"
-            fontSize="14"
-            fontWeight="700"
-          >
-            표시할 범례를 선택하세요
-          </text>
-        ) : null}
-
-        {chartLabels.map((label, index) => {
-          const x = paddingX + stepX * index;
-          return (
-            <text
-              key={label}
-              x={x}
-              y={height + 20}
-              textAnchor="middle"
-              fill="#71809D"
-              fontSize="12"
-              fontWeight="700"
-            >
-              {label}
-            </text>
-          );
-        })}
-      </svg>
+    <div className="flex flex-wrap items-center justify-end gap-2">
+      {chartSeries.map(series => (
+        <LegendToggle
+          key={series.key}
+          label={series.label}
+          color={series.color}
+          pressed={!hiddenSeriesKeys.includes(series.key)}
+          onClick={() => handleToggleSeries(series.key)}
+        />
+      ))}
     </div>
+  );
+}
+
+function LegendToggle({ label, color, pressed, onClick, value, className = '' }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={pressed}
+      title="표시 전환"
+      onClick={onClick}
+      className={cn(
+        'inline-flex h-8 cursor-pointer items-center gap-2 rounded-full border px-3 text-left text-[0.82rem] font-bold transition hover:border-[#C9D3E8] hover:bg-[#F8FAFF] active:scale-[0.98]',
+        pressed
+          ? 'border-[#D9E0F1] bg-white text-[#33415B]'
+          : 'border-[#E7ECF5] bg-[#F8FAFD] text-[#A5AEC0] opacity-80',
+        className
+      )}
+    >
+      <span
+        className="h-2.5 w-2.5 shrink-0 rounded-full ring-2 ring-white transition"
+        style={{ backgroundColor: pressed ? color : '#AEB8CA' }}
+      />
+      <span className={cn('min-w-0 truncate', pressed ? '' : 'line-through')}>{label}</span>
+      {value ? (
+        <span className={cn('shrink-0', pressed ? 'text-[#16213A]' : 'text-[#A5AEC0]')}>
+          {value}
+        </span>
+      ) : null}
+    </button>
   );
 }
 
 function DonutChart() {
   const [hiddenSegmentLabels, setHiddenSegmentLabels] = useState([]);
-  const radius = 76;
-  const circumference = 2 * Math.PI * radius;
-  let offset = 0;
   const visibleSegments = donutSegments.filter(
     segment => !hiddenSegmentLabels.includes(segment.label)
   );
@@ -341,7 +324,6 @@ function DonutChart() {
     (sum, segment) => sum + Number(segment.count.replace(/[^\d]/g, '')),
     0
   );
-
   const handleToggleSegment = label => {
     setHiddenSegmentLabels(current =>
       current.includes(label) ? current.filter(item => item !== label) : [...current, label]
@@ -349,67 +331,57 @@ function DonutChart() {
   };
 
   return (
-    <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
-      <div className="mx-auto flex h-[240px] w-[240px] items-center justify-center">
-        <div className="relative h-[204px] w-[204px]">
-          <svg viewBox="0 0 204 204" className="-rotate-90">
-            <circle cx="102" cy="102" r={radius} fill="none" stroke="#EEF2FA" strokeWidth="28" />
-            {visibleSegments.map(segment => {
-              const dash = (segment.value / 100) * circumference;
-              const strokeDasharray = `${dash} ${circumference - dash}`;
-              const circleOffset = -offset;
-              offset += dash;
-
-              return (
-                <circle
-                  key={segment.label}
-                  cx="102"
-                  cy="102"
-                  r={radius}
-                  fill="none"
-                  stroke={segment.color}
-                  strokeWidth="28"
-                  strokeDasharray={strokeDasharray}
-                  strokeDashoffset={circleOffset}
-                />
-              );
-            })}
-          </svg>
+    <div className="grid gap-4 xl:grid-cols-[minmax(250px,1fr)_minmax(150px,0.58fr)] xl:items-center">
+      <div className="mx-auto flex h-[270px] w-[270px] items-center justify-center">
+        <div className="relative h-full w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={visibleSegments}
+                dataKey="value"
+                nameKey="label"
+                cx="50%"
+                cy="50%"
+                innerRadius={76}
+                outerRadius={118}
+                paddingAngle={2}
+                cornerRadius={8}
+                stroke="none"
+              >
+                {visibleSegments.map(segment => (
+                  <Cell key={segment.label} fill={segment.color} />
+                ))}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-[0.98rem] font-semibold text-[#55627E]">전체 처리</span>
-            <strong className="mt-2 text-[2.2rem] font-black tracking-[-0.05em] text-[#10182E]">
-              {totalCount ? `${totalCount.toLocaleString()}건` : '-'}
+            <span className="text-[0.82rem] font-semibold text-[#55627E]">전체 처리</span>
+            <strong className="mt-1 text-[1.65rem] font-black tracking-[-0.05em] text-[#10182E]">
+              {totalCount.toLocaleString()}건
             </strong>
           </div>
         </div>
       </div>
 
-      <div className="min-w-0 flex-1 space-y-5">
-        {donutSegments.map(segment => (
-          <button
-            key={segment.label}
-            type="button"
-            onClick={() => handleToggleSegment(segment.label)}
-            className={cn(
-              'flex w-full items-center justify-between gap-4 rounded-full border px-3 py-2 text-left transition',
-              hiddenSegmentLabels.includes(segment.label)
-                ? 'border-[#E3E8F4] bg-[#F8FAFD] opacity-55'
-                : 'border-transparent bg-transparent'
-            )}
-          >
-            <div className="flex items-center gap-3">
-              <span
-                className="h-3.5 w-3.5 rounded-full"
-                style={{ backgroundColor: segment.color }}
-              />
-              <span className="text-[1rem] font-semibold text-[#33415B]">{segment.label}</span>
-            </div>
-            <span className="shrink-0 text-[1rem] font-semibold text-[#33415B]">
-              {segment.value}% ({segment.count})
-            </span>
-          </button>
-        ))}
-        <p className="pt-3 text-[0.92rem] font-semibold text-[#8A96AF]">기준: 최근 7일</p>
+      <div className="min-w-0">
+        {donutSegments.map(segment => {
+          const isHidden = hiddenSegmentLabels.includes(segment.label);
+
+          return (
+            <LegendToggle
+              key={segment.label}
+              label={segment.label}
+              color={segment.color}
+              pressed={!isHidden}
+              value={`${segment.value}% (${segment.count})`}
+              onClick={() => handleToggleSegment(segment.label)}
+              className="mb-2 w-full justify-start last:mb-0"
+            />
+          );
+        })}
+        <p className="pt-2.5 text-center text-[0.78rem] font-semibold text-[#8A96AF]">
+          기준: 최근 7일
+        </p>
       </div>
     </div>
   );
@@ -431,12 +403,7 @@ function ResultBadge({ tone, children }) {
 }
 
 function ResultText({ result }) {
-  const className =
-    result === '정상'
-      ? 'text-[#18A0AE]'
-      : result === '차단'
-        ? 'text-[#FF4D4F]'
-        : 'text-[#F59E0B]';
+  const className = getStatusTextClassName(result);
 
   return <span className={cn('text-[15px] font-semibold whitespace-nowrap', className)}>{result}</span>;
 }
@@ -470,6 +437,13 @@ function HeaderLink({ children, onClick }) {
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const [hiddenLineSeriesKeys, setHiddenLineSeriesKeys] = useState([]);
+
+  const handleToggleLineSeries = key => {
+    setHiddenLineSeriesKeys(current =>
+      current.includes(key) ? current.filter(item => item !== key) : [...current, key]
+    );
+  };
 
   return (
     <PageLayout>
@@ -480,8 +454,16 @@ export default function DashboardPage() {
       </section>
 
       <section className="grid gap-5 xl:grid-cols-[minmax(0,1.04fr)_minmax(0,1fr)]">
-        <DashboardPanel title="최근 7일 처리 상태 추이">
-          <LineChart />
+        <DashboardPanel
+          title="최근 7일 처리 상태 추이"
+          actions={
+            <LineChartLegend
+              hiddenSeriesKeys={hiddenLineSeriesKeys}
+              onToggleSeries={handleToggleLineSeries}
+            />
+          }
+        >
+          <LineChart hiddenSeriesKeys={hiddenLineSeriesKeys} />
         </DashboardPanel>
         <DashboardPanel title="처리 상태 분포">
           <DonutChart />
