@@ -24,6 +24,11 @@ import {
   monitoringTableRowClass,
   monitoringTableSurfaceClass,
 } from '../../components/monitoring/monitoringTableStyles.js';
+import {
+  DateRangePicker,
+  MonitoringDropdown,
+  MonitoringResetButton,
+} from '../../components/monitoring/MonitoringListComponents.jsx';
 import { STATUS_COLORS, getStatusTextClassName } from '../../constants/statusColors.js';
 import PageLayout from '../../layout/PageLayout.jsx';
 
@@ -64,6 +69,49 @@ const donutSegments = [
   { label: '허용', value: 24, count: '301건', color: STATUS_COLORS.allow },
   { label: '차단', value: 14, count: '176건', color: STATUS_COLORS.block },
   { label: '정상', value: 10, count: '125건', color: STATUS_COLORS.normal },
+];
+
+function formatDateValue(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function createDefaultChartDateRange() {
+  const endDate = new Date();
+  const startDate = new Date(endDate);
+
+  startDate.setDate(endDate.getDate() - 6);
+
+  return {
+    startDate: formatDateValue(startDate),
+    endDate: formatDateValue(endDate),
+  };
+}
+
+const defaultChartDateRange = createDefaultChartDateRange();
+
+const chartFilterDefaults = {
+  startDate: defaultChartDateRange.startDate,
+  endDate: defaultChartDateRange.endDate,
+  service: '전체 서비스',
+  policy: '전체 정책',
+  user: '전체 사용자',
+};
+
+const chartFilters = [
+  {
+    key: 'service',
+    label: '서비스/도메인',
+    options: ['전체 서비스', 'ChatGPT', 'Gemini', 'Claude', 'Genspark', 'MS Copilot'],
+  },
+  {
+    key: 'policy',
+    label: '정책',
+    options: ['전체 정책', '개인정보 보호 기본 정책', '기밀정보 외부 전송 차단 정책', '일반 사용 허용 정책'],
+  },
+  { key: 'user', label: '사용자', options: ['전체 사용자', 'admin', 'user01', 'user02'] },
 ];
 
 const serviceStatus = [
@@ -166,6 +214,10 @@ function cn(...values) {
   return values.filter(Boolean).join(' ');
 }
 
+function ChartTooltipDot({ color }) {
+  return <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />;
+}
+
 function DashboardPanel({ title, actions, children, className = '' }) {
   return (
     <section
@@ -209,6 +261,74 @@ function SummaryCard({ title, value, change, trend }) {
   );
 }
 
+function ChartFilterSelect({ label, value, options, onChange }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-2">
+      <span className="text-[0.95rem] font-bold tracking-[-0.02em] text-[#5D687B]">{label}</span>
+      <MonitoringDropdown
+        value={value}
+        onChange={onChange}
+        options={options}
+        ariaLabel={label}
+        widthClass="w-full"
+        triggerClassName="h-[46px] border-[#D9DEEA] bg-white shadow-[0_6px_16px_rgba(15,23,42,0.04)] hover:border-[#C7D2FE] hover:bg-[#F8FAFF] active:border-[#A5B4FC] active:bg-[#EEF2FF] focus:border-[#A5B4FC] focus:ring-4 focus:ring-[#E0E7FF]"
+      />
+    </div>
+  );
+}
+
+function ChartFilterBar({ filters, onFilterChange, onReset }) {
+  return (
+    <section className="grid items-end gap-4 md:grid-cols-2 xl:grid-cols-[1.2fr_1.04fr_0.95fr_0.9fr_auto]">
+      <DateRangePicker
+        label="조회 기간"
+        startDate={filters.startDate}
+        endDate={filters.endDate}
+        onChange={range => {
+          onFilterChange('startDate', range.startDate);
+          onFilterChange('endDate', range.endDate);
+        }}
+        widthClass="min-w-0"
+        labelClassName="text-[0.95rem] font-bold tracking-[-0.02em] text-[#5D687B]"
+        triggerHeightClass="h-[46px]"
+      />
+      {chartFilters.map(filter => (
+        <ChartFilterSelect
+          key={filter.key}
+          label={filter.label}
+          value={filters[filter.key]}
+          options={filter.options}
+          onChange={value => onFilterChange(filter.key, value)}
+        />
+      ))}
+      <MonitoringResetButton onClick={onReset} />
+    </section>
+  );
+}
+
+function LineChartTooltip({ active, label, payload }) {
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-xl border border-[#E5EAF3] bg-white px-3 py-2 text-[0.82rem] font-bold shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
+      <div className="mb-1.5 text-[#1F2942]">{label}</div>
+      <div className="grid gap-1.5">
+        {payload.map(item => (
+          <div key={item.dataKey} className="flex items-center justify-between gap-4 text-[#647089]">
+            <span className="flex items-center gap-2">
+              <ChartTooltipDot color={item.color} />
+              <span>{item.name}</span>
+            </span>
+            <span className="text-[#1F2942]">{item.value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function LineChart({ hiddenSeriesKeys }) {
   const visibleSeries = chartSeries.filter(series => !hiddenSeriesKeys.includes(series.key));
 
@@ -234,13 +354,7 @@ function LineChart({ hiddenSeriesKeys }) {
           />
           <Tooltip
             cursor={{ stroke: '#D7DDF0', strokeWidth: 1 }}
-            contentStyle={{
-              border: '1px solid #E5EAF3',
-              borderRadius: 12,
-              boxShadow: '0 14px 30px rgba(15,23,42,0.12)',
-              fontSize: 12,
-              fontWeight: 700,
-            }}
+            content={<LineChartTooltip />}
           />
           {visibleSeries.map(series => (
             <Line
@@ -305,7 +419,7 @@ function LegendToggle({ label, color, pressed, onClick, value, className = '' })
         className="h-2.5 w-2.5 shrink-0 rounded-full ring-2 ring-white transition"
         style={{ backgroundColor: pressed ? color : '#AEB8CA' }}
       />
-      <span className={cn('min-w-0 truncate', pressed ? '' : 'line-through')}>{label}</span>
+      <span className="min-w-0 truncate">{label}</span>
       {value ? (
         <span className={cn('shrink-0', pressed ? 'text-[#16213A]' : 'text-[#A5AEC0]')}>
           {value}
@@ -315,8 +429,28 @@ function LegendToggle({ label, color, pressed, onClick, value, className = '' })
   );
 }
 
-function DonutChart() {
-  const [hiddenSegmentLabels, setHiddenSegmentLabels] = useState([]);
+function DonutTooltip({ active, payload }) {
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  const segment = payload[0].payload;
+
+  return (
+    <div className="rounded-xl border border-[#E5EAF3] bg-white px-3 py-2 text-[0.82rem] font-bold shadow-[0_14px_30px_rgba(15,23,42,0.12)]">
+      <div className="flex items-center gap-2 text-[#1F2942]">
+        <ChartTooltipDot color={segment.color} />
+        <span>{segment.label}</span>
+      </div>
+      <div className="mt-1 text-[#647089]">
+        {segment.value}% · {segment.count}
+      </div>
+    </div>
+  );
+}
+
+function DonutChart({ hiddenSegmentLabels }) {
+  const [selectedSegmentLabel, setSelectedSegmentLabel] = useState(null);
   const visibleSegments = donutSegments.filter(
     segment => !hiddenSegmentLabels.includes(segment.label)
   );
@@ -324,18 +458,19 @@ function DonutChart() {
     (sum, segment) => sum + Number(segment.count.replace(/[^\d]/g, '')),
     0
   );
-  const handleToggleSegment = label => {
-    setHiddenSegmentLabels(current =>
-      current.includes(label) ? current.filter(item => item !== label) : [...current, label]
-    );
+  const selectedSegment = visibleSegments.find(segment => segment.label === selectedSegmentLabel);
+
+  const handleSelectSegment = segment => {
+    setSelectedSegmentLabel(current => (current === segment.label ? null : segment.label));
   };
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[minmax(250px,1fr)_minmax(150px,0.58fr)] xl:items-center">
-      <div className="mx-auto flex h-[270px] w-[270px] items-center justify-center">
+    <div className="flex flex-col items-center">
+      <div className="flex h-[270px] w-[270px] items-center justify-center">
         <div className="relative h-full w-full">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
+              <Tooltip content={<DonutTooltip />} />
               <Pie
                 data={visibleSegments}
                 dataKey="value"
@@ -347,42 +482,54 @@ function DonutChart() {
                 paddingAngle={2}
                 cornerRadius={8}
                 stroke="none"
+                onClick={handleSelectSegment}
               >
                 {visibleSegments.map(segment => (
-                  <Cell key={segment.label} fill={segment.color} />
+                  <Cell
+                    key={segment.label}
+                    fill={segment.color}
+                    opacity={selectedSegment && selectedSegment.label !== segment.label ? 0.42 : 1}
+                    style={{ cursor: 'pointer' }}
+                  />
                 ))}
               </Pie>
             </PieChart>
           </ResponsiveContainer>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-[0.82rem] font-semibold text-[#55627E]">전체 처리</span>
+          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+            <span className="text-[0.82rem] font-semibold text-[#55627E]">
+              {selectedSegment ? selectedSegment.label : '전체 처리'}
+            </span>
             <strong className="mt-1 text-[1.65rem] font-black tracking-[-0.05em] text-[#10182E]">
-              {totalCount.toLocaleString()}건
+              {selectedSegment ? selectedSegment.count : `${totalCount.toLocaleString()}건`}
             </strong>
+            {selectedSegment ? (
+              <span className="mt-1 text-[0.82rem] font-bold text-[#647089]">
+                {selectedSegment.value}%
+              </span>
+            ) : null}
           </div>
         </div>
       </div>
+    </div>
+  );
+}
 
-      <div className="min-w-0">
-        {donutSegments.map(segment => {
-          const isHidden = hiddenSegmentLabels.includes(segment.label);
+function DonutChartLegend({ hiddenSegmentLabels, onToggleSegment }) {
+  const handleToggleSegment = label => {
+    onToggleSegment(label);
+  };
 
-          return (
-            <LegendToggle
-              key={segment.label}
-              label={segment.label}
-              color={segment.color}
-              pressed={!isHidden}
-              value={`${segment.value}% (${segment.count})`}
-              onClick={() => handleToggleSegment(segment.label)}
-              className="mb-2 w-full justify-start last:mb-0"
-            />
-          );
-        })}
-        <p className="pt-2.5 text-center text-[0.78rem] font-semibold text-[#8A96AF]">
-          기준: 최근 7일
-        </p>
-      </div>
+  return (
+    <div className="flex flex-wrap items-center justify-end gap-2">
+      {donutSegments.map(segment => (
+        <LegendToggle
+          key={segment.label}
+          label={segment.label}
+          color={segment.color}
+          pressed={!hiddenSegmentLabels.includes(segment.label)}
+          onClick={() => handleToggleSegment(segment.label)}
+        />
+      ))}
     </div>
   );
 }
@@ -437,11 +584,24 @@ function HeaderLink({ children, onClick }) {
 
 export default function DashboardPage() {
   const navigate = useNavigate();
+  const [chartFilterValues, setChartFilterValues] = useState(chartFilterDefaults);
   const [hiddenLineSeriesKeys, setHiddenLineSeriesKeys] = useState([]);
+  const [hiddenDonutSegmentLabels, setHiddenDonutSegmentLabels] = useState([]);
 
+  const handleChartFilterChange = (key, value) => {
+    setChartFilterValues(current => ({ ...current, [key]: value }));
+  };
+  const handleResetChartFilters = () => {
+    setChartFilterValues(chartFilterDefaults);
+  };
   const handleToggleLineSeries = key => {
     setHiddenLineSeriesKeys(current =>
       current.includes(key) ? current.filter(item => item !== key) : [...current, key]
+    );
+  };
+  const handleToggleDonutSegment = label => {
+    setHiddenDonutSegmentLabels(current =>
+      current.includes(label) ? current.filter(item => item !== label) : [...current, label]
     );
   };
 
@@ -453,9 +613,15 @@ export default function DashboardPage() {
         ))}
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.04fr)_minmax(0,1fr)]">
+      <ChartFilterBar
+        filters={chartFilterValues}
+        onFilterChange={handleChartFilterChange}
+        onReset={handleResetChartFilters}
+      />
+
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
         <DashboardPanel
-          title="최근 7일 처리 상태 추이"
+          title="처리 상태 추이"
           actions={
             <LineChartLegend
               hiddenSeriesKeys={hiddenLineSeriesKeys}
@@ -465,8 +631,16 @@ export default function DashboardPage() {
         >
           <LineChart hiddenSeriesKeys={hiddenLineSeriesKeys} />
         </DashboardPanel>
-        <DashboardPanel title="처리 상태 분포">
-          <DonutChart />
+        <DashboardPanel
+          title="처리 상태 분포"
+          actions={
+            <DonutChartLegend
+              hiddenSegmentLabels={hiddenDonutSegmentLabels}
+              onToggleSegment={handleToggleDonutSegment}
+            />
+          }
+        >
+          <DonutChart hiddenSegmentLabels={hiddenDonutSegmentLabels} />
         </DashboardPanel>
       </section>
 

@@ -1,5 +1,5 @@
-import { Fragment, useEffect, useRef, useState } from 'react';
-import { Download } from 'lucide-react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { Download, RotateCcw } from 'lucide-react';
 import caretDownIcon from '../../assets/icons/caret_down.svg';
 import searchIcon from '../../assets/icons/search-data.svg';
 import ServiceLogoBadge from '../ServiceLogoBadge.jsx';
@@ -21,6 +21,86 @@ import {
   APP_SMALL_META_TEXT_CLASS,
 } from '../../constants/contentLayout.js';
 import { getStatusTextClassName } from '../../constants/statusColors.js';
+
+const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
+
+function parseDateString(value) {
+  const [year, month, day] = String(value).split('-').map(Number);
+  if (!year || !month || !day) return new Date();
+  return new Date(year, month - 1, day);
+}
+
+function formatDateValue(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function formatDateLabel(value) {
+  if (!value) return '';
+  const date = parseDateString(value);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function createCalendarDays(viewDate) {
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const startWeekday = firstDay.getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
+  const days = [];
+
+  for (let index = 0; index < 42; index += 1) {
+    const dayNumber = index - startWeekday + 1;
+
+    if (dayNumber <= 0) {
+      days.push({
+        date: new Date(year, month - 1, daysInPrevMonth + dayNumber),
+        isCurrentMonth: false,
+      });
+      continue;
+    }
+
+    if (dayNumber > daysInMonth) {
+      days.push({
+        date: new Date(year, month + 1, dayNumber - daysInMonth),
+        isCurrentMonth: false,
+      });
+      continue;
+    }
+
+    days.push({
+      date: new Date(year, month, dayNumber),
+      isCurrentMonth: true,
+    });
+  }
+
+  return days;
+}
+
+function isSameDay(left, right) {
+  return (
+    left.getFullYear() === right.getFullYear() &&
+    left.getMonth() === right.getMonth() &&
+    left.getDate() === right.getDate()
+  );
+}
+
+function compareDateOnly(left, right) {
+  const leftDate = new Date(left.getFullYear(), left.getMonth(), left.getDate()).getTime();
+  const rightDate = new Date(right.getFullYear(), right.getMonth(), right.getDate()).getTime();
+
+  return leftDate - rightDate;
+}
+
+function isDateInRange(date, startDate, endDate) {
+  return compareDateOnly(date, startDate) >= 0 && compareDateOnly(date, endDate) <= 0;
+}
 
 export function MonitoringActionButton({
   children,
@@ -61,6 +141,202 @@ export function MonitoringActionButton({
     >
       {children}
     </button>
+  );
+}
+
+export function MonitoringResetButton({
+  children = '초기화',
+  onClick,
+  heightClass = 'h-[46px]',
+  widthClass = 'w-fit',
+  textClassName = 'text-[0.98rem] font-bold tracking-[-0.02em]',
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex ${heightClass} ${widthClass} items-center justify-center gap-2 rounded-[10px] border border-[#D7DEE9] bg-white px-5 ${textClassName} whitespace-nowrap text-[#4A57F5] shadow-[0_6px_16px_rgba(15,23,42,0.04)] transition hover:border-[#BFC7FF] hover:bg-[#F8FAFF] active:scale-[0.98]`.trim()}
+    >
+      <RotateCcw className="h-5 w-5" strokeWidth={2.4} aria-hidden="true" />
+      {children}
+    </button>
+  );
+}
+
+export function DateRangePicker({
+  label,
+  startDate,
+  endDate,
+  onChange,
+  widthClass = 'min-w-[278px]',
+  labelClassName = 'text-[13px] font-semibold tracking-[-0.01em] text-[#5C6784]',
+  triggerHeightClass = 'h-[42px]',
+}) {
+  const rootRef = useRef(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [viewDate, setViewDate] = useState(() => parseDateString(endDate || startDate));
+  const [selectionStep, setSelectionStep] = useState('start');
+  const selectedStartDate = parseDateString(startDate);
+  const selectedEndDate = parseDateString(endDate || startDate);
+  const calendarDays = useMemo(() => createCalendarDays(viewDate), [viewDate]);
+  const dateLabel = `${formatDateLabel(startDate)} ~ ${formatDateLabel(endDate)}`;
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const handlePointerDown = event => {
+      if (!rootRef.current?.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleKeyDown = event => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
+
+  const handleSelectDate = date => {
+    const value = formatDateValue(date);
+
+    if (selectionStep === 'start') {
+      onChange({ startDate: value, endDate: value });
+      setSelectionStep('end');
+      return;
+    }
+
+    if (compareDateOnly(date, selectedStartDate) < 0) {
+      onChange({ startDate: value, endDate: startDate });
+    } else {
+      onChange({ startDate, endDate: value });
+    }
+
+    setSelectionStep('start');
+    setIsOpen(false);
+  };
+
+  return (
+    <label ref={rootRef} className={`relative flex flex-col gap-2 ${widthClass}`.trim()}>
+      <span className={labelClassName}>{label}</span>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => {
+            setViewDate(parseDateString(endDate || startDate));
+            setSelectionStep('start');
+            setIsOpen(open => !open);
+          }}
+          className={`flex ${triggerHeightClass} w-full cursor-pointer items-center rounded-[10px] border pr-10 pl-4 text-[14px] font-medium text-[#344054] shadow-[0_4px_12px_rgba(15,23,42,0.04)] outline-none transition ${
+            isOpen
+              ? 'border-[#A5B4FC] bg-[#EEF2FF] ring-4 ring-[#E0E7FF]'
+              : 'border-[#D9DEEA] bg-white hover:border-[#C7D2FE] hover:bg-[#F8FAFF] active:border-[#A5B4FC] active:bg-[#EEF2FF] focus:border-[#A5B4FC] focus:ring-4 focus:ring-[#E0E7FF]'
+          }`.trim()}
+        >
+          {dateLabel}
+        </button>
+        <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[#667085]">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <rect
+              x="2.25"
+              y="3.25"
+              width="11.5"
+              height="10.5"
+              rx="2"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+            <path d="M5 1.75V4.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M11 1.75V4.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M2.5 6H13.5" stroke="currentColor" strokeWidth="1.5" />
+          </svg>
+        </span>
+      </div>
+
+      {isOpen ? (
+        <div className="absolute top-[calc(100%+0.5rem)] left-0 z-40 w-[20rem] rounded-[14px] border border-[#E3E7F0] bg-white p-3 shadow-[0_16px_36px_rgba(15,23,42,0.12)]">
+          <div className="mb-3 rounded-[10px] bg-[#F7F8FC] px-3 py-2 text-[12px] font-semibold text-[#657086]">
+            {selectionStep === 'start' ? '시작일을 선택하세요' : '종료일을 선택하세요'}
+          </div>
+          <div className="mb-3 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() =>
+                setViewDate(current => new Date(current.getFullYear(), current.getMonth() - 1, 1))
+              }
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-[#5C6B7A] transition hover:bg-[#F3F5FB]"
+              aria-label="이전 달"
+            >
+              ‹
+            </button>
+            <div className="text-[14px] font-bold text-[#2D3C4B]">
+              {viewDate.getFullYear()}.{String(viewDate.getMonth() + 1).padStart(2, '0')}
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                setViewDate(current => new Date(current.getFullYear(), current.getMonth() + 1, 1))
+              }
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-[#5C6B7A] transition hover:bg-[#F3F5FB]"
+              aria-label="다음 달"
+            >
+              ›
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold text-[#8D99AE]">
+            {WEEKDAY_LABELS.map(day => (
+              <span key={day} className="py-1">
+                {day}
+              </span>
+            ))}
+          </div>
+
+          <div className="mt-1 grid grid-cols-7 gap-1">
+            {calendarDays.map(({ date, isCurrentMonth }) => {
+              const isStart = isSameDay(date, selectedStartDate);
+              const isEnd = isSameDay(date, selectedEndDate);
+              const isInRange = isDateInRange(date, selectedStartDate, selectedEndDate);
+              const isSelected = isStart || isEnd;
+
+              return (
+                <button
+                  key={date.toISOString()}
+                  type="button"
+                  onClick={() => handleSelectDate(date)}
+                  className={`flex h-9 cursor-pointer items-center justify-center rounded-[10px] text-[12px] font-medium transition ${
+                    isSelected
+                      ? 'bg-[#4B35D4] text-white shadow-[0_8px_18px_rgba(75,53,212,0.18)]'
+                      : isInRange
+                        ? 'bg-[#F0EEFF] text-[#4B35D4]'
+                        : isCurrentMonth
+                          ? 'text-[#314153] hover:bg-[#F3F5FB]'
+                          : 'text-[#BCC6D1] hover:bg-[#F6F8FC]'
+                  }`.trim()}
+                >
+                  {date.getDate()}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+    </label>
   );
 }
 

@@ -1,11 +1,13 @@
 import { Download } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import GlassPagination from '../../components/GlassPagination.jsx';
 import {
+  DateRangePicker,
   MonitoringActionButton,
   MonitoringDataTable,
   MonitoringDropdown,
+  MonitoringResetButton,
 } from '../../components/monitoring/MonitoringListComponents.jsx';
 import {
   APP_PAGE_HORIZONTAL_PADDING_CLASS,
@@ -16,8 +18,8 @@ import { getStatusTextClassName as getStatusColorClassName } from '../../constan
 import { useMonitoringEventsQuery } from '../../queries/monitoringQueries.js';
 
 const policyOptions = ['전체 정책', '일반 사용 허용 정책', '개인정보 보호 기본 정책'];
+const ALL_USERS_OPTION = '전체 사용자';
 const ROWS_PER_PAGE = 11;
-const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
 
 function normalizeMonitoringEvent(event, index) {
   if (event.detectedAt) {
@@ -108,71 +110,11 @@ function normalizeLogDateTime(value) {
   return String(value).replace(' ', 'T');
 }
 
-function parseDateString(value) {
-  const [year, month, day] = String(value).split('-').map(Number);
-  if (!year || !month || !day) return new Date();
-  return new Date(year, month - 1, day);
-}
-
 function formatDateValue(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
-}
-
-function formatDateLabel(value) {
-  if (!value) return '';
-  const date = parseDateString(value);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-function createCalendarDays(viewDate) {
-  const year = viewDate.getFullYear();
-  const month = viewDate.getMonth();
-  const firstDay = new Date(year, month, 1);
-  const startWeekday = firstDay.getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const daysInPrevMonth = new Date(year, month, 0).getDate();
-  const days = [];
-
-  for (let index = 0; index < 42; index += 1) {
-    const dayNumber = index - startWeekday + 1;
-
-    if (dayNumber <= 0) {
-      days.push({
-        date: new Date(year, month - 1, daysInPrevMonth + dayNumber),
-        isCurrentMonth: false,
-      });
-      continue;
-    }
-
-    if (dayNumber > daysInMonth) {
-      days.push({
-        date: new Date(year, month + 1, dayNumber - daysInMonth),
-        isCurrentMonth: false,
-      });
-      continue;
-    }
-
-    days.push({
-      date: new Date(year, month, dayNumber),
-      isCurrentMonth: true,
-    });
-  }
-
-  return days;
-}
-
-function isSameDay(left, right) {
-  return (
-    left.getFullYear() === right.getFullYear() &&
-    left.getMonth() === right.getMonth() &&
-    left.getDate() === right.getDate()
-  );
 }
 
 function buildAnswerDetail(row) {
@@ -322,151 +264,6 @@ function DetailChipList({ items }) {
   );
 }
 
-function DateRangeField({ label, value, onChange, hideLabel = false }) {
-  const rootRef = useRef(null);
-  const [isOpen, setIsOpen] = useState(false);
-  const [viewDate, setViewDate] = useState(() => parseDateString(value));
-  const selectedDate = parseDateString(value);
-  const calendarDays = useMemo(() => createCalendarDays(viewDate), [viewDate]);
-
-  useEffect(() => {
-    if (!isOpen) return undefined;
-
-    const handlePointerDown = event => {
-      if (!rootRef.current?.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    const handleKeyDown = event => {
-      if (event.key === 'Escape') {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener('pointerdown', handlePointerDown);
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('pointerdown', handlePointerDown);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen]);
-
-  return (
-    <label ref={rootRef} className="relative flex min-w-[132px] flex-col gap-2">
-      <span
-        className={`text-[13px] font-semibold tracking-[-0.01em] text-[#5C6784] ${hideLabel ? 'opacity-0' : ''}`.trim()}
-      >
-        {label}
-      </span>
-      <div className="relative">
-        <button
-          type="button"
-          onClick={() => {
-            setViewDate(parseDateString(value));
-            setIsOpen(open => !open);
-          }}
-          className={`flex h-[42px] w-full cursor-pointer items-center rounded-[10px] border pr-10 pl-4 text-[14px] font-medium text-[#344054] shadow-[0_4px_12px_rgba(15,23,42,0.04)] outline-none transition ${
-            isOpen
-              ? 'border-[#A5B4FC] bg-[#EEF2FF] ring-4 ring-[#E0E7FF]'
-              : 'border-[#D9DEEA] bg-white hover:border-[#C7D2FE] hover:bg-[#F8FAFF] active:border-[#A5B4FC] active:bg-[#EEF2FF] focus:border-[#A5B4FC] focus:ring-4 focus:ring-[#E0E7FF]'
-          }`.trim()}
-        >
-          {formatDateLabel(value)}
-        </button>
-        <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-[#667085]">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-          >
-            <rect
-              x="2.25"
-              y="3.25"
-              width="11.5"
-              height="10.5"
-              rx="2"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            />
-            <path d="M5 1.75V4.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            <path d="M11 1.75V4.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            <path d="M2.5 6H13.5" stroke="currentColor" strokeWidth="1.5" />
-          </svg>
-        </span>
-      </div>
-
-      {isOpen ? (
-        <div className="absolute top-[calc(100%+0.5rem)] left-0 z-40 w-[18rem] rounded-[14px] border border-[#E3E7F0] bg-white p-3 shadow-[0_16px_36px_rgba(15,23,42,0.12)]">
-          <div className="mb-3 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={() =>
-                setViewDate(current => new Date(current.getFullYear(), current.getMonth() - 1, 1))
-              }
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-[#5C6B7A] transition hover:bg-[#F3F5FB]"
-              aria-label="이전 달"
-            >
-              ‹
-            </button>
-            <div className="text-[14px] font-bold text-[#2D3C4B]">
-              {viewDate.getFullYear()}.{String(viewDate.getMonth() + 1).padStart(2, '0')}
-            </div>
-            <button
-              type="button"
-              onClick={() =>
-                setViewDate(current => new Date(current.getFullYear(), current.getMonth() + 1, 1))
-              }
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-[#5C6B7A] transition hover:bg-[#F3F5FB]"
-              aria-label="다음 달"
-            >
-              ›
-            </button>
-          </div>
-
-          <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold text-[#8D99AE]">
-            {WEEKDAY_LABELS.map(day => (
-              <span key={day} className="py-1">
-                {day}
-              </span>
-            ))}
-          </div>
-
-          <div className="mt-1 grid grid-cols-7 gap-1">
-            {calendarDays.map(({ date, isCurrentMonth }) => {
-              const isSelected = isSameDay(date, selectedDate);
-
-              return (
-                <button
-                  key={date.toISOString()}
-                  type="button"
-                  onClick={() => {
-                    onChange(formatDateValue(date));
-                    setIsOpen(false);
-                  }}
-                  className={`flex h-9 cursor-pointer items-center justify-center rounded-[10px] text-[12px] font-medium transition ${
-                    isSelected
-                      ? 'bg-[#4B35D4] text-white shadow-[0_8px_18px_rgba(75,53,212,0.18)]'
-                      : isCurrentMonth
-                        ? 'text-[#314153] hover:bg-[#F3F5FB]'
-                        : 'text-[#BCC6D1] hover:bg-[#F6F8FC]'
-                  }`.trim()}
-                >
-                  {date.getDate()}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
-    </label>
-  );
-}
-
 export function MonitoringLogView({
   useStatusFilter = false,
   emptyMessage = '현재 조건에 맞는 모니터링 로그가 없습니다.',
@@ -476,6 +273,7 @@ export function MonitoringLogView({
   const [startDate, setStartDate] = useState(defaultDateRange.startDate);
   const [endDate, setEndDate] = useState(defaultDateRange.endDate);
   const [selectedPolicy, setSelectedPolicy] = useState('전체 정책');
+  const [selectedUser, setSelectedUser] = useState(ALL_USERS_OPTION);
   const [selectedLogId, setSelectedLogId] = useState();
   const [selectedRowIds, setSelectedRowIds] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -495,6 +293,15 @@ export function MonitoringLogView({
     return (monitoringData?.events ?? []).map(normalizeMonitoringEvent);
   }, [isError, monitoringData?.events]);
 
+  const userOptions = useMemo(() => {
+    const users = monitoringLogs
+      .map(log => log.userId)
+      .filter(user => user && user !== '-')
+      .sort((left, right) => left.localeCompare(right, 'ko'));
+
+    return [ALL_USERS_OPTION, ...new Set(users)];
+  }, [monitoringLogs]);
+
   const filteredLogs = useMemo(() => {
     return monitoringLogs.filter(log => {
       const logDate = new Date(normalizeLogDateTime(log.detectedAt));
@@ -504,15 +311,24 @@ export function MonitoringLogView({
         (!startBoundary || logDate >= startBoundary) && (!endBoundary || logDate <= endBoundary);
       const matchesPolicy =
         selectedPolicy === '전체 정책' || getDetectedPolicyName(log) === selectedPolicy;
+      const matchesUser = selectedUser === ALL_USERS_OPTION || log.userId === selectedUser;
       const logStatusCategory = getLogStatusCategory(log);
       const matchesStatus = !useStatusFilter
         ? true
         : statusFilter === 'all'
           ? true
           : statusFilter === logStatusCategory;
-      return matchesDateRange && matchesPolicy && matchesStatus;
+      return matchesDateRange && matchesPolicy && matchesUser && matchesStatus;
     });
-  }, [endDate, monitoringLogs, selectedPolicy, startDate, statusFilter, useStatusFilter]);
+  }, [
+    endDate,
+    monitoringLogs,
+    selectedPolicy,
+    selectedUser,
+    startDate,
+    statusFilter,
+    useStatusFilter,
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(filteredLogs.length / ROWS_PER_PAGE));
 
@@ -589,31 +405,24 @@ export function MonitoringLogView({
             <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
               <div className="flex flex-col gap-5 lg:flex-row lg:flex-wrap lg:items-end lg:gap-5">
                 <div className="flex flex-wrap items-end gap-2.5">
-                  <DateRangeField
+                  <DateRangePicker
                     label="조회 기간"
-                    value={startDate}
-                    onChange={value => {
-                      setStartDate(value);
+                    startDate={startDate}
+                    endDate={endDate}
+                    onChange={range => {
+                      setStartDate(range.startDate);
+                      setEndDate(range.endDate);
                       setCurrentPage(1);
                     }}
-                  />
-                  <span className="pb-[9px] text-[18px] font-medium text-[#98A2B3]">-</span>
-                  <DateRangeField
-                    label="조회 기간"
-                    hideLabel
-                    value={endDate}
-                    onChange={value => {
-                      setEndDate(value);
-                      setCurrentPage(1);
-                    }}
+                    widthClass="w-full sm:w-auto sm:min-w-[260px]"
                   />
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <p className="text-[13px] font-semibold tracking-[-0.01em] text-[#5C6784]">
-                    검색 조건
-                  </p>
-                  <div className="flex flex-wrap items-center gap-2.5">
+                <div className="flex flex-wrap items-end gap-2.5">
+                  <div className="flex flex-col gap-2">
+                    <p className="text-[13px] font-semibold tracking-[-0.01em] text-[#5C6784]">
+                      정책
+                    </p>
                     <MonitoringDropdown
                       value={selectedPolicy}
                       onChange={value => {
@@ -625,19 +434,39 @@ export function MonitoringLogView({
                       widthClass="w-full sm:w-auto sm:min-w-[260px]"
                       triggerClassName="h-[42px] border-[#D9DEEA] bg-white shadow-[0_4px_12px_rgba(15,23,42,0.04)]"
                     />
-                    <MonitoringActionButton
-                      variant="outline"
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-[13px] font-semibold tracking-[-0.01em] text-[#5C6784]">
+                      사용자
+                    </p>
+                    <MonitoringDropdown
+                      value={selectedUser}
+                      onChange={value => {
+                        setSelectedUser(value);
+                        setCurrentPage(1);
+                      }}
+                      options={userOptions}
+                      ariaLabel="사용자"
+                      widthClass="w-full sm:w-auto sm:min-w-[180px]"
+                      triggerClassName="h-[42px] border-[#D9DEEA] bg-white shadow-[0_4px_12px_rgba(15,23,42,0.04)]"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-[13px] font-semibold tracking-[-0.01em] text-transparent">
+                      초기화
+                    </p>
+                    <MonitoringResetButton
                       heightClass="h-[42px]"
-                      widthClass="w-[94px] min-w-[94px]"
+                      widthClass="w-[106px] min-w-[106px]"
+                      textClassName="text-[14px] font-semibold tracking-[0.01em]"
                       onClick={() => {
                         setStartDate(defaultDateRange.startDate);
                         setEndDate(defaultDateRange.endDate);
                         setSelectedPolicy('전체 정책');
+                        setSelectedUser(ALL_USERS_OPTION);
                         setCurrentPage(1);
                       }}
-                    >
-                      초기화
-                    </MonitoringActionButton>
+                    />
                   </div>
                 </div>
               </div>
