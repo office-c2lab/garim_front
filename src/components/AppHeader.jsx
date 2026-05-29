@@ -18,6 +18,7 @@ const PAGE_TITLES = {
   '/domains': 'Domains',
   '/support': 'Operation Support',
   '/mypage': 'My Page',
+  '/settings': 'Settings',
   '/download': 'Download',
 };
 
@@ -29,6 +30,7 @@ const PAGE_DESCRIPTIONS = {
   '/domains': '외부 AI 서비스 도메인을 관리하고 사용 여부를 설정할 수 있습니다.',
   '/support': '운영 가이드, 템플릿, 배포 URL을 관리할 수 있습니다.',
   '/mypage': '관리자 계정 정보와 비밀번호를 관리할 수 있습니다.',
+  '/settings': '드롭다운 선택 항목과 공통 운영 값을 관리할 수 있습니다.',
   '/download': 'GARIM 에이전트와 운영 가이드 파일을 다운로드할 수 있습니다.',
 };
 
@@ -95,6 +97,7 @@ export default function AppHeader({ onMenuClick, isSidebarOpen = false }) {
   const navigate = useNavigate();
   const pageTitle = PAGE_TITLES[location.pathname] ?? 'GARIM';
   const pageDescription = PAGE_DESCRIPTIONS[location.pathname] ?? '';
+  const isSettingsActive = location.pathname.startsWith('/settings');
   const userName = 'C2lab';
 
   useEffect(() => {
@@ -133,6 +136,11 @@ export default function AppHeader({ onMenuClick, isSidebarOpen = false }) {
   const handleNavigateMyPage = () => {
     setOpenPopover(null);
     navigate('/mypage');
+  };
+
+  const handleNavigateSettings = () => {
+    setOpenPopover(null);
+    navigate('/settings');
   };
 
   return (
@@ -190,23 +198,26 @@ export default function AppHeader({ onMenuClick, isSidebarOpen = false }) {
               tooltip=""
               className="group active:bg-[#4338CA] active:text-white"
               hoverClassName="hover:bg-[#4338CA] hover:text-white"
-              isActive={openPopover === 'setting'}
-              onClick={() => togglePopover('setting')}
+              isActive={isSettingsActive}
+              onClick={handleNavigateSettings}
             >
               <img
                 src={settingIcon}
                 alt=""
                 aria-hidden="true"
-                className="h-[15px] w-[15px] transition-opacity group-hover:opacity-0 group-active:opacity-0"
+                className={`h-[15px] w-[15px] transition-opacity group-hover:opacity-0 group-active:opacity-0 ${
+                  isSettingsActive ? 'opacity-0' : 'opacity-100'
+                }`.trim()}
               />
               <img
                 src={settingWhiteIcon}
                 alt=""
                 aria-hidden="true"
-                className="pointer-events-none absolute h-[15px] w-[15px] opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100"
+                className={`pointer-events-none absolute h-[15px] w-[15px] transition-opacity group-hover:opacity-100 group-active:opacity-100 ${
+                  isSettingsActive ? 'opacity-100' : 'opacity-0'
+                }`.trim()}
               />
             </HeaderIconButton>
-            {openPopover === 'setting' ? <PendingFeatureMenu /> : null}
           </div>
           <div className="relative" data-header-popover-root="true">
             <HeaderIconButton
@@ -288,23 +299,26 @@ export default function AppHeader({ onMenuClick, isSidebarOpen = false }) {
                       tooltip=""
                       className="group active:bg-[#4338CA] active:text-white"
                       hoverClassName="hover:bg-[#4338CA] hover:text-white"
-                      isActive={openPopover === 'setting'}
-                      onClick={() => togglePopover('setting')}
+                      isActive={isSettingsActive}
+                      onClick={handleNavigateSettings}
                     >
                       <img
                         src={settingIcon}
                         alt=""
                         aria-hidden="true"
-                        className="h-[16px] w-[16px] transition-opacity group-hover:opacity-0 group-active:opacity-0 lg:h-[15px] lg:w-[15px] xl:h-[17px] xl:w-[17px]"
+                        className={`h-[16px] w-[16px] transition-opacity group-hover:opacity-0 group-active:opacity-0 lg:h-[15px] lg:w-[15px] xl:h-[17px] xl:w-[17px] ${
+                          isSettingsActive ? 'opacity-0' : 'opacity-100'
+                        }`.trim()}
                       />
                       <img
                         src={settingWhiteIcon}
                         alt=""
                         aria-hidden="true"
-                        className="pointer-events-none absolute h-[16px] w-[16px] opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100 lg:h-[15px] lg:w-[15px] xl:h-[17px] xl:w-[17px]"
+                        className={`pointer-events-none absolute h-[16px] w-[16px] transition-opacity group-hover:opacity-100 group-active:opacity-100 lg:h-[15px] lg:w-[15px] xl:h-[17px] xl:w-[17px] ${
+                          isSettingsActive ? 'opacity-100' : 'opacity-0'
+                        }`.trim()}
                       />
                     </HeaderIconButton>
-                    {openPopover === 'setting' ? <PendingFeatureMenu /> : null}
                   </div>
 
                   <div className="relative" data-header-popover-root="true">

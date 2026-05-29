@@ -108,7 +108,7 @@ const chartFilterDefaults = {
 const chartFilters = [
   {
     key: 'service',
-    label: '서비스/도메인',
+    label: '서비스',
     options: ['전체 서비스', 'ChatGPT', 'Gemini', 'Claude', 'Genspark', 'MS Copilot'],
   },
   {
@@ -292,7 +292,7 @@ function ChartFilterSelect({ label, value, options, onChange }) {
 
 function ChartFilterBar({ filters, onFilterChange, onReset }) {
   return (
-    <section className="grid items-end gap-4 md:grid-cols-2 xl:grid-cols-[190px_1.04fr_0.95fr_0.9fr_auto]">
+    <section className="grid items-end gap-4 md:grid-cols-2 xl:grid-cols-[190px_180px_260px_180px_auto]">
       <DateRangePicker
         label="조회 기간"
         startDate={filters.startDate}

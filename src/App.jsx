@@ -10,6 +10,7 @@ import SupportPage from './pages/SupportPage/SupportPage.jsx';
 import DownloadPage from './pages/DownloadPage/DownloadPage.jsx';
 import LoginPage from './pages/LoginPage/LoginPage.jsx';
 import MyPage from './pages/MyPage/MyPage.jsx';
+import SettingsPage from './pages/SettingsPage/SettingsPage.jsx';
 import NotFoundPage from './pages/NotFoundPage/NotFoundPage.jsx';
 import { DEFAULT_DOWNLOAD_PATH, useSupportSettingsStore } from './stores/supportSettingsStore.js';
 
@@ -41,6 +42,7 @@ export default function App() {
         <Route path="/domains" element={<DomainPage />} />
         <Route path="/support" element={<SupportPage />} />
         <Route path="/mypage" element={<MyPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

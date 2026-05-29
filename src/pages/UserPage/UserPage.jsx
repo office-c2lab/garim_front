@@ -12,56 +12,37 @@ import {
   monitoringTableSurfaceClass,
 } from '../../components/monitoring/monitoringTableStyles.js';
 import PageLayout from '../../layout/PageLayout.jsx';
+import {
+  usePatchClientMetadataMutation,
+  useRegisteredClientsQuery,
+} from '../../queries/userManagementQueries.js';
 
-const initialUsers = [
-  {
-    id: 1,
-    name: '박지훈',
-    email: 'jihun.park@garim.co.kr',
-    ip: '203.0.113.23',
-    department: '기술팀',
-    position: '시니어 엔지니어',
-    createdAt: '2025-05-20 14:32',
-  },
-  {
-    id: 2,
-    name: '김동석',
-    email: 'dongseok.kim@garim.co.kr',
-    ip: '203.0.113.45',
-    department: '보안팀',
-    position: '보안 엔지니어',
-    createdAt: '2025-05-21 09:15',
-  },
-  {
-    id: 3,
-    name: '이서연',
-    email: 'seoyeon.lee@garim.co.kr',
-    ip: '198.51.100.77',
-    department: '영업팀',
-    position: '세일즈 매니저',
-    createdAt: '2025-05-19 16:45',
-  },
-  {
-    id: 4,
-    name: '정우진',
-    email: 'woojin.jung@garim.co.kr',
-    ip: '203.0.113.99',
-    department: '기술팀',
-    position: '백엔드 엔지니어',
-    createdAt: '2025-05-18 11:07',
-  },
-  {
-    id: 5,
-    name: '최민서',
-    email: 'minseo.choi@garim.co.kr',
-    ip: '192.0.2.58',
-    department: '관리팀',
-    position: '관리 매니저',
-    createdAt: '2025-05-17 10:22',
-  },
-];
+const DEFAULT_DEPARTMENT_OPTION = '전체 부서';
 
-const departmentOptions = ['전체 부서', '기술팀', '보안팀', '영업팀', '관리팀'];
+function getFallbackValue(value) {
+  return value?.trim() || '-';
+}
+
+function normalizeClient(client) {
+  return {
+    id: String(client.id ?? client.client_id),
+    name: client.user_name ?? '',
+    email: client.email ?? '',
+    ip: client.client_ip ?? '-',
+    department: client.department ?? '',
+    position: client.position ?? '',
+    createdAt: client.time_kst ?? '-',
+  };
+}
+
+function createUserDraft(user) {
+  return {
+    name: user.name,
+    email: user.email,
+    department: user.department,
+    position: user.position,
+  };
+}
 
 function DetailField({ label, children }) {
   return (
@@ -92,42 +73,51 @@ function DetailSection({ title, children, className = '' }) {
   );
 }
 
-function UserDetailPanel({ user, onUpdate, onDelete }) {
+function UserDetailPanel({ user, onSave, isSaving }) {
+  const [draft, setDraft] = useState(() => createUserDraft(user));
+
+  const updateDraft = patch => {
+    setDraft(current => ({ ...current, ...patch }));
+  };
+
+  const handleCancel = () => {
+    setDraft(createUserDraft(user));
+  };
+
+  const handleSave = () => {
+    onSave(draft);
+  };
+
   return (
     <div className="bg-white">
-      <div className="flex flex-col gap-4 border-b border-slate-200 px-5 py-4 sm:px-6 lg:flex-row lg:items-start lg:justify-between">
+      <div className="border-b border-slate-200 px-5 py-4 sm:px-6">
         <div>
           <h2 className="text-lg font-bold text-slate-900">사용자 상세 설정</h2>
           <p className="mt-1 text-sm text-slate-400">
             선택한 사용자의 기본 정보와 고정 IP를 확인할 수 있습니다.
           </p>
         </div>
-
-        <button
-          type="button"
-          onClick={onDelete}
-          className="inline-flex h-10 items-center justify-center rounded-xl border border-[#FECACA] bg-[#FEF2F2] px-4 text-sm font-semibold text-[#DC2626] transition hover:bg-[#FEE2E2]"
-        >
-          삭제
-        </button>
       </div>
 
       <div className="grid bg-white xl:grid-cols-[1.05fr_0.95fr]">
         <DetailSection title="기본 정보" className="xl:border-r">
           <DetailField label="사용자명">
-            <TextInput value={user.name} onChange={value => onUpdate({ name: value })} />
+            <TextInput value={draft.name} onChange={value => updateDraft({ name: value })} />
           </DetailField>
           <DetailField label="이메일">
-            <TextInput value={user.email} onChange={value => onUpdate({ email: value })} />
+            <TextInput value={draft.email} onChange={value => updateDraft({ email: value })} />
           </DetailField>
           <DetailField label="부서">
             <TextInput
-              value={user.department}
-              onChange={value => onUpdate({ department: value })}
+              value={draft.department}
+              onChange={value => updateDraft({ department: value })}
             />
           </DetailField>
           <DetailField label="직책">
-            <TextInput value={user.position} onChange={value => onUpdate({ position: value })} />
+            <TextInput
+              value={draft.position}
+              onChange={value => updateDraft({ position: value })}
+            />
           </DetailField>
         </DetailSection>
 
@@ -142,15 +132,19 @@ function UserDetailPanel({ user, onUpdate, onDelete }) {
         <div className="flex justify-end gap-3 border-t border-[#DDE3EF] px-5 py-4 xl:col-span-2">
           <button
             type="button"
+            onClick={handleCancel}
+            disabled={isSaving}
             className="h-10 min-w-[6.5rem] rounded-md border border-[#D7DDE8] bg-white px-5 text-[13px] font-bold text-[#344054] transition hover:bg-[#F8FAFF]"
           >
             취소
           </button>
           <button
             type="button"
-            className="h-10 min-w-[6.5rem] rounded-md border border-[#4338CA] bg-[#4338CA] px-5 text-[13px] font-bold text-white transition hover:bg-[#3730A3]"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="h-10 min-w-[6.5rem] rounded-md border border-[#4338CA] bg-[#4338CA] px-5 text-[13px] font-bold text-white transition hover:bg-[#3730A3] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            저장
+            {isSaving ? '저장 중' : '저장'}
           </button>
         </div>
       </div>
@@ -159,11 +153,25 @@ function UserDetailPanel({ user, onUpdate, onDelete }) {
 }
 
 export default function UserPage() {
-  const [users, setUsers] = useState(initialUsers);
   const [selectedId, setSelectedId] = useState(null);
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [department, setDepartment] = useState(departmentOptions[0]);
+  const [department, setDepartment] = useState(DEFAULT_DEPARTMENT_OPTION);
+  const { data: clientsData, isError, isFetching, isLoading } = useRegisteredClientsQuery();
+  const { mutate: patchClientMetadata, isPending: isSaving } = usePatchClientMetadataMutation();
+
+  const users = useMemo(() => {
+    return (clientsData?.clients ?? []).map(normalizeClient);
+  }, [clientsData?.clients]);
+
+  const departmentOptions = useMemo(() => {
+    const departments = users
+      .map(user => user.department.trim())
+      .filter(Boolean)
+      .filter((value, index, array) => array.indexOf(value) === index);
+
+    return [DEFAULT_DEPARTMENT_OPTION, ...departments];
+  }, [users]);
 
   const selectedUser = users.find(user => user.id === selectedId) ?? null;
 
@@ -176,29 +184,36 @@ export default function UserPage() {
             value.toLowerCase().includes(normalizedQuery)
           )
         : true;
-      const matchesDepartment = department === '전체 부서' || user.department === department;
+      const matchesDepartment =
+        department === DEFAULT_DEPARTMENT_OPTION || user.department === department;
 
       return matchesQuery && matchesDepartment;
     });
   }, [department, searchQuery, users]);
 
-  const updateSelectedUser = patch => {
-    setUsers(current =>
-      selectedUser
-        ? current.map(user => (user.id === selectedUser.id ? { ...user, ...patch } : user))
-        : current
-    );
-  };
-
-  const handleDeleteSelectedUser = () => {
+  const handleSaveSelectedUser = draft => {
     if (!selectedUser) return;
 
-    setUsers(current => {
-      const nextUsers = current.filter(user => user.id !== selectedUser.id);
-      setSelectedId(null);
-      return nextUsers;
+    patchClientMetadata({
+      id: selectedUser.id,
+      metadata: {
+        user_name: draft.name,
+        email: draft.email,
+        department: draft.department,
+        position: draft.position,
+      },
     });
   };
+
+  const statusMessage = isError
+    ? '사용자 목록을 불러오지 못했습니다.'
+    : isLoading
+      ? '사용자 목록을 불러오는 중입니다.'
+      : isFetching
+        ? '사용자 목록을 갱신하는 중입니다.'
+        : !filteredUsers.length
+          ? '현재 조건에 맞는 사용자가 없습니다.'
+          : '';
 
   return (
     <PageLayout>
@@ -312,10 +327,10 @@ export default function UserPage() {
                             <span className="font-semibold text-slate-800">{user.ip}</span>
                           </td>
                           <td className={monitoringTableCellClass(index, 'whitespace-nowrap px-3')}>
-                            {user.name}
+                            {getFallbackValue(user.name)}
                           </td>
                           <td className={monitoringTableCellClass(index, 'whitespace-nowrap px-3')}>
-                            <div className="truncate">{user.email}</div>
+                            <div className="truncate">{getFallbackValue(user.email)}</div>
                           </td>
                           <td
                             className={monitoringTableCellClass(
@@ -323,10 +338,10 @@ export default function UserPage() {
                               'whitespace-nowrap px-3 font-semibold'
                             )}
                           >
-                            {user.department}
+                            {getFallbackValue(user.department)}
                           </td>
                           <td className={monitoringTableCellClass(index, 'whitespace-nowrap px-3')}>
-                            <div className="truncate">{user.position}</div>
+                            <div className="truncate">{getFallbackValue(user.position)}</div>
                           </td>
                           <td className={monitoringTableCellClass(index, 'whitespace-nowrap px-3')}>
                             {user.createdAt}
@@ -337,9 +352,10 @@ export default function UserPage() {
                             <td colSpan={7} className="border-t border-[#E5EBF5] bg-white p-0">
                               {selectedUser ? (
                                 <UserDetailPanel
+                                  key={selectedUser.id}
                                   user={selectedUser}
-                                  onUpdate={updateSelectedUser}
-                                  onDelete={handleDeleteSelectedUser}
+                                  onSave={handleSaveSelectedUser}
+                                  isSaving={isSaving}
                                 />
                               ) : null}
                             </td>
@@ -351,6 +367,11 @@ export default function UserPage() {
                 </tbody>
               </table>
             </div>
+            {statusMessage ? (
+              <section className="border-t border-dashed border-[#DCEAF1] px-6 py-4 text-center text-sm text-[#94A3B8]">
+                {statusMessage}
+              </section>
+            ) : null}
           </div>
         </SectionCard>
       </div>
