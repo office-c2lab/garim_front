@@ -19,7 +19,7 @@ import { useMonitoringEventsQuery } from '../../queries/monitoringQueries.js';
 
 const policyOptions = ['전체 정책', '일반 사용 허용 정책', '개인정보 보호 기본 정책'];
 const ALL_USERS_OPTION = '전체 사용자';
-const ROWS_PER_PAGE = 11;
+const ROWS_PER_PAGE = 10;
 
 function normalizeMonitoringEvent(event, index) {
   if (event.detectedAt) {
@@ -570,7 +570,7 @@ export function MonitoringLogView({
             </section>
           ) : null}
 
-          <div className="mt-2 shrink-0 pb-0">
+          <div className="mt-4 shrink-0 pb-0">
             <GlassPagination
               currentPage={currentPage}
               totalPages={totalPages}
