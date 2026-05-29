@@ -19,7 +19,7 @@ export default function LoginPage() {
             className="relative hidden min-h-screen overflow-hidden bg-[#080B28] bg-cover bg-center px-16 py-20 text-white lg:block 2xl:min-h-[44rem]"
             style={{ backgroundImage: `url(${loginBgImage})` }}
           >
-            <div className="absolute inset-0 bg-black/12" />
+            
             <div className="relative z-10 flex h-full flex-col justify-center">
               <div className="flex items-center gap-5">
                 <img src={logoIcon} alt="" className="h-20 w-20 rounded-2xl object-contain" />

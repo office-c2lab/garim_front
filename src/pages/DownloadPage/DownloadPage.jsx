@@ -171,15 +171,18 @@ export default function DownloadPage() {
       </header>
 
       <section
-        className="relative flex min-h-[25rem] items-center justify-center overflow-hidden bg-[#080B28] bg-cover bg-center px-6 text-white"
-        style={{ backgroundImage: `url(${garimMoonImage})` }}
+        className="relative flex min-h-[25rem] items-center justify-center overflow-hidden bg-[#080B28] bg-cover px-6 text-white"
+        style={{
+          backgroundImage: `url(${garimMoonImage})`,
+          backgroundPosition: 'center bottom',
+        }}
       >
-        <div className="absolute inset-0 bg-black/18" />
+        
         <div className="relative z-10 mx-auto max-w-[820px] text-center">
           <h1 className="text-[clamp(2.4rem,5vw,4.2rem)] font-bold leading-tight tracking-[-0.02em]">
             운영지원
           </h1>
-          <p className="mx-auto mt-6 max-w-[42rem] text-xl font-semibold leading-8 text-white/88">
+          <p className="mx-auto mt-6 max-w-[42rem] text-xl font-semibold leading-8 ">
             GARIM 적용에 필요한 압축 파일을 다운로드하고 실행 및 적용 방법을 확인해 주세요.
           </p>
           <button

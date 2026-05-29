@@ -21,7 +21,7 @@ const initialUsers = [
     ip: '203.0.113.23',
     department: '기술팀',
     position: '시니어 엔지니어',
-    updatedAt: '2025-05-20 14:32',
+    createdAt: '2025-05-20 14:32',
   },
   {
     id: 2,
@@ -30,7 +30,7 @@ const initialUsers = [
     ip: '203.0.113.45',
     department: '보안팀',
     position: '보안 엔지니어',
-    updatedAt: '2025-05-21 09:15',
+    createdAt: '2025-05-21 09:15',
   },
   {
     id: 3,
@@ -39,7 +39,7 @@ const initialUsers = [
     ip: '198.51.100.77',
     department: '영업팀',
     position: '세일즈 매니저',
-    updatedAt: '2025-05-19 16:45',
+    createdAt: '2025-05-19 16:45',
   },
   {
     id: 4,
@@ -48,7 +48,7 @@ const initialUsers = [
     ip: '203.0.113.99',
     department: '기술팀',
     position: '백엔드 엔지니어',
-    updatedAt: '2025-05-18 11:07',
+    createdAt: '2025-05-18 11:07',
   },
   {
     id: 5,
@@ -57,7 +57,7 @@ const initialUsers = [
     ip: '192.0.2.58',
     department: '관리팀',
     position: '관리 매니저',
-    updatedAt: '2025-05-17 10:22',
+    createdAt: '2025-05-17 10:22',
   },
 ];
 
@@ -273,7 +273,7 @@ export default function UserPage() {
                     <th
                       className={`${monitoringTableHeaderCellClass} w-[18%] whitespace-nowrap px-3`}
                     >
-                      최종 수정일
+                      최초 등록일
                     </th>
                   </tr>
                 </thead>
@@ -329,7 +329,7 @@ export default function UserPage() {
                             <div className="truncate">{user.position}</div>
                           </td>
                           <td className={monitoringTableCellClass(index, 'whitespace-nowrap px-3')}>
-                            {user.updatedAt}
+                            {user.createdAt}
                           </td>
                         </tr>
                         {isSelected ? (

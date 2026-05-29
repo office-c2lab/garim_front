@@ -216,11 +216,11 @@ function DetailSummaryItem({ label, value, valueClassName = '' }) {
 
 function DetailPanel({ title, children }) {
   return (
-    <section className="min-h-[128px] px-5 py-5">
+    <section className="min-h-[128px] min-w-0 px-5 py-5">
       <div className="pb-4">
         <DetailSectionLabel>{title}</DetailSectionLabel>
       </div>
-      <div>{children}</div>
+      <div className="min-w-0">{children}</div>
     </section>
   );
 }
@@ -228,7 +228,7 @@ function DetailPanel({ title, children }) {
 function DetailPanelText({ children, subtle = false }) {
   return (
     <div
-      className={`text-[12.5px] leading-[1.7] whitespace-pre-line ${
+      className={`monitoring-detail-scroll max-h-[220px] min-w-0 overflow-y-auto rounded-md border border-[#EEF1FB] bg-[#FCFDFF] px-3 py-2 text-[12.5px] leading-[1.7] whitespace-pre-wrap break-words [overflow-wrap:anywhere] ${
         subtle ? 'text-[#5B6686]' : 'text-[#2F3A56]'
       }`.trim()}
     >
@@ -239,11 +239,11 @@ function DetailPanelText({ children, subtle = false }) {
 
 function DetailBulletList({ items }) {
   return (
-    <ul className="space-y-1.5 text-[12.5px] leading-[1.65] text-[#2F3A56]">
+    <ul className="monitoring-detail-scroll max-h-[220px] min-w-0 space-y-1.5 overflow-y-auto rounded-md border border-[#EEF1FB] bg-[#FCFDFF] px-3 py-2 text-[12.5px] leading-[1.65] text-[#2F3A56]">
       {items.map(item => (
-        <li key={item} className="flex gap-2">
-          <span className="mt-[7px] h-1 w-1 rounded-full bg-[#6A5AE0]" />
-          <span>{item}</span>
+        <li key={item} className="flex min-w-0 gap-2">
+          <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-[#6A5AE0]" />
+          <span className="min-w-0 break-words [overflow-wrap:anywhere]">{item}</span>
         </li>
       ))}
     </ul>
@@ -536,22 +536,22 @@ export function MonitoringLogView({
 
                   <section className="border-t border-[#E7EBF5] bg-white">
                     <div className="grid lg:grid-cols-2">
-                      <div className="border-b border-[#E7EBF5] lg:border-r lg:border-[#E7EBF5]">
+                      <div className="min-w-0 border-b border-[#E7EBF5] lg:border-r lg:border-[#E7EBF5]">
                         <DetailPanel title="원본 프롬프트">
                           <DetailPanelText>{row.promptDetail}</DetailPanelText>
                         </DetailPanel>
                       </div>
-                      <div className="border-b border-[#E7EBF5]">
+                      <div className="min-w-0 border-b border-[#E7EBF5]">
                         <DetailPanel title="답변">
                           <DetailPanelText>{detail.answerDetail}</DetailPanelText>
                         </DetailPanel>
                       </div>
-                      <div className="lg:border-r lg:border-[#E7EBF5]">
+                      <div className="min-w-0 lg:border-r lg:border-[#E7EBF5]">
                         <DetailPanel title="탐지 근거">
                           <DetailBulletList items={detail.evidenceLines} />
                         </DetailPanel>
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <DetailPanel title="조치 내용">
                           <DetailBulletList items={detail.actionLines} />
                         </DetailPanel>
