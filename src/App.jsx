@@ -10,10 +10,8 @@ import SupportPage from './pages/SupportPage/SupportPage.jsx';
 import DownloadPage from './pages/DownloadPage/DownloadPage.jsx';
 import LoginPage from './pages/LoginPage/LoginPage.jsx';
 import MyPage from './pages/MyPage/MyPage.jsx';
-import {
-  DEFAULT_DOWNLOAD_PATH,
-  useSupportSettingsStore,
-} from './stores/supportSettingsStore.js';
+import NotFoundPage from './pages/NotFoundPage/NotFoundPage.jsx';
+import { DEFAULT_DOWNLOAD_PATH, useSupportSettingsStore } from './stores/supportSettingsStore.js';
 
 function DownloadEntryRoute() {
   const downloadPath = useSupportSettingsStore(state => state.downloadPath);
@@ -44,6 +42,7 @@ export default function App() {
         <Route path="/support" element={<SupportPage />} />
         <Route path="/mypage" element={<MyPage />} />
       </Route>
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }

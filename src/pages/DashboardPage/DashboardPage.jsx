@@ -55,7 +55,12 @@ const chartSeries = [
     values: [98, 112, 105, 139, 168, 152, 156],
   },
   { key: 'block', label: '차단', color: STATUS_COLORS.block, values: [8, 9, 17, 14, 16, 13, 20] },
-  { key: 'normal', label: '정상', color: STATUS_COLORS.normal, values: [28, 31, 27, 36, 42, 40, 38] },
+  {
+    key: 'normal',
+    label: '정상',
+    color: STATUS_COLORS.normal,
+    values: [28, 31, 27, 36, 42, 40, 38],
+  },
 ];
 
 const chartLabels = ['12/02', '12/03', '12/04', '12/05', '12/06', '12/07', '12/08'];
@@ -109,7 +114,12 @@ const chartFilters = [
   {
     key: 'policy',
     label: '정책',
-    options: ['전체 정책', '개인정보 보호 기본 정책', '기밀정보 외부 전송 차단 정책', '일반 사용 허용 정책'],
+    options: [
+      '전체 정책',
+      '개인정보 보호 기본 정책',
+      '기밀정보 외부 전송 차단 정책',
+      '일반 사용 허용 정책',
+    ],
   },
   { key: 'user', label: '사용자', options: ['전체 사용자', 'admin', 'user01', 'user02'] },
 ];
@@ -198,15 +208,18 @@ const recentHistory = [
 const alerts = [
   {
     title: '기밀정보 외부 전송 차단 정책',
-    detail: '최근 1시간 동안 차단 처리된 요청이 증가했습니다. 반복되는 서비스와 IP를 확인해 주세요.',
+    detail:
+      '최근 1시간 동안 차단 처리된 요청이 증가했습니다. 반복되는 서비스와 IP를 확인해 주세요.',
   },
   {
     title: '개인정보 보호 기본 정책',
-    detail: '개인정보 포함 요청이 마스킹 처리되었습니다. 정책 적용 범위와 예외 필요 여부를 검토해 주세요.',
+    detail:
+      '개인정보 포함 요청이 마스킹 처리되었습니다. 정책 적용 범위와 예외 필요 여부를 검토해 주세요.',
   },
   {
     title: '프롬프트 경고 허용 정책',
-    detail: '탐지 후 허용 처리된 요청이 반복되고 있습니다. 사용자 안내 문구와 정책 조건을 확인해 주세요.',
+    detail:
+      '탐지 후 허용 처리된 요청이 반복되고 있습니다. 사용자 안내 문구와 정책 조건을 확인해 주세요.',
   },
 ];
 
@@ -316,7 +329,10 @@ function LineChartTooltip({ active, label, payload }) {
       <div className="mb-1.5 text-[#1F2942]">{label}</div>
       <div className="grid gap-1.5">
         {payload.map(item => (
-          <div key={item.dataKey} className="flex items-center justify-between gap-4 text-[#647089]">
+          <div
+            key={item.dataKey}
+            className="flex items-center justify-between gap-4 text-[#647089]"
+          >
             <span className="flex items-center gap-2">
               <ChartTooltipDot color={item.color} />
               <span>{item.name}</span>
@@ -335,7 +351,10 @@ function LineChart({ hiddenSeriesKeys }) {
   return (
     <div className="relative h-[286px]">
       <ResponsiveContainer width="100%" height="100%">
-        <RechartsLineChart data={lineChartData} margin={{ top: 22, right: 18, bottom: 4, left: -8 }}>
+        <RechartsLineChart
+          data={lineChartData}
+          margin={{ top: 22, right: 18, bottom: 4, left: -8 }}
+        >
           <CartesianGrid stroke="#E8EDF7" vertical={false} />
           <XAxis
             dataKey="date"
@@ -352,10 +371,7 @@ function LineChart({ hiddenSeriesKeys }) {
             tick={{ fill: '#71809D', fontSize: 12, fontWeight: 700 }}
             width={42}
           />
-          <Tooltip
-            cursor={{ stroke: '#D7DDF0', strokeWidth: 1 }}
-            content={<LineChartTooltip />}
-          />
+          <Tooltip cursor={{ stroke: '#D7DDF0', strokeWidth: 1 }} content={<LineChartTooltip />} />
           {visibleSeries.map(series => (
             <Line
               key={series.key}
@@ -552,7 +568,9 @@ function ResultBadge({ tone, children }) {
 function ResultText({ result }) {
   const className = getStatusTextClassName(result);
 
-  return <span className={cn('text-[15px] font-semibold whitespace-nowrap', className)}>{result}</span>;
+  return (
+    <span className={cn('text-[15px] font-semibold whitespace-nowrap', className)}>{result}</span>
+  );
 }
 
 function ServiceStatusText({ status }) {
@@ -778,7 +796,6 @@ export default function DashboardPage() {
           </div>
         </DashboardPanel>
       </section>
-
     </PageLayout>
   );
 }

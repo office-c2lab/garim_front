@@ -245,12 +245,36 @@ export default function UserPage() {
                 <thead className={monitoringTableHeadClass}>
                   <tr className={monitoringTableHeaderRowClass}>
                     <th className={`${monitoringTableHeaderCellClass} w-[4%] px-4`} />
-                    <th className={`${monitoringTableHeaderCellClass} w-[15%] whitespace-nowrap px-3`}>IP 주소</th>
-                    <th className={`${monitoringTableHeaderCellClass} w-[10%] whitespace-nowrap px-3`}>사용자명</th>
-                    <th className={`${monitoringTableHeaderCellClass} w-[26%] whitespace-nowrap px-3`}>이메일</th>
-                    <th className={`${monitoringTableHeaderCellClass} w-[10%] whitespace-nowrap px-3`}>부서</th>
-                    <th className={`${monitoringTableHeaderCellClass} w-[17%] whitespace-nowrap px-3`}>직책</th>
-                    <th className={`${monitoringTableHeaderCellClass} w-[18%] whitespace-nowrap px-3`}>최종 수정일</th>
+                    <th
+                      className={`${monitoringTableHeaderCellClass} w-[15%] whitespace-nowrap px-3`}
+                    >
+                      IP 주소
+                    </th>
+                    <th
+                      className={`${monitoringTableHeaderCellClass} w-[10%] whitespace-nowrap px-3`}
+                    >
+                      사용자명
+                    </th>
+                    <th
+                      className={`${monitoringTableHeaderCellClass} w-[26%] whitespace-nowrap px-3`}
+                    >
+                      이메일
+                    </th>
+                    <th
+                      className={`${monitoringTableHeaderCellClass} w-[10%] whitespace-nowrap px-3`}
+                    >
+                      부서
+                    </th>
+                    <th
+                      className={`${monitoringTableHeaderCellClass} w-[17%] whitespace-nowrap px-3`}
+                    >
+                      직책
+                    </th>
+                    <th
+                      className={`${monitoringTableHeaderCellClass} w-[18%] whitespace-nowrap px-3`}
+                    >
+                      최종 수정일
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -293,7 +317,12 @@ export default function UserPage() {
                           <td className={monitoringTableCellClass(index, 'whitespace-nowrap px-3')}>
                             <div className="truncate">{user.email}</div>
                           </td>
-                          <td className={monitoringTableCellClass(index, 'whitespace-nowrap px-3 font-semibold')}>
+                          <td
+                            className={monitoringTableCellClass(
+                              index,
+                              'whitespace-nowrap px-3 font-semibold'
+                            )}
+                          >
                             {user.department}
                           </td>
                           <td className={monitoringTableCellClass(index, 'whitespace-nowrap px-3')}>

@@ -32,10 +32,10 @@ export default function LoginPage() {
                   </div>
                 </div>
               </div>
- 
+
               <div className="mt-12">
                 <h1 className="text-xl font-black leading-8 tracking-[-0.02em]">
-                  AI 서비스의 정책 적용 상태와 위험 탐지를 
+                  AI 서비스의 정책 적용 상태와 위험 탐지를
                   <br />
                   한눈에 관리하는 운영 보안 플랫폼
                 </h1>

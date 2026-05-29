@@ -77,7 +77,10 @@ export default function AppSidebar({
     <aside className="flex h-full w-full overflow-hidden  border-r border-[#E7ECF5] bg-white text-[#344054] shadow-[0_10px_30px_rgba(15,23,42,0.045)]">
       <div className="flex h-full w-full flex-col px-3 lg:px-3 xl:px-3.5">
         <div className={`flex min-h-0 flex-1 flex-col pb-4 ${sidebarTopPaddingClass}`.trim()}>
-          <nav className={`flex min-h-0 flex-1 ${showBrand ? 'pt-4' : 'pt-0'}`.trim()} aria-label="화면 이동 메뉴">
+          <nav
+            className={`flex min-h-0 flex-1 ${showBrand ? 'pt-4' : 'pt-0'}`.trim()}
+            aria-label="화면 이동 메뉴"
+          >
             <ul className="h-full w-full space-y-1.5 text-left">
               {navItems.map(item => {
                 const isActive = getIsActive(location.pathname, item.path);
@@ -122,7 +125,10 @@ export default function AppSidebar({
                               const isLastChild = childIndex === item.children.length - 1;
 
                               return (
-                                <li key={child.key} className="relative ml-[22px] pb-2 pl-5 last:pb-0">
+                                <li
+                                  key={child.key}
+                                  className="relative ml-[22px] pb-2 pl-5 last:pb-0"
+                                >
                                   <span
                                     aria-hidden="true"
                                     className={`absolute left-0 top-0 w-px bg-[#D9E0F0] ${

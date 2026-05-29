@@ -62,12 +62,7 @@ function HeaderIconButton({
 
 function FilledBellIcon({ className = '' }) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      className={className}
-      fill="currentColor"
-    >
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
       <path d="M12 2.75a5.25 5.25 0 0 0-5.25 5.25v1.13c0 .92-.24 1.83-.69 2.63l-1.07 1.88A2.25 2.25 0 0 0 6.94 17h10.12a2.25 2.25 0 0 0 1.95-3.36l-1.07-1.88a5.38 5.38 0 0 1-.69-2.63V8A5.25 5.25 0 0 0 12 2.75Zm0 18.5a2.63 2.63 0 0 0 2.47-1.75H9.53A2.63 2.63 0 0 0 12 21.25Z" />
     </svg>
   );
