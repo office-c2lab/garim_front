@@ -1,11 +1,9 @@
 import {
   CircleCheck,
   Download,
-  FileDown,
   FileArchive,
   Folder,
   Globe2,
-  Info,
   Mail,
   MousePointerClick,
   RefreshCw,
@@ -22,13 +20,6 @@ import logoIcon from '../../assets/icons/logo.png';
 import packIcon from '../../assets/images/pac.png';
 import { useWindowsSetupDownloadMutation } from '../../queries/downloadQueries.js';
 import { useSupportSettingsStore } from '../../stores/supportSettingsStore.js';
-
-const quickSteps = [
-  [FileDown, '압축 파일 다운로드', '최신 압축 파일을 다운로드합니다.'],
-  [MousePointerClick, '압축 해제 및 파일 실행', '다운로드한 압축 파일을 실행합니다.'],
-  [CircleCheck, '적용 확인', '설정 또는 정책 적용 상태를 확인합니다.'],
-  [Rocket, '사용 시작', '적용이 완료된 후 서비스를 이용합니다.'],
-];
 
 const installSteps = [
   [Download, '팩 파일 다운로드', 'garim-windows-setup.zip\n파일을 다운로드합니다.'],
@@ -94,7 +85,7 @@ function SectionHeader({ title, description }) {
   );
 }
 
-function StepCard({ icon, number, title, description }) {
+function CompactGuideCard({ icon, number, title, description }) {
   const Icon = icon;
 
   return (
@@ -105,24 +96,7 @@ function StepCard({ icon, number, title, description }) {
       <Icon className="h-12 w-12 text-[#5B39D6]" />
       <div className="mt-5 min-h-[5rem]">
         <h3 className="text-lg font-black text-slate-900">{title}</h3>
-        <p className="mt-3 text-sm font-semibold leading-6 text-[#526078]">{description}</p>
-      </div>
-    </div>
-  );
-}
-
-function CompactGuideCard({ icon, number, title, description }) {
-  const Icon = icon;
-
-  return (
-    <div className="relative flex min-h-[10.75rem] flex-col items-center justify-center rounded-[10px] border border-[#E3E8F2] bg-white px-4 py-5 text-center shadow-[0_10px_22px_rgba(15,23,42,0.05)]">
-      <span className="absolute left-3 top-3 flex h-6 w-6 items-center justify-center rounded-full bg-[#5B39D6] text-xs font-black text-white shadow-[0_8px_16px_rgba(91,57,214,0.2)]">
-        {number}
-      </span>
-      <Icon className="h-9 w-9 text-[#5B39D6]" strokeWidth={2.2} />
-      <div className="mt-4">
-        <h3 className="text-sm font-black leading-5 text-slate-900">{title}</h3>
-        <p className="mt-2 whitespace-pre-line text-xs font-semibold leading-5 text-[#526078]">
+        <p className="mt-3 whitespace-pre-line text-sm font-semibold leading-6 text-[#526078]">
           {description}
         </p>
       </div>
@@ -132,10 +106,7 @@ function CompactGuideCard({ icon, number, title, description }) {
 
 function GuideNotice({ children }) {
   return (
-    <div className="mt-5 flex items-start gap-3 rounded-lg border border-[#DED7FF] bg-[#F5F1FF] px-5 py-3 text-sm font-semibold leading-6 text-[#6C4FE0]">
-      <Info className="mt-0.5 h-5 w-5 shrink-0" />
-      <span>{children}</span>
-    </div>
+    <p className="mt-5 text-sm font-semibold leading-6 text-[#6C4FE0]">{children}</p>
   );
 }
 
@@ -157,11 +128,11 @@ export default function DownloadPage() {
             <img src={garimLogo} alt="GARIM" className="h-8 w-auto" />
           </div>
           <nav className="hidden items-center gap-10 text-sm font-bold text-white md:flex">
-            <a href="#pack-download" className="transition hover:text-[#C4B5FD]">
-              다운로드 가이드
-            </a>
             <a href="#apply" className="transition hover:text-[#C4B5FD]">
-              적용 방법
+              설치 안내
+            </a>
+            <a href="#pack-download" className="transition hover:text-[#C4B5FD]">
+              다운로드
             </a>
             <a href="#contact" className="transition hover:text-[#C4B5FD]">
               문의하기
@@ -198,11 +169,20 @@ export default function DownloadPage() {
       </section>
 
       <div className="mx-auto flex max-w-[1280px] flex-col gap-12 px-8 py-12">
-        <section id="guide" className="scroll-mt-28">
-          <SectionHeader title="빠른 시작" description="4단계만 따라하면 쉽게 적용할 수 있어요." />
+        <section id="apply" className="scroll-mt-28">
+          <SectionHeader
+            title="설치 안내"
+            description="다운로드한 압축 파일을 실행한 뒤 안내에 따라 GARIM 설정을 적용해 주세요."
+          />
+
+          <GuideNotice>
+            설치 후에는 관련 대상 AI 서비스 접속이 회사 보안 프록시를 통해 연결되며, 정책에 따라
+            일부 요청은 허용·차단·기록될 수 있습니다.
+          </GuideNotice>
+
           <div className="mt-6 grid gap-7 md:grid-cols-2 xl:grid-cols-4">
-            {quickSteps.map(([Icon, title, description], index) => (
-              <StepCard
+            {installSteps.map(([Icon, title, description], index) => (
+              <CompactGuideCard
                 key={title}
                 icon={Icon}
                 number={index + 1}
@@ -263,30 +243,6 @@ export default function DownloadPage() {
           </div>
         </Section>
 
-        <Section id="apply">
-          <SectionHeader
-            title="설치 안내"
-            description="다운로드한 압축 파일을 실행한 뒤 안내에 따라 GARIM 설정을 적용해 주세요."
-          />
-
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {installSteps.map(([Icon, title, description], index) => (
-              <CompactGuideCard
-                key={title}
-                icon={Icon}
-                number={index + 1}
-                title={title}
-                description={description}
-              />
-            ))}
-          </div>
-
-          <GuideNotice>
-            설치 후에는 관련 대상 AI 서비스 접속이 회사 보안 프록시를 통해 연결되며, 정책에 따라
-            일부 요청은 허용·차단·기록될 수 있습니다.
-          </GuideNotice>
-        </Section>
-
         <Section>
           <SectionHeader
             title="주의사항"
@@ -310,13 +266,15 @@ export default function DownloadPage() {
           </div>
         </Section>
 
-        <Section>
+        <section className="scroll-mt-28">
           <SectionHeader
             title="삭제 안내"
             description="GARIM 적용을 해제해야 하는 경우 아래 순서대로 진행해 주세요."
           />
 
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <GuideNotice>삭제 후에는 설정된 PAC 프록시와 설치된 인증서가 제거됩니다.</GuideNotice>
+
+          <div className="mt-6 grid gap-7 md:grid-cols-2 xl:grid-cols-4">
             {deleteSteps.map(([Icon, title, description], index) => (
               <CompactGuideCard
                 key={title}
@@ -327,9 +285,7 @@ export default function DownloadPage() {
               />
             ))}
           </div>
-
-          <GuideNotice>삭제 후에는 설정된 PAC 프록시와 설치된 인증서가 제거됩니다.</GuideNotice>
-        </Section>
+        </section>
 
         <Section>
           <SectionHeader
