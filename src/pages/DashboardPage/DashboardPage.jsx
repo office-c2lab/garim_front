@@ -292,7 +292,7 @@ function ChartFilterSelect({ label, value, options, onChange }) {
 
 function ChartFilterBar({ filters, onFilterChange, onReset }) {
   return (
-    <section className="grid items-end gap-4 md:grid-cols-2 xl:grid-cols-[1.2fr_1.04fr_0.95fr_0.9fr_auto]">
+    <section className="grid items-end gap-4 md:grid-cols-2 xl:grid-cols-[190px_1.04fr_0.95fr_0.9fr_auto]">
       <DateRangePicker
         label="조회 기간"
         startDate={filters.startDate}

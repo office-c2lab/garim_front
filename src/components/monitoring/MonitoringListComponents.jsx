@@ -40,10 +40,9 @@ function formatDateValue(date) {
 function formatDateLabel(value) {
   if (!value) return '';
   const date = parseDateString(value);
-  const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return `${month}-${day}`;
 }
 
 function createCalendarDays(viewDate) {
@@ -168,7 +167,7 @@ export function DateRangePicker({
   startDate,
   endDate,
   onChange,
-  widthClass = 'min-w-[278px]',
+  widthClass = 'min-w-[190px]',
   labelClassName = 'text-[13px] font-semibold tracking-[-0.01em] text-[#5C6784]',
   triggerHeightClass = 'h-[42px]',
 }) {

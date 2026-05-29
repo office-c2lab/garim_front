@@ -415,7 +415,7 @@ export function MonitoringLogView({
                       setEndDate(range.endDate);
                       setCurrentPage(1);
                     }}
-                    widthClass="w-full sm:w-auto sm:min-w-[260px]"
+                    widthClass="w-full sm:w-[190px] sm:min-w-[190px]"
                   />
                 </div>
 
